@@ -1,0 +1,1 @@
+export function Footer(){return <footer className="border-t border-white/10 px-5 py-10 text-center text-sm text-slate-400">© {new Date().getFullYear()} Milky Way Photographers Guild. Founded by Aaron King of Photog Adventures.</footer>}
