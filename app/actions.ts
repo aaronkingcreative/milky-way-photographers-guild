@@ -1,9 +1,29 @@
 "use server";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireAccess, requireAdmin, requireLogin } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getWeekStart, REACTION_TYPES, SUBMISSION_LIMIT } from "@/lib/images";
 
-export async function signOut() {
-  const supabase = await createServerSupabaseClient();
-  await supabase.auth.signOut();
-  redirect("/");
+function value(formData: FormData, key: string) { return String(formData.get(key) || "").trim(); }
+
+export async function signOut() { const supabase = await createServerSupabaseClient(); await supabase.auth.signOut(); redirect("/"); }
+
+export async function submitImage(formData: FormData) {
+  const { user } = await requireAccess(); const supabase = await createServerSupabaseClient(); const week = getWeekStart();
+  const title=value(formData,"title"), image_url=value(formData,"image_url"), capture_date=value(formData,"capture_date"), country=value(formData,"country"), state_or_province=value(formData,"state_or_province"), gear_settings=value(formData,"gear_settings");
+  if (!title || !image_url || !capture_date || !country || !state_or_province || !gear_settings) return { error: "Please complete all required fields." };
+  const { count } = await supabase.from("guild_images").select("id",{count:"exact",head:true}).eq("user_id",user.id).eq("week_starts_on",week).is("deleted_at",null);
+  if ((count || 0) >= SUBMISSION_LIMIT) return { error: "You have reached the 3 image submission limit for this Sunday-Saturday week." };
+  const is_weekly_candidate = formData.get("is_weekly_candidate") === "on";
+  if (is_weekly_candidate) { const { count: candidateCount } = await supabase.from("guild_images").select("id",{count:"exact",head:true}).eq("user_id",user.id).eq("week_starts_on",week).eq("is_weekly_candidate",true).is("deleted_at",null); if ((candidateCount || 0)>0) return { error: "You already have an Image of the Week candidate this week. Unmark it before selecting another." }; }
+  const { data, error } = await supabase.from("guild_images").insert({ user_id:user.id, title, image_url, capture_date, country, state_or_province, specific_location_name:value(formData,"specific_location_name")||null, gear_settings, short_story:value(formData,"short_story")||null, what_went_well:value(formData,"what_went_well")||null, what_could_have_gone_better:value(formData,"what_could_have_gone_better")||null, is_weekly_candidate, week_starts_on:week }).select("id").single();
+  if (error) return { error: error.message };
+  revalidatePath("/feed"); redirect(`/images/${data.id}`);
 }
+
+export async function addComment(formData: FormData) { const { user } = await requireAccess(); const supabase=await createServerSupabaseClient(); const image_id=value(formData,"image_id"), body=value(formData,"body"); if(!body) return; await supabase.from("image_comments").insert({image_id,user_id:user.id,body}); revalidatePath(`/images/${image_id}`); }
+export async function toggleReaction(formData: FormData) { const { user } = await requireAccess(); const supabase=await createServerSupabaseClient(); const image_id=value(formData,"image_id"), reaction_type=value(formData,"reaction_type"); if(!REACTION_TYPES.some(([t])=>t===reaction_type)) return; const {data}=await supabase.from("image_reactions").select("id").eq("image_id",image_id).eq("user_id",user.id).eq("reaction_type",reaction_type).maybeSingle(); if(data) await supabase.from("image_reactions").delete().eq("id",data.id); else await supabase.from("image_reactions").insert({image_id,user_id:user.id,reaction_type}); revalidatePath(`/images/${image_id}`); revalidatePath("/feed"); }
+export async function toggleWeeklyCandidate(formData: FormData) { const { user } = await requireAccess(); const supabase=await createServerSupabaseClient(); const image_id=value(formData,"image_id"), week=value(formData,"week_starts_on"), next=value(formData,"next")==="true"; if(next){ const { count }=await supabase.from("guild_images").select("id",{count:"exact",head:true}).eq("user_id",user.id).eq("week_starts_on",week).eq("is_weekly_candidate",true).is("deleted_at",null).neq("id",image_id); if((count||0)>0) return; } await supabase.from("guild_images").update({is_weekly_candidate:next}).eq("id",image_id).eq("user_id",user.id); revalidatePath(`/images/${image_id}`); revalidatePath("/feed"); }
+export async function updateProfileLocation(formData: FormData) { const { user }=await requireLogin(); const supabase=await createServerSupabaseClient(); await supabase.from("profiles").update({display_name:value(formData,"display_name")||null,country:value(formData,"country")||null,state_or_province:value(formData,"state_or_province")||null,specific_location_name:value(formData,"specific_location_name")||null}).eq("id",user.id); revalidatePath("/profile"); }
+export async function adminImageAction(formData: FormData) { const { user }=await requireAdmin(); const supabase=await createServerSupabaseClient(); const image_id=value(formData,"image_id"), action=value(formData,"action"); const reason=value(formData,"moderation_reason")||null; const patch:any={moderation_reason:reason}; if(action==="hide") Object.assign(patch,{hidden_at:new Date().toISOString(),hidden_by:user.id,moderation_status:"hidden"}); if(action==="unhide") Object.assign(patch,{hidden_at:null,hidden_by:null,moderation_status:"visible"}); if(action==="delete") Object.assign(patch,{deleted_at:new Date().toISOString(),deleted_by:user.id,moderation_status:"deleted"}); if(action==="blur") Object.assign(patch,{moderation_blur_required:true,moderation_status:"blurred"}); if(action==="unblur") Object.assign(patch,{moderation_blur_required:false,moderation_status:"visible"}); if(action==="review") Object.assign(patch,{moderation_reviewed_by:user.id,moderation_reviewed_at:new Date().toISOString()}); await supabase.from("guild_images").update(patch).eq("id",image_id); revalidatePath("/admin/images"); }
