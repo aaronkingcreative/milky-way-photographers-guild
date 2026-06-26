@@ -1,12 +1,16 @@
+import Image from "next/image";
 import Link from "next/link";
 
+const logoUrl =
+  "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/site-assets/logos/MWPG_Logo.png";
+
 const whatsComing = [
-  "Image sharing built for photographers",
+  "Image sharing built with photographers in mind",
   "Weekly Image of the Week voting",
-  "Aaron’s Favorite weekly feature",
-  "Milky Way planning resources",
-  "Guild feedback and learning tools",
-  "Future achievement badges for submitted images",
+  "Winner Monday Moment of Envy",
+  "Earn Milky Way achievement badges from submitted images",
+  "Graduate from Beginner Milky Way Photographer to Master Milky Way Photographer",
+  "Learn from each other's shared tips & tricks",
 ];
 
 export default function Home() {
@@ -14,8 +18,8 @@ export default function Home() {
     <div className="overflow-hidden">
       <section className="starfield relative px-5 py-20 sm:py-24 lg:py-32">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_68%_18%,rgba(231,159,43,.20),transparent_22rem),radial-gradient(circle_at_24%_30%,rgba(47,68,93,.44),transparent_24rem)]" />
-        <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1.08fr_.92fr]">
-          <div>
+        <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[.86fr_1.14fr] xl:grid-cols-[.8fr_1.2fr]">
+          <div className="lg:-ml-2">
             <p className="text-sm font-bold uppercase tracking-[.35em] text-[#f4bd61]">
               Milky Way Photographers Guild
             </p>
@@ -23,17 +27,17 @@ export default function Home() {
               The Guild is being rebuilt.
             </h1>
             <p className="mt-6 max-w-3xl text-2xl leading-9 text-[#f4bd61]">
-              A private image-first community for Milky Way photographers is
-              coming soon.
+              The private image-first, ad-free community for Milky Way photographers is returning.
             </p>
             <p className="mt-7 max-w-3xl text-lg leading-8 text-[#b8c4d4]">
-              I’m rebuilding the Milky Way Photographers Guild into a better
-              home for sharing night-sky images, getting useful feedback,
-              celebrating weekly image wins, and improving your Milky Way
-              photography without ads or social media noise.
+              I&apos;m rebuilding the Milky Way Photographers Guild into a better home for sharing your
+              night-sky images, voting on each other&apos;s images to find the Image of the Week,
+              celebrating weekly winners with a Monday Moment of Envy, while still keeping the
+              original benefits of getting useful feedback and improving your Milky Way photography
+              without ads or social media noise.
             </p>
             <p className="mt-5 text-lg font-semibold text-white">
-              Built by Aaron King of Photog Adventures.
+              Aaron King of Photog Adventures.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <a className="btn btn-primary" href="https://www.photogadventures.com">
@@ -51,24 +55,16 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="card relative min-h-[28rem] overflow-hidden rounded-[2rem] p-6">
-            <div className="absolute inset-0 bg-[linear-gradient(160deg,rgba(8,13,23,.2),rgba(8,13,23,.88)_62%),radial-gradient(ellipse_at_48%_78%,rgba(231,159,43,.32),transparent_22rem),radial-gradient(ellipse_at_50%_18%,rgba(255,255,255,.58),rgba(255,255,255,.08)_18%,transparent_38%)]" />
-            <div className="absolute left-1/2 top-7 h-[26rem] w-28 -translate-x-1/2 rotate-[22deg] rounded-full bg-white/10 blur-2xl" />
-            <div className="absolute bottom-0 left-0 right-0 h-36 bg-[linear-gradient(172deg,transparent_20%,rgba(7,10,16,.9)_21%),linear-gradient(90deg,rgba(231,159,43,.18),rgba(47,68,93,.45))]" />
-            <div className="relative flex h-full min-h-[25rem] flex-col justify-between">
-              <div className="w-fit rounded-full border border-[#e79f2b]/40 bg-black/25 px-4 py-2 text-sm font-bold uppercase tracking-[.24em] text-[#f4bd61]">
-                Under construction
-              </div>
-              <div>
-                <p className="max-w-sm text-3xl font-black leading-tight text-white">
-                  A quieter home for night-sky photographers is on the way.
-                </p>
-                <p className="mt-4 max-w-md leading-7 text-[#b8c4d4]">
-                  For now, Photog Adventures is the best place for current
-                  resources, workshops, videos, and updates.
-                </p>
-              </div>
-            </div>
+          <div className="relative flex justify-center lg:justify-end">
+            <div className="absolute inset-0 -z-10 rounded-full bg-[#e79f2b]/10 blur-3xl" />
+            <Image
+              src={logoUrl}
+              alt="Milky Way Photographers Guild"
+              width={900}
+              height={450}
+              priority
+              className="h-auto w-full max-w-[38rem] drop-shadow-[0_28px_70px_rgba(0,0,0,0.42)] sm:max-w-[44rem] lg:max-w-[48rem] xl:max-w-[54rem]"
+            />
           </div>
         </div>
       </section>
@@ -76,10 +72,10 @@ export default function Home() {
       <section className="mx-auto max-w-7xl px-5 py-16 sm:py-20">
         <div className="max-w-3xl">
           <p className="text-sm font-bold uppercase tracking-[.32em] text-[#f4bd61]">
-            What’s coming
+            What&apos;s coming
           </p>
           <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">
-            Built around images, learning, and the Milky Way.
+            Share your images, pass off achievements and earn Master Milky Way Photographer.
           </h2>
         </div>
         <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -102,13 +98,20 @@ export default function Home() {
             For now
           </p>
           <p className="mx-auto mt-5 max-w-3xl text-xl leading-9 text-[#dbe5f1]">
-            While the Guild is being rebuilt, you can still find my current
-            photography resources, workshops, videos, and updates through
-            Photog Adventures.
+            While the Guild is being rebuilt, you can still find all my photography content &amp;
+            resources through the Photog Adventures YouTube &amp; Podcast.
           </p>
-          <a className="btn btn-primary mt-8" href="https://www.photogadventures.com">
-            Go to Photog Adventures
-          </a>
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
+            <a className="btn btn-primary" href="https://www.photogadventures.com">
+              Go to Photog Adventures
+            </a>
+            <a className="btn btn-secondary" href="https://www.youtube.com/c/PhotogAdventures">
+              YouTube
+            </a>
+            <a className="btn btn-ghost" href="https://soundcloud.com/user-407436417">
+              Podcast
+            </a>
+          </div>
           <p className="mt-8 text-sm text-[#9fb0c0]">
             Questions? Contact Aaron at{" "}
             <a className="text-[#f4bd61] underline-offset-4 hover:underline" href="mailto:aaron@photogadventures.com">
