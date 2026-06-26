@@ -1,4 +1,4 @@
 import Link from "next/link";
-import { getSessionState } from "@/lib/supabase";
+import { getSessionState } from "@/lib/supabase/server";
 import { signOut } from "@/app/actions";
 export async function Header(){const {user,isAdmin}=await getSessionState();return <header className="sticky top-0 z-50 border-b border-white/10 bg-[#101722]/85 backdrop-blur"><nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4"><Link href="/" className="font-bold tracking-wide text-amber-200">Milky Way Photographers Guild</Link><div className="flex flex-wrap items-center gap-4 text-sm text-slate-200">{user? <><Link href="/dashboard">Dashboard</Link><Link href="/feed">Feed</Link><Link href="/submit">Submit</Link><Link href="/winners">Winners</Link><Link href="/resources">Resources</Link><Link href="/courses">Courses</Link>{isAdmin&&<Link href="/admin">Admin</Link>}<form action={signOut}><button className="text-amber-200">Sign out</button></form></>:<><Link href="/">Home</Link><Link href="/login">Sign in</Link><Link className="btn btn-primary !px-4 !py-2" href="/signup">Join the Guild</Link></>}</div></nav></header>}
