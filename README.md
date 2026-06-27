@@ -22,6 +22,32 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
 Do not commit real Supabase credentials.
 
+
+## Supabase auth URL configuration
+
+In Supabase, open **Authentication → URL Configuration** and keep these auth redirect settings in sync with production and preview deployments.
+
+Site URL:
+
+```text
+https://milkywayphotographersguild.com
+```
+
+Redirect URLs:
+
+```text
+https://milkywayphotographersguild.com/**
+https://www.milkywayphotographersguild.com/**
+https://milky-way-photographers-guild.vercel.app/**
+http://localhost:3000/**
+```
+
+In Vercel, set:
+
+```bash
+NEXT_PUBLIC_SITE_URL=https://milkywayphotographersguild.com
+```
+
 ## Supabase migrations
 
 Run the SQL in `supabase/migrations/20260626000000_phase_1_foundation.sql` with the Supabase CLI or SQL editor.
