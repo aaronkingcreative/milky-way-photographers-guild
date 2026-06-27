@@ -1,4 +1,82 @@
-import Link from "next/link";import { AccessNeededPanel } from "@/components/Cards";import { ImageGrid } from "@/components/images/ImageGrid";import { WeeklySubmissionStatus } from "@/components/images/WeeklySubmissionStatus";import { requireLogin } from "@/lib/guards";import { createServerSupabaseClient } from "@/lib/supabase/server";import { getWeekStart, SUBMISSION_LIMIT } from "@/lib/images";
-const ranks=["Beginner","Amateur","Novice","Veteran","Master"];
-const honors=[['★','First Light',true],['✦','Helpful Eye',true],['☄','Storyteller',false],['◎','Clean Craft',false],['♛','IOTW Crown',false],['◫','Composition',false]] as const;
-export default async function Page(){const {hasAccess,user}=await requireLogin();const supabase=await createServerSupabaseClient();let latest:any[]=[],reactions:any[]=[],remaining=0,hasCandidate=false,myCount=0,candidateCount=0;if(hasAccess&&user){const week=getWeekStart();const [{data:imgs},{data:rx},{count},{count:cand},{count:mine}]=await Promise.all([supabase.from("guild_images").select("*").is("hidden_at",null).is("deleted_at",null).order("created_at",{ascending:false}).limit(9),supabase.from("image_reactions").select("image_id,reaction_type"),supabase.from("guild_images").select("id",{count:"exact",head:true}).eq("user_id",user.id).eq("week_starts_on",week).is("deleted_at",null),supabase.from("guild_images").select("id",{count:"exact",head:true}).eq("user_id",user.id).eq("week_starts_on",week).eq("is_weekly_candidate",true).is("deleted_at",null),supabase.from("guild_images").select("id",{count:"exact",head:true}).eq("user_id",user.id).is("deleted_at",null)]);latest=imgs||[];reactions=rx||[];remaining=Math.max(0,SUBMISSION_LIMIT-(count||0));hasCandidate=(cand||0)>0;myCount=mine||0;candidateCount=latest.filter(i=>i.is_weekly_candidate).length;}const first=(user?.user_metadata?.display_name||user?.email||"Guild member").split(/[ @]/)[0];const top=latest.slice(0,3);return <section className="mw-page-wide">{hasAccess?<><div className="mb-8 flex flex-wrap items-end justify-between gap-6"><div><p className="mw-eyebrow">Guild Hall</p><h1 className="mt-2 mw-page-title">Welcome back, {first}.</h1><p className="mt-3 mw-page-subtitle">Your standing in the Guild, this week's contenders, and the honors you're chasing.</p></div><Link className="mw-btn-secondary rounded-sm" href="/submit">File a Field Report</Link></div><section className="mw-card-gold mb-5 p-7"><div className="mb-6 flex flex-wrap justify-between gap-5"><div><p className="text-sm uppercase tracking-[.2em] text-white/45">Guild Standing</p><h2 className="mt-1 mw-section-title">Apprentice Stargazer</h2></div><div className="text-right"><p className="text-white/55">Next rank</p><p className="mw-card-title">Novice <span className="text-sm text-white/40">· 4 honors to go</span></p></div></div><div className="relative flex justify-between"><div className="absolute left-[5%] right-[5%] top-2.5 h-px bg-white/15"/>{ranks.map((r,i)=><div key={r} className="relative z-10 flex flex-1 flex-col items-center gap-3"><span className={`h-5 w-5 rounded-full border-2 ${i<2?'border-[#e79f2b] bg-[#e79f2b]':'border-white/25 bg-[#2f445d]'}`}/><span className={`font-display text-sm uppercase ${i<2?'text-white':'text-white/42'}`}>{r}</span></div>)}</div></section><section className="mb-5 grid gap-4 md:grid-cols-4">{[[myCount,'Guild Submissions'],[2,'Achievements Earned'],[reactions.length,'Reactions Received'],[0,'Image of the Week Wins']].map(([n,l])=><div key={l} className="mw-card-soft p-5"><div className="font-display text-4xl text-white">{n}</div><div className="mt-1 text-sm uppercase tracking-[.05em] text-white/55">{l}</div></div>)}</section><section className="mw-card-gold mb-5 p-6"><p className="mw-eyebrow">The Winners' Throne</p><div className="mt-5 grid items-end gap-5 md:grid-cols-[1fr_1.5fr_1fr]">{[top[1],top[0],top[2]].map((img,idx)=><div key={idx} className={idx===1?'order-first md:order-none':''}>{img?<Link href={`/images/${img.id}`} className="block"><div className={`relative overflow-hidden rounded-md ${idx===1?'border-2 border-[#e79f2b]':'border border-white/12'}`}><img src={img.image_url} alt="" className={`w-full object-cover ${idx===1?'h-60':'h-40'}`}/><span className="absolute left-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-[#e79f2b] font-display text-[#091625]">{idx===0?'2':idx===1?'1':'3'}</span></div><h3 className="mt-2 mw-card-title">{img.title}</h3></Link>:<div className="mw-card-soft grid h-40 place-items-center text-white/45">Awaiting winner</div>}</div>)}</div></section><div className="mb-5 grid gap-5 lg:grid-cols-[1.55fr_1fr]"><section className="mw-card-soft overflow-hidden"><div className="border-b border-white/10 p-4"><p className="mw-eyebrow">Photog Phavorite · Moment of Envy</p></div>{top[0]?<Link href={`/images/${top[0].id}`} className="relative block"><img src={top[0].image_url} alt="" className="aspect-[21/9] w-full object-cover"/><div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#081321]"/><h3 className="absolute bottom-5 left-5 mw-section-title">{top[0].title}</h3></Link>:<div className="p-8 text-white/55">Aaron's Phavorite will appear here once images are available.</div>}</section><div className="space-y-5"><WeeklySubmissionStatus remaining={remaining} hasCandidate={hasCandidate}/><section className="mw-card-soft p-5"><p className="mb-3 mw-section-label">Your Recent Reports</p>{latest.slice(0,3).map(i=><Link key={i.id} href={`/images/${i.id}`} className="mb-3 flex gap-3"><img src={i.image_url} alt="" className="h-12 w-16 rounded-sm object-cover"/><span className="font-display uppercase">{i.title}</span></Link>)}</section></div></div><section className="mw-card-soft mb-5 p-6"><div className="mb-5 flex justify-between"><p className="mw-section-label">Field Honors <span className="text-[#f0bd66]">2 earned</span></p><Link href="/profile" className="font-display text-sm uppercase tracking-[.08em] text-[#f0bd66]">View All Honors →</Link></div><div className="grid grid-cols-3 gap-5 sm:grid-cols-6">{honors.map(([g,n,e])=><div key={n} className="text-center"><div className={`honor-badge mx-auto ${e?'bg-[#e79f2b] text-[#091625]':'border border-white/15 bg-white/5 text-white/30'}`}>{g}</div><p className="mt-2 text-sm font-bold text-white/70">{n}</p></div>)}</div></section><section><div className="mb-4 flex justify-between"><p className="mw-section-label">This Week's Contenders <span className="text-white/35">{candidateCount} active</span></p><Link href="/feed" className="font-display text-sm uppercase text-[#f0bd66]">Open Gallery →</Link></div><ImageGrid images={latest.filter(i=>i.is_weekly_candidate).length?latest.filter(i=>i.is_weekly_candidate):latest.slice(0,6)} reactions={reactions}/></section></>:<div className="mt-8"><AccessNeededPanel/></div>}</section>}
+import Link from "next/link";
+import { AccessNeededPanel } from "@/components/Cards";
+import { requireLogin } from "@/lib/guards";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { REACTION_TYPES } from "@/lib/images";
+
+const ranks = ["Unranked", "Beginner", "Amateur", "Novice", "Veteran", "Master"];
+const sortChips = ["Most Recent", "Most Reactions", "IOTW Contenders", "Best Stories"];
+const reactionIcons: Record<string, string> = { love: "♥", wow: "✦", helpful: "◎", composition: "◫", processing: "✧", story: "☄" };
+
+function reactionCounts(reactions: any[], imageId: string) {
+  const counts = new Map<string, number>();
+  reactions.filter((r) => r.image_id === imageId).forEach((r) => counts.set(r.reaction_type, (counts.get(r.reaction_type) || 0) + 1));
+  return counts;
+}
+
+function authorName(image: any, index: number) {
+  return image?.profiles?.display_name || ["Aaron King", "Garrett Briggs", "Josie & Jaeden", "Mabel P."][index % 4];
+}
+
+function initials(name: string) {
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "GM";
+}
+
+export default async function Page() {
+  const { hasAccess } = await requireLogin();
+  const supabase = await createServerSupabaseClient();
+  let images: any[] = [];
+  let reactions: any[] = [];
+
+  if (hasAccess) {
+    const [{ data: imgs }, { data: rx }] = await Promise.all([
+      supabase.from("guild_images").select("*").is("hidden_at", null).is("deleted_at", null).not("moderation_status", "in", '("hidden","deleted")').order("created_at", { ascending: false }).limit(12),
+      supabase.from("image_reactions").select("image_id,reaction_type"),
+    ]);
+    images = imgs || [];
+    reactions = rx || [];
+  }
+
+  return (
+    <section className="mw-page-wide">
+      {hasAccess ? (
+        <>
+          <div className="mb-8">
+            <p className="mw-eyebrow">The Guild Hall</p>
+            <h1 className="mt-2 mw-page-title">The Hall is Open</h1>
+            <p className="mt-3 mw-page-subtitle">Field reports from across the Guild. React with intent, leave feedback that teaches.</p>
+          </div>
+
+          <section className="mw-card-gold mb-10 p-7">
+            <div className="mb-8 flex flex-wrap items-center gap-3"><p className="mw-eyebrow">The Ascent</p><p className="text-white/55">Every guildie's climb toward Master — hover a face</p></div>
+            <div className="relative min-h-28 px-4">
+              <div className="absolute left-8 right-8 top-10 h-px bg-[#e79f2b]/35" />
+              <div className="relative z-10 flex justify-between">
+                {ranks.map((rank, index) => {
+                  const image = images[index];
+                  const name = image ? authorName(image, index) : rank;
+                  return <div key={rank} className="flex flex-col items-center gap-2 text-center"><div className={`${image ? "h-14 w-14 border-2" : "mt-4 h-4 w-4 border"} grid place-items-center rounded-full border-[#e79f2b] bg-[#0b1a2b] text-[#f0bd66] shadow-lg shadow-black/35`}>{image ? <img src={image.image_url} alt="" className="h-full w-full rounded-full object-cover" /> : null}</div><span className="font-display text-sm uppercase tracking-[.08em] text-[#f0bd66]">{rank}</span><span className="max-w-24 truncate text-xs text-white/45">{image ? name : ""}</span></div>;
+                })}
+              </div>
+            </div>
+          </section>
+
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+            <h2 className="mw-section-label">Recent Activity</h2>
+            <div className="flex flex-wrap items-center gap-2"><span className="mw-meta">Sort</span>{sortChips.map((chip, i) => <button key={chip} className={`mw-filter-chip rounded-none px-4 py-2 ${i === 0 ? "border-[#e79f2b] text-[#f0bd66]" : ""}`}>{chip}</button>)}</div>
+          </div>
+
+          <div className="mx-auto max-w-[1120px] space-y-8">
+            {images.map((image, index) => {
+              const name = authorName(image, index);
+              const counts = reactionCounts(reactions, image.id);
+              const total = Array.from(counts.values()).reduce((sum, count) => sum + count, 0);
+              return <article key={image.id} className="mw-card-soft overflow-hidden"><div className="flex items-center gap-3 p-5"><div className="grid h-12 w-12 place-items-center overflow-hidden rounded-full border border-[#e79f2b]/65 bg-[#e79f2b]/10 font-display text-[#f0bd66]"><span>{initials(name)}</span></div><div><div className="flex flex-wrap items-center gap-2"><h3 className="text-lg font-bold text-white">{name}</h3><span className="mw-chip-text text-[#f0bd66]">Veteran</span>{index === 0 && <span className="rounded-full border border-[#e79f2b]/60 px-2 py-0.5 mw-chip-text text-[.68rem] text-[#f0bd66]">☄ 10y</span>}</div><p className="text-sm text-white/55">{new Date(image.created_at).toLocaleDateString()} · {[image.specific_location_name, image.state_or_province, image.country].filter(Boolean).join(", ") || "Dark sky field report"}</p></div></div><Link href={`/images/${image.id}`}><img src={image.image_url} alt={image.title || "Guild image"} className="max-h-[720px] w-full object-cover" /></Link><div className="space-y-4 p-5"><h3 className="mw-section-title text-white">{image.title}</h3><p className="mw-body line-clamp-3">{image.short_story || image.what_went_well || "A fresh field report from under the Milky Way, ready for thoughtful reactions and craft feedback."}</p><div className="flex flex-wrap items-center gap-2">{REACTION_TYPES.slice(0, 4).map(([type, label]) => <span key={type} className="mw-reaction-chip"><span className="text-[#f0bd66]">{reactionIcons[type]}</span>{label}<span className="opacity-70">{counts.get(type) || 0}</span></span>)}<span className="ml-auto text-sm text-white/55">{total} total reactions</span></div><Link href={`/images/${image.id}`} className="mw-btn-secondary rounded-sm">Open &amp; Comment</Link></div></article>;
+            })}
+            {images.length === 0 && <div className="mw-card-soft p-8 text-center text-white/60">The Hall is ready. Community field reports will appear here after members submit images.</div>}
+          </div>
+        </>
+      ) : <div className="mt-8"><AccessNeededPanel /></div>}
+    </section>
+  );
+}
