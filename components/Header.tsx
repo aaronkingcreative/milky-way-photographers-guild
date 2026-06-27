@@ -9,9 +9,9 @@ const logoUrl =
 const navItems = [
   ["Guild Hall", "/dashboard"],
   ["Gallery", "/feed"],
-  ["Winners", "/winners"],
-  ["Resources", "/resources"],
-  ["Courses", "/courses"],
+  ["Field Desk", "/dashboard"],
+  ["Progress", "/profile"],
+  ["Submit", "/submit"],
 ];
 
 export async function Header() {
@@ -20,31 +20,30 @@ export async function Header() {
   const initial = name.charAt(0).toUpperCase();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#e79f2b]/25 bg-[#091625]/86 shadow-2xl shadow-black/25 backdrop-blur-xl">
-      <nav className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-3 lg:flex-row lg:items-center lg:justify-between">
-        <Link href={user ? "/dashboard" : "/"} className="block w-fit shrink-0" aria-label="Milky Way Photographers Guild home">
-          <Image src={logoUrl} alt="Milky Way Photographers Guild" width={360} height={180} priority className="h-auto w-44 sm:w-56" />
+    <header className="sticky top-0 z-50 border-b border-[#e79f2b]/20 bg-[#081321]/86 shadow-2xl shadow-black/25 backdrop-blur-xl">
+      <nav className="mx-auto flex max-w-[1680px] items-center gap-5 px-5 py-3 lg:gap-8 lg:px-10">
+        <Link href={user ? "/dashboard" : "/"} className="block shrink-0" aria-label="Milky Way Photographers Guild home">
+          <Image src={logoUrl} alt="Milky Way Photographers Guild" width={360} height={180} priority className="h-auto w-36 sm:w-44" />
         </Link>
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-[#dbe5f1] lg:justify-end">
-          {user ? (
-            <>
-              {navItems.map(([label, href]) => <Link key={href} href={href} className="nav-link uppercase tracking-[.16em] hover:text-[#f0bd66]">{label}</Link>)}
-              {isAdmin && <Link href="/admin" className="nav-link uppercase tracking-[.16em] text-[#f0bd66]">Admin</Link>}
-              <Link href="/submit" className="btn btn-primary px-4 py-2 text-xs">Submit Image</Link>
-              <Link href="/profile" className="flex items-center gap-2 rounded-full border border-[#e79f2b]/35 bg-[#0d1e30]/80 px-3 py-1.5">
-                <span className="grid h-8 w-8 place-items-center rounded-full border border-[#e79f2b] bg-[#06101c] font-display text-[#f0bd66]">{initial}</span>
-                <span className="hidden leading-tight sm:block"><span className="block text-white">{name}</span><span className="font-display text-[.65rem] uppercase tracking-[.18em] text-[#f0bd66]">Member</span></span>
+        {user ? (
+          <>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-[#dbe5f1] lg:gap-x-7">
+              {navItems.map(([label, href]) => <Link key={`${label}-${href}`} href={href} className="nav-link pb-1 uppercase tracking-[.16em] text-white/78 hover:text-[#f0bd66]">{label}</Link>)}
+            </div>
+            <div className="ml-auto flex items-center gap-3">
+              <Link href="/feed" className="hidden rounded-full border border-[#e79f2b]/45 bg-[#e79f2b]/10 px-4 py-2 font-display text-xs uppercase tracking-[.08em] text-[#f0bd66] sm:inline-flex">✪ Vote</Link>
+              <Link href="/submit" className="btn btn-primary rounded-sm px-4 py-2 text-xs">Submit Image</Link>
+              {isAdmin && <Link href="/admin" className="hidden font-display text-xs uppercase tracking-[.16em] text-white/45 hover:text-[#f0bd66] md:inline">Admin</Link>}
+              <Link href="/profile" className="flex items-center gap-3 border-l border-white/10 pl-3">
+                <span className="hidden text-right leading-tight sm:block"><span className="block text-sm font-bold text-white">{name}</span><span className="font-display text-[.72rem] uppercase tracking-[.08em] text-[#f0bd66]">Member</span></span>
+                <span className="grid h-9 w-9 place-items-center rounded-full border-2 border-[#e79f2b] bg-[#e79f2b]/15 font-display text-[#f0bd66]">{initial}</span>
               </Link>
-              <form action={signOut}><button className="nav-link uppercase tracking-[.16em] text-[#f0bd66]">Sign out</button></form>
-            </>
-          ) : (
-            <>
-              <span className="rounded-full border border-[#e79f2b]/40 px-3 py-1 font-display text-xs uppercase tracking-[.18em] text-[#f0bd66]">Coming soon</span>
-              <Link href="/" className="nav-link uppercase tracking-[.16em]">Home</Link>
-              <Link href="/login" className="btn btn-secondary px-4 py-2 text-xs">Sign in</Link>
-            </>
-          )}
-        </div>
+              <form action={signOut}><button className="hidden nav-link uppercase tracking-[.14em] text-white/45 hover:text-[#f0bd66] lg:inline">Sign out</button></form>
+            </div>
+          </>
+        ) : (
+          <div className="ml-auto flex items-center gap-3"><span className="rounded-full border border-[#e79f2b]/40 px-3 py-1 font-display text-xs uppercase tracking-[.18em] text-[#f0bd66]">Coming soon</span><Link href="/login" className="btn btn-secondary px-4 py-2 text-xs">Sign in</Link></div>
+        )}
       </nav>
     </header>
   );
