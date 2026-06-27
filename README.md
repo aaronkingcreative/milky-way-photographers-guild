@@ -92,10 +92,14 @@ from auth.users
 where email = 'YOUR_EMAIL_HERE';
 ```
 
+## Member landing route
+
+The logged-in member landing page is **Guild Hall** at `/guild-hall`. Legacy `/dashboard` links remain supported and redirect to `/guild-hall`.
+
 ## Deployment to Vercel
 
 Keep the Vercel Root Directory set to the repository root. Vercel will detect Next.js from the root `package.json` and build with the default Next.js preset. Add the required environment variables in Vercel Project Settings before deploying.
 
 ## Phase 1 scope
 
-Included: public marketing site, login, signup, dashboard, access gating, protected placeholder pages, admin shell, and Supabase schema. Later phases can add image uploads, Cloudflare R2, weekly voting, achievements, moderation, and Stripe memberships.
+Included: public marketing site, login, signup, Guild Hall, access gating, protected placeholder pages, admin shell, and Supabase schema. Later phases can add image uploads, Cloudflare R2, weekly voting, achievements, moderation, and Stripe memberships.

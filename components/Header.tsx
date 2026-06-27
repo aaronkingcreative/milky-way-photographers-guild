@@ -7,11 +7,11 @@ const logoUrl =
   "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/site-assets/logos/MWPG_Logo.png";
 
 const navItems = [
-  ["Guild Hall", "/dashboard"],
+  ["Guild Hall", "/guild-hall"],
   ["Gallery", "/feed"],
-  ["Field Desk", "/dashboard"],
-  ["Progress", "/profile"],
   ["Submit", "/submit"],
+  ["Progress", "/profile"],
+  ["Winners", "/winners"],
 ];
 
 export async function Header() {
@@ -22,7 +22,7 @@ export async function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-[#e79f2b]/20 bg-[#081321]/86 shadow-2xl shadow-black/25 backdrop-blur-xl">
       <nav className="mx-auto flex max-w-[1680px] items-center gap-5 px-5 py-3 lg:gap-8 lg:px-10">
-        <Link href={user ? "/dashboard" : "/"} className="block shrink-0" aria-label="Milky Way Photographers Guild home">
+        <Link href={user ? "/guild-hall" : "/"} className="block shrink-0" aria-label="Milky Way Photographers Guild home">
           <Image src={logoUrl} alt="Milky Way Photographers Guild" width={360} height={180} priority className="h-auto w-36 sm:w-44" />
         </Link>
         {user ? (
