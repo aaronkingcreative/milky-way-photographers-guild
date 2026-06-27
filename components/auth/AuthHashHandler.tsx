@@ -35,7 +35,7 @@ export function AuthHashHandler() {
           return;
         }
 
-        window.location.assign(hash.get("type") === "recovery" ? "/update-password" : "/guild-hall");
+        window.location.assign(hash.get("type") === "recovery" ? "/update-password" : "/field-desk");
       });
   }, []);
 
