@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Mulish:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:#091625;color:#fff;font-family:'Mulish',sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+::selection{background:#e79f2b;color:#091625}
+input,textarea,select,button{font-family:inherit}
+textarea{resize:vertical}
+input::placeholder,textarea::placeholder{color:rgba(255,255,255,.3)}
+input[type=date]{color-scheme:dark}
+@keyframes mwUp{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes mwPop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes mwTwinkle{0%,100%{opacity:.35}50%{opacity:.85}}
+@keyframes mwToast{from{transform:transl(-50%,20px);opacity:0}to{transform:translateX(-50%);opacity:1}}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:#091625}
+::-webkit-scrollbar-thumb{background:#2f445d;border-radius:6px;border:3px solid #091625}
+.mw-boardav:hover{z-index:30!important}
+.mw-boardav img{transition:transform .16s ease}
+.mw-boardav:hover img{transform:scale(1.7)}
+.mw-boardav .mw-avname{opacity:0;transition:opacity .15s}
+.mw-boardav:hover .mw-avname{opacity:1}
+.mw-chip{transition:transform .15s ease, box-shadow .15s ease, filter .15s ease}
+.mw-chip:hover{transform:translateY(-2px);box-shadow:0 7px 18px rgba(231,159,43,.2);filter:brightness(1.1)}
+.mw-chip:active{transform:translateY(0)}
+.mw-star .mw-starshape{transition:transform .16s ease, filter .16s ease}
+.mw-star:hover{z-index:60!important}
+.mw-star:hover .mw-starshape{transform:scale(1.32);filter:drop-shadow(0 0 13px rgba(231,159,43,.9))}
+.mw-star .mw-startip{opacity:0;pointer-events:none;transition:opacity .15s ease}
+.mw-star:hover .mw-startip{opacity:1}
+</style>
+</helmet>
+
+<div style="position:fixed;inset:0;z-index:0;pointer-events:none;background-image:radial-gradient(1100px 560px at 50% -8%,rgba(47,68,93,.5),transparent 72%),radial-gradient(1px 1px at 12% 18%,rgba(255,255,255,.7),transparent),radial-gradient(1px 1px at 78% 12%,rgba(255,255,255,.55),transparent),radial-gradient(1px 1px at 40% 32%,rgba(255,255,255,.5),transparent),radial-gradient(1px 1px at 90% 40%,rgba(255,255,255,.45),transparent),radial-gradient(1px 1px at 22% 60%,rgba(255,255,255,.4),transparent),radial-gradient(1px 1px at 62% 70%,rgba(255,255,255,.5),transparent);"></div>
+<div style="position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;animation:mwTwinkle 6s ease-in-out infinite;background-image:radial-gradient(1px 1px at 30% 22%,#fff,transparent),radial-gradient(1px 1px at 55% 8%,#fff,transparent),radial-gradient(1px 1px at 84% 64%,#fff,transparent),radial-gradient(1px 1px at 16% 80%,#fff,transparent),radial-gradient(1px 1px at 70% 48%,#fff,transparent);background-size:auto;"></div>
+
+<div style="position:relative;z-index:1;min-height:100vh">
+
+<header style="position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:34px;padding:13px 30px;background:rgba(8,19,33,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(231,159,43,.18)">
+  <img src="uploads/MWPG_Logo.png" alt="Milky Way Photographers Guild" onClick="{{ goHome }}" style="height:34px;cursor:pointer;display:block">
+  <nav style="display:flex;gap:26px;align-items:center">
+    <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="3">
+      <button onClick="{{ n.onClick }}" style="{{ n.style }}">{{ n.label }}</button>
+    </sc-for>
+  </nav>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:14px">
+    <sc-if value="{{ iotw.votingActive }}" hint-placeholder-val="{{ true }}"><button onClick="{{ iotw.reopen }}" style="display:inline-flex;align-items:center;gap:8px;background:rgba(231,159,43,.14);color:#e79f2b;border:1px solid rgba(231,159,43,.55);border-radius:999px;padding:9px 16px;font-family:Oswald,sans-serif;font-weight:600;font-size:13.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer">✪ Vote · closes Sun</button></sc-if>
+    <button onClick="{{ gotoSubmit }}" style="display:inline-flex;align-items:center;gap:9px;background:#e79f2b;color:#091625;border:none;border-radius:2px;padding:10px 18px;font-family:Oswald,sans-serif;font-weight:600;font-size:15px;letter-spacing:.07em;text-transform:uppercase;cursor:pointer">Submit Image</button>
+    <div style="display:flex;align-items:center;gap:11px;padding-left:18px;border-left:1px solid rgba(255,255,255,.1)">
+      <div style="text-align:right;line-height:1.3">
+        <div style="font-weight:700;font-size:15px">{{ memberName }}</div>
+        <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end;margin-top:2px">
+          <span style="font-size:12.5px;color:#e79f2b;font-weight:600;letter-spacing:.02em">{{ memberRankShort }}</span>
+          <sc-if value="{{ memberStreak }}" hint-placeholder-val=""><span title="10-year Milky Way streak" style="display:inline-flex;align-items:center;gap:3px;background:rgba(231,159,43,.16);border:1px solid rgba(231,159,43,.55);color:#e79f2b;border-radius:999px;padding:1px 7px;font-size:12px;font-weight:800">☄ {{ memberStreak }}y</span></sc-if>
+        </div>
+      </div>
+      <div style="width:38px;height:38px;border-radius:50%;background:rgba(231,159,43,.16);border:1.5px solid #e79f2b;display:flex;align-items:center;justify-content:center;font-family:Oswald,sans-serif;font-weight:600;color:#e79f2b;font-size:15.5px">{{ memberInitials }}</div>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== DASHBOARD ===================== -->
+<sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
+<main style="max-width:1680px;margin:0 auto;padding:40px 40px 90px">
+
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:34px">
+    <div>
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">
+        <img src="uploads/MWPG_Logo_FAVICON.png" style="width:20px;height:20px;border-radius:50%;display:block">
+        <span style="font-family:Oswald,sans-serif;font-size:14px;letter-spacing:.26em;text-transform:uppercase;color:#e79f2b;font-weight:500">Your Field Desk</span>
+      </div>
+      <h1 style="margin:0;font-family:Oswald,sans-serif;font-weight:600;font-size:40px;letter-spacing:.005em;line-height:1.05">Welcome back, {{ memberFirst }}.</h1>
+      <p style="margin:10px 0 0;color:rgba(255,255,255,.6);font-size:16.5px;max-width:560px">Your standing in the Guild, this week's contenders, and the honors you're chasing.</p>
+    </div>
+    <button onClick="{{ gotoSubmit }}" style="display:inline-flex;align-items:center;gap:10px;background:transparent;color:#e79f2b;border:1px solid rgba(231,159,43,.5);border-radius:2px;padding:13px 22px;font-family:Oswald,sans-serif;font-weight:600;font-size:15.5px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">File a Field Report</button>
+  </div>
+
+  <!-- Rank standing -->
+  <section style="background:linear-gradient(180deg,rgba(47,68,93,.32),rgba(13,30,48,.55));border:1px solid rgba(231,159,43,.16);border-radius:5px;padding:26px 30px;margin-bottom:22px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:24px">
+      <div>
+        <div style="font-size:13.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.45);font-weight:600;margin-bottom:6px">Guild Standing</div>
+        <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:28px;color:#e79f2b">{{ memberRank }}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:14.5px;color:rgba(255,255,255,.55)">Next rank</div>
+        <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:20.5px">{{ nextRank }} &nbsp;<span style="color:rgba(255,255,255,.4);font-size:15.5px">· 4 honors to go</span></div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;position:relative">
+      <div style="position:absolute;top:9px;left:5%;right:5%;height:2px;background:rgba(255,255,255,.12)"></div>
+      <sc-for list="{{ rankTrack }}" as="r" hint-placeholder-count="5">
+        <div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:11px;flex:1;z-index:1">
+          <div style="width:20px;height:20px;border-radius:50%;border:2px solid;{{ r.dotStyle }}"></div>
+          <span style="font-family:Oswald,sans-serif;font-weight:500;font-size:15px;letter-spacing:.04em;text-transform:uppercase;{{ r.labelStyle }}">{{ r.name }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px">
+    <div style="background:rgba(13,30,48,.6);border:1px solid rgba(255,255,255,.07);border-radius:5px;padding:20px 22px">
+      <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:34px;color:#fff">{{ statSubs }}</div>
+      <div style="font-size:14px;color:rgba(255,255,255,.55);letter-spacing:.04em;text-transform:uppercase;margin-top:2px">Guild Submissions</div>
+    </div>
+    <div style="background:rgba(13,30,48,.6);border:1px solid rgba(255,255,255,.07);border-radius:5px;padding:20px 22px">
+      <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:34px;color:#e79f2b">{{ statAch }}</div>
+      <div style="font-size:14px;color:rgba(255,255,255,.55);letter-spacing:.04em;text-transform:uppercase;margin-top:2px">Achievements Earned</div>
+    </div>
+    <div style="background:rgba(13,30,48,.6);border:1px solid rgba(255,255,255,.07);border-radius:5px;padding:20px 22px">
+      <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:34px;color:#fff">{{ statReactions }}</div>
+      <div style="font-size:14px;color:rgba(255,255,255,.55);letter-spacing:.04em;text-transform:uppercase;margin-top:2px">Reactions Received</div>
+    </div>
+    <div style="background:rgba(13,30,48,.6);border:1px solid rgba(255,255,255,.07);border-radius:5px;padding:20px 22px">
+      <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:34px;color:#e79f2b">{{ statWins }}</div>
+      <div style="font-size:14px;color:rgba(255,255,255,.55);letter-spacing:.04em;text-transform:uppercase;margin-top:2px">Image of the Week Wins</div>
+    </div>
+  </section>
+
+  <!-- Winners' Throne -->
+  <section style="background:linear-gradient(180deg,rgba(47,68,93,.3),rgba(13,30,48,.55));border:1px solid rgba(231,159,43,.22);border-radius:6px;padding:22px 28px 28px;margin-bottom:22px">
+    <div style="display:flex;align-items:center;gap:11px;margin-bottom:20px;flex-wrap:wrap">
+      <span style="color:#e79f2b;font-size:18px">✪</span>
+      <span style="font-family:Oswald,sans-serif;font-size:14.5px;letter-spacing:.2em;text-transform:uppercase;color:#e79f2b;font-weight:600">The Winners' Throne</span>
+      <span style="font-size:14px;color:rgba(255,255,255,.45)">Last week's Image of the Week · the Top 3</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:18px;align-items:end">
+      <div onClick="{{ throne.second.open }}" style="cursor:pointer">
+        <div style="position:relative;border-radius:6px;overflow:hidden;border:1px solid rgba(255,255,255,.12)">
+          <img src="{{ throne.second.src }}" loading="lazy" style="width:100%;height:152px;object-fit:cover;display:block">
+          <div style="position:absolute;top:10px;left:10px;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Oswald,sans-serif;font-weight:700;font-size:16px;background:linear-gradient(160deg,#e6edf6,#aebccd);color:#0a1830">2</div>
+        </div>
+        <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:18px;margin-top:9px">{{ throne.second.title }}</div>
+        <div style="font-size:13.5px;color:rgba(255,255,255,.6)">{{ throne.second.photog }} · {{ throne.second.totalText }}</div>
+      </div>
+      <div onClick="{{ throne.first.open }}" style="cursor:pointer">
+        <div style="text-align:center;color:#e79f2b;font-size:27px;line-height:1;margin-bottom:6px">♛</div>
+        <div style="position:relative;border-radius:7px;overflow:hidden;border:2px solid #e79f2b;box-shadow:0 14px 44px rgba(231,159,43,.24)">
+          <img src="{{ throne.first.src }}" loading="lazy" style="width:100%;height:232px;object-fit:cover;display:block">
+          <div style="position:absolute;top:12px;left:12px;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Oswald,sans-serif;font-weight:700;font-size:20px;background:linear-gradient(160deg,#f3c674,#e79f2b);color:#091625">1</div>
+          <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 44%,rgba(8,19,33,.92))"></div>
+          <div style="position:absolute;left:18px;right:18px;bottom:15px">
+            <div style="display:inline-flex;background:#e79f2b;color:#091625;padding:4px 10px;border-radius:2px;font-family:Oswald,sans-serif;font-weight:600;font-size:12px;letter-spacing:.09em;text-transform:uppercase;margin-bottom:9px">Image of the Week</div>
+            <h3 style="margin:0;font-family:Oswald,sans-serif;font-weight:600;font-size:25px;line-height:1.05">{{ throne.first.title }}</h3>
+            <div style="font-size:14.5px;color:rgba(255,255,255,.82);margin-top:3px">{{ throne.first.photog }} · {{ throne.first.votes }} votes</div>
+          </div>
+        </div>
+      </div>
+      <div onClick="{{ throne.third.open }}" style="cursor:pointer">
+        <div style="position:relative;border-radius:6px;overflow:hidden;border:1px solid rgba(255,255,255,.12)">
+          <img src="{{ throne.third.src }}" loading="lazy" style="width:100%;height:152px;object-fit:cover;display:block">
+          <div style="position:absolute;top:10px;left:10px;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Oswald,sans-serif;font-weight:700;font-size:16px;background:linear-gradient(160deg,#e0a978,#bd8049);color:#0a1830">3</div>
+        </div>
+        <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:18px;margin-top:9px">{{ throne.third.title }}</div>
+        <div style="font-size:13.5px;color:rgba(255,255,255,.6)">{{ throne.third.photog }} · {{ throne.third.totalText }}</div>
+      </div>
+    </div>
+  </section>
+
+  <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:22px;margin-bottom:22px">
+    <!-- Photog Phavorite -->
+    <section style="background:rgba(13,30,48,.6);border:1px solid rgba(231,159,43,.22);border-radius:5px;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:10px;padding:16px 22px;border-bottom:1px solid rgba(255,255,255,.06)">
+        <span style="color:#e79f2b;font-size:17.5px">✪</span>
+        <span style="font-family:Oswald,sans-serif;font-size:14.5px;letter-spacing:.22em;text-transform:uppercase;color:#e79f2b;font-weight:600">Photog Phavorite · Moment of Envy</span>
+      </div>
+      <div onClick="{{ throne.phavorite.open }}" style="position:relative;cursor:pointer">
+        <img src="{{ throne.phavorite.src }}" loading="lazy" style="width:100%;display:block;aspect-ratio:21/9;object-fit:cover">
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 36%,rgba(8,19,33,.92))"></div>
+        <div style="position:absolute;top:16px;right:16px;display:flex;align-items:center;gap:8px;background:rgba(9,22,37,.78);border:1px solid rgba(231,159,43,.5);color:#e79f2b;border-radius:999px;padding:7px 14px;font-family:Oswald,sans-serif;font-weight:600;font-size:13px;letter-spacing:.05em;text-transform:uppercase">▶ Envy Video</div>
+        <div style="position:absolute;left:22px;bottom:18px;right:22px">
+          <div style="display:inline-flex;align-items:center;gap:7px;background:#e79f2b;color:#091625;padding:5px 11px;border-radius:2px;font-family:Oswald,sans-serif;font-weight:600;font-size:13px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:11px">Aaron's Phavorite</div>
+          <h3 style="margin:0;font-family:Oswald,sans-serif;font-weight:600;font-size:29px;line-height:1.05">{{ throne.phavorite.title }}</h3>
+          <div style="margin-top:5px;color:rgba(255,255,255,.75);font-size:15.5px">{{ throne.phavorite.photog }} &nbsp;·&nbsp; {{ throne.phavorite.loc }}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 22px;gap:12px">
+        <div style="font-size:14.5px;color:rgba(255,255,255,.62)">Aaron's personal pick from outside the Top 3 · awarded its own Moment of Envy video</div>
+        <button onClick="{{ throne.phavorite.open }}" style="background:none;border:none;color:#e79f2b;font-family:Oswald,sans-serif;font-weight:600;font-size:15px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;flex:none">View →</button>
+      </div>
+    </section>
+
+    <!-- This week -->
+    <section style="display:flex;flex-direction:column;gap:22px">
+      <div style="background:rgba(13,30,48,.6);border:1px solid rgba(255,255,255,.07);border-radius:5px;padding:22px">
+        <div style="font-family:Oswald,sans-serif;font-size:14.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.5);font-weight:600;margin-bottom:16px">This Week's Submissions</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <sc-for list="{{ weekSlots }}" as="s" hint-placeholder-count="3"><div style="{{ s.style }}"></div></sc-for>
+        </div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between">
+          <span style="font-size:15.5px;color:rgba(255,255,255,.7)">{{ weekUsedText }}</span>
+          <span style="font-size:14px;color:#e79f2b">IOTW candidate set</span>
+        </div>
+        <p style="margin:14px 0 0;font-size:14px;color:rgba(255,255,255,.42);line-height:1.5">Up to 3 Guild images per week. One may be entered for Image of the Week.</p>
+        <button onClick="{{ gotoSubmit }}" style="width:100%;margin-top:16px;background:rgba(231,159,43,.1);color:#e79f2b;border:1px solid rgba(231,159,43,.4);border-radius:2px;padding:11px;font-family:Oswald,sans-serif;font-weight:600;font-size:14.5px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">+ New Field Report</button>
+      </div>
+      <div style="background:rgba(13,30,48,.6);border:1px solid rgba(255,255,255,.07);border-radius:5px;padding:22px;flex:1">
+        <div style="font-family:Oswald,sans-serif;font-size:14.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.5);font-weight:600;margin-bottom:14px">Your Recent Reports</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ recentSubs }}" as="r" hint-placeholder-count="3">
+            <div onClick="{{ r.open }}" style="display:flex;gap:13px;align-items:center;cursor:pointer">
+              <img src="{{ r.src }}" loading="lazy" style="width:60px;height:46px;object-fit:cover;border-radius:3px;flex:none">
+              <div style="min-width:0">
+                <div style="font-family:Oswald,sans-serif;font-weight:500;font-size:16.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.title }}</div>
+                <div style="font-size:13.5px;color:rgba(255,255,255,.5)">{{ r.date }} · {{ r.totalText }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Achievements -->
+  <section style="background:rgba(13,30,48,.6);border:1px solid rgba(255,255,255,.07);border-radius:5px;padding:26px 28px;margin-bottom:22px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
+      <div style="display:flex;align-items:center;gap:11px">
+        <span style="font-family:Oswald,sans-serif;font-size:14.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.5);font-weight:600">Field Honors</span>
+        <span style="font-size:14.5px;color:#e79f2b">{{ earnedCount }} earned</span>
+      </div>
+      <button onClick="{{ gotoProgress }}" style="background:none;border:none;color:#e79f2b;font-family:Oswald,sans-serif;font-weight:600;font-size:14.5px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">View All Honors →</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:22px;margin-bottom:22px;font-size:14px;color:rgba(255,255,255,.6)">
+      <span style="display:inline-flex;align-items:center;gap:7px"><span style="width:16px;height:18px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:linear-gradient(160deg,#e79f2b,#b9791b);display:inline-block"></span>Grand Honor</span>
+      <span style="display:inline-flex;align-items:center;gap:7px"><span style="width:16px;height:18px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:rgba(231,159,43,.14);border:1px solid rgba(231,159,43,.55);display:inline-block"></span>Earned</span>
+      <span style="display:inline-flex;align-items:center;gap:7px"><span style="width:16px;height:18px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);display:inline-block"></span>Locked</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:18px">
+      <sc-for list="{{ achievements }}" as="a" hint-placeholder-count="12">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center">
+          <div style="width:72px;height:80px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);display:flex;align-items:center;justify-content:center;font-size:30px;{{ a.hexStyle }}">{{ a.glyph }}</div>
+          <div style="font-family:Mulish;font-weight:700;font-size:13.5px;line-height:1.25;{{ a.nameStyle }}">{{ a.name }}</div>
+          <sc-if value="{{ a.progress }}" hint-placeholder-val=""><div style="font-size:12px;color:rgba(231,159,43,.7);letter-spacing:.02em">{{ a.progress }}</div></sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- Contenders this week -->
+  <section>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:11px">
+        <span style="font-family:Oswald,sans-serif;font-size:14.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.5);font-weight:600">This Week's Contenders</span>
+        <span style="font-size:14px;color:rgba(255,255,255,.4)">Cast your vote in the Gallery</span>
+      </div>
+      <button onClick="{{ navToFeed }}" style="background:none;border:none;color:#e79f2b;font-family:Oswald,sans-serif;font-weight:600;font-size:14.5px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">Open Gallery →</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+      <sc-for list="{{ contendersPreview }}" as="c" hint-placeholder-count="3">
+        <div onClick="{{ c.open }}" style="position:relative;border-radius:5px;overflow:hidden;cursor:pointer;border:1px solid rgba(255,255,255,.07)">
+          <img src="{{ c.src }}" loading="lazy" style="width:100%;height:170px;object-fit:cover;display:block">
+          <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(8,19,33,.9))"></div>
+          <div style="position:absolute;left:14px;right:14px;bottom:12px">
+            <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:18.5px;line-height:1.1">{{ c.title }}</div>
+            <div style="font-size:13.5px;color:rgba(255,255,255,.7);margin-top:2px">{{ c.photog }}</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+</main>
+</sc-if>
+
+<!-- ===================== FEED / GALLERY ===================== -->
+<sc-if value="{{ isFeed }}" hint-placeholder-val="">
+<main style="max-width:1680px;margin:0 auto;padding:38px 40px 90px">
+  <div style="margin-bottom:8px;display:flex;align-items:center;gap:9px">
+    <img src="uploads/MWPG_Logo_FAVICON.png" style="width:20px;height:20px;border-radius:50%;display:block">
+    <span style="font-family:Oswald,sans-serif;font-size:14px;letter-spacing:.26em;text-transform:uppercase;color:#e79f2b;font-weight:500">The Guild Gallery</span>
+  </div>
+  <h1 style="margin:0 0 6px;font-family:Oswald,sans-serif;font-weight:600;font-size:38px">Field Reports from the Dark</h1>
+  <p style="margin:0 0 24px;color:rgba(255,255,255,.55);font-size:16.5px">Every image a night under the Milky Way. React with intent, leave feedback that teaches.</p>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:30px">
+    <sc-for list="{{ filterChips }}" as="f" hint-placeholder-count="4"><button onClick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }}</button></sc-for>
+  </div>
+
+  <div style="column-count:3;column-gap:18px">
+    <sc-for list="{{ feedImages }}" as="img" hint-placeholder-count="9">
+      <div onClick="{{ img.open }}" style="break-inside:avoid;margin-bottom:18px;background:#0b1a2b;border:1px solid rgba(255,255,255,.07);border-radius:5px;overflow:hidden;cursor:pointer">
+        <div style="position:relative">
+          <img src="{{ img.src }}" loading="lazy" style="width:100%;display:block">
+          <sc-if value="{{ img.showRibbon }}" hint-placeholder-val="">
+            <div style="position:absolute;top:12px;left:12px;padding:5px 11px;border-radius:2px;font-family:Oswald,sans-serif;font-weight:600;font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;backdrop-filter:blur(4px);{{ img.ribbonStyle }}">{{ img.ribbon }}</div>
+          </sc-if>
+          <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 52%,rgba(8,19,33,.92))"></div>
+          <div style="position:absolute;left:16px;right:16px;bottom:14px">
+            <h3 style="margin:0;font-family:Oswald,sans-serif;font-weight:600;font-size:22.5px;line-height:1.08">{{ img.title }}</h3>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:7px">
+              <div style="width:24px;height:24px;border-radius:50%;background:rgba(231,159,43,.18);border:1px solid rgba(231,159,43,.5);display:flex;align-items:center;justify-content:center;font-family:Oswald,sans-serif;font-size:11.5px;font-weight:600;color:#e79f2b">{{ img.initials }}</div>
+              <span style="font-size:14.5px;font-weight:600;color:rgba(255,255,255,.92)">{{ img.photog }}</span>
+            </div>
+          </div>
+        </div>
+        <div style="padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <div style="font-size:13.5px;color:rgba(255,255,255,.5);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ img.meta }}</div>
+          <div style="display:flex;align-items:center;gap:8px;flex:none">
+            <sc-for list="{{ img.badges }}" as="b" hint-placeholder-count="2"><span title="{{ b.name }}" style="width:22px;height:25px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:rgba(231,159,43,.14);border:1px solid rgba(231,159,43,.4);display:inline-flex;align-items:center;justify-content:center;font-size:12.5px;color:#e79f2b">{{ b.glyph }}</span></sc-for>
+          </div>
+        </div>
+        <div style="padding:0 16px 13px;display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:7px">
+            <sc-for list="{{ img.top }}" as="t" hint-placeholder-count="3"><span style="color:#e79f2b;font-size:14.5px">{{ t.glyph }}</span></sc-for>
+            <span style="font-size:14px;color:rgba(255,255,255,.6);margin-left:3px">{{ img.totalText }}</span>
+          </div>
+          <span style="font-family:Oswald,sans-serif;font-weight:600;font-size:13.5px;letter-spacing:.06em;text-transform:uppercase;color:#e79f2b">View →</span>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</main>
+</sc-if>
+
+<!-- ===================== IMAGE DETAIL ===================== -->
+<sc-if value="{{ isDetail }}" hint-placeholder-val="">
+<main style="max-width:1680px;margin:0 auto;padding:24px 40px 90px">
+  <button onClick="{{ detail.back }}" style="background:none;border:none;color:rgba(255,255,255,.6);font-family:Mulish;font-weight:600;font-size:15px;cursor:pointer;padding:8px 0;margin-bottom:14px">← Back to the Gallery</button>
+
+  <div style="background:#06101c;border:1px solid rgba(255,255,255,.07);border-radius:6px;overflow:hidden;margin-bottom:24px;position:relative">
+    <sc-if value="{{ detail.showRibbon }}" hint-placeholder-val="">
+      <div style="position:absolute;top:16px;left:16px;z-index:2;padding:7px 14px;border-radius:2px;font-family:Oswald,sans-serif;font-weight:600;font-size:13.5px;letter-spacing:.1em;text-transform:uppercase;{{ detail.ribbonStyle }}">{{ detail.ribbon }}</div>
+    </sc-if>
+    <img src="{{ detail.src }}" style="width:100%;max-height:74vh;object-fit:contain;display:block;background:#06101c"></img>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 360px;gap:30px;align-items:start">
+    <!-- LEFT: report + reactions + comments -->
+    <div>
+      <h1 style="margin:0;font-family:Oswald,sans-serif;font-weight:600;font-size:36px;line-height:1.05">{{ detail.title }}</h1>
+      <div style="display:flex;align-items:center;gap:11px;margin:14px 0 28px">
+        <sc-if value="{{ detail.authorHasAvatar }}" hint-placeholder-val="{{ true }}"><img src="{{ detail.authorAvatar }}" style="width:38px;height:38px;border-radius:50%;border:1.5px solid #e79f2b;object-fit:cover;display:block;flex:none"></sc-if><sc-if value="{{ detail.authorNoAvatar }}" hint-placeholder-val=""><div style="width:38px;height:38px;border-radius:50%;flex:none;background:rgba(231,159,43,.16);border:1.5px solid #e79f2b;display:flex;align-items:center;justify-content:center;font-family:Oswald,sans-serif;font-weight:600;color:#e79f2b;font-size:15.5px">{{ detail.initials }}</div></sc-if>
+        <div>
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-weight:700;font-size:16.5px">{{ detail.photog }}</span><sc-if value="{{ detail.authorStreak }}" hint-placeholder-val=""><span title="Year streak" style="display:inline-flex;align-items:center;gap:3px;background:rgba(231,159,43,.16);border:1px solid rgba(231,159,43,.55);color:#e79f2b;border-radius:999px;padding:1px 7px;font-size:12px;font-weight:800">☄ {{ detail.authorStreak }}y</span></sc-if></div>
+          <div style="font-size:13.5px;color:#e79f2b;font-weight:600;margin-top:2px">{{ detail.role }} · Milky Way Photographer</div>
+        </div>
+      </div>
+
+      <!-- Reaction bar -->
+      <section style="background:rgba(13,30,48,.55);border:1px solid rgba(255,255,255,.07);border-radius:5px;padding:22px;margin-bottom:24px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:15px">
+          <span style="font-family:Oswald,sans-serif;font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.5);font-weight:600">Quick Reactions</span>
+          <span style="font-size:13.5px;color:#e79f2b">♥ Love is limited — 3 left this month</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:9px;margin-bottom:20px">
+          <sc-for list="{{ detail.quickChips }}" as="c" hint-placeholder-count="4">
+            <button class="mw-chip" onClick="{{ c.toggle }}" style="{{ c.style }}"><span style="font-size:15.5px">{{ c.glyph }}</span>{{ c.label }}<span style="opacity:.7;font-weight:600">{{ c.countText }}</span></button>
+          </sc-for>
+        </div>
+        <div style="font-family:Oswald,sans-serif;font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.5);font-weight:600;margin-bottom:13px">Praise the Craft</div>
+        <div style="display:flex;flex-wrap:wrap;gap:9px">
+          <sc-for list="{{ detail.craftChips }}" as="c" hint-placeholder-count="5">
+            <button class="mw-chip" onClick="{{ c.toggle }}" style="{{ c.style }}"><span style="font-size:14.5px">{{ c.glyph }}</span>{{ c.label }}<span style="opacity:.7;font-weight:600">{{ c.countText }}</span></button>
+          </sc-for>
+        </div>
+      </section>
+
+      <!-- Field report -->
+      <section style="margin-bottom:26px">
+        <div style="font-family:Oswald,sans-serif;font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:#e79f2b;font-weight:600;margin-bottom:12px">The Field Report</div>
+        <p style="margin:0 0 22px;font-size:17.5px;line-height:1.7;color:rgba(255,255,255,.85)">{{ detail.story }}</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div style="background:rgba(31,138,91,.08);border:1px solid rgba(31,138,91,.3);border-radius:5px;padding:18px">
+            <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:14.5px;letter-spacing:.06em;text-transform:uppercase;color:#5fcf94;margin-bottom:9px">What went well</div>
+            <p style="margin:0;font-size:16px;line-height:1.6;color:rgba(255,255,255,.8)">{{ detail.went }}</p>
+          </div>
+          <div style="background:rgba(231,159,43,.07);border:1px solid rgba(231,159,43,.28);border-radius:5px;padding:18px">
+            <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:14.5px;letter-spacing:.06em;text-transform:uppercase;color:#e79f2b;margin-bottom:9px">What could've gone better</div>
+            <p style="margin:0;font-size:16px;line-height:1.6;color:rgba(255,255,255,.8)">{{ detail.better }}</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Comments -->
+      <section>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+          <span style="font-family:Oswald,sans-serif;font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.5);font-weight:600">Guild Feedback</span>
+          <span style="font-size:14.5px;color:#e79f2b">{{ detail.commentCount }}</span>
+        </div>
+        <div style="background:rgba(13,30,48,.55);border:1px solid rgba(255,255,255,.07);border-radius:5px;padding:18px;margin-bottom:20px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+            <sc-for list="{{ detail.promptChips }}" as="p" hint-placeholder-count="3"><button onClick="{{ p.fill }}" style="background:rgba(255,255,255,.04);border:1px dashed rgba(231,159,43,.4);color:rgba(255,255,255,.7);border-radius:2px;padding:7px 13px;font-size:14px;font-weight:600;cursor:pointer">{{ p.label }}</button></sc-for>
+          </div>
+          <textarea value="{{ detail.commentDraft }}" onInput="{{ detail.onDraft }}" placeholder="Leave feedback that helps them grow — be specific and kind." style="width:100%;min-height:74px;background:rgba(8,19,33,.6);border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:12px 14px;color:#fff;font-size:16px;line-height:1.5;outline:none"></textarea>
+          <div style="display:flex;justify-content:flex-end;margin-top:11px">
+            <button onClick="{{ detail.addComment }}" style="background:#e79f2b;color:#091625;border:none;border-radius:2px;padding:10px 20px;font-family:Oswald,sans-serif;font-weight:600;font-size:14.5px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">Post Feedback</button>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:18px">
+          <sc-for list="{{ detail.comments }}" as="c" hint-placeholder-count="2">
+            <div style="display:flex;gap:13px">
+              <sc-if value="{{ c.hasAvatar }}" hint-placeholder-val=""><img src="{{ c.avatar }}" style="width:38px;height:38px;border-radius:50%;flex:none;object-fit:cover;display:block"></sc-if><sc-if value="{{ c.noAvatar }}" hint-placeholder-val="{{ true }}"><div style="width:38px;height:38px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-family:Oswald,sans-serif;font-weight:600;font-size:14.5px;{{ c.avatarStyle }}">{{ c.initials }}</div></sc-if>
+              <div style="flex:1">
+                <div style="display:flex;align-items:center;gap:9px;margin-bottom:4px">
+                  <span style="font-weight:700;font-size:15.5px">{{ c.author }}</span>
+                  <span style="font-size:12.5px;font-weight:600;letter-spacing:.04em;{{ c.roleStyle }}">{{ c.role }}</span>
+                  <sc-if value="{{ c.streak }}" hint-placeholder-val=""><span style="display:inline-flex;align-items:center;gap:3px;background:rgba(231,159,43,.14);border:1px solid rgba(231,159,43,.45);color:#e79f2b;border-radius:999px;padding:0 6px;font-size:11.5px;font-weight:800">☄ {{ c.streak }}y</span></sc-if>
+                </div>
+                <p style="margin:0;font-size:16px;line-height:1.6;color:rgba(255,255,255,.82)">{{ c.text }}</p>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+    </div>
+
+    <!-- RIGHT: facts + badges -->
+    <aside style="position:sticky;top:88px;display:flex;flex-direction:column;gap:18px">
+      <div style="background:rgba(13,30,48,.6);border:1px solid rgba(255,255,255,.07);border-radius:5px;padding:22px">
+        <div style="font-family:Oswald,sans-serif;font-size:13.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.45);font-weight:600;margin-bottom:18px">Capture Details</div>
+        <div style="display:flex;flex-direction:column;gap:15px">
+          <div><div style="font-size:13px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Captured</div><div style="font-size:16px;font-weight:600">{{ detail.date }}</div></div>
+          <div><div style="font-size:13px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Location</div><div style="font-size:16px;font-weight:600">{{ detail.loc }}</div><div style="font-size:14.5px;color:rgba(255,255,255,.55)">{{ detail.country }}</div></div>
+          <div><div style="font-size:13px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Gear &amp; Settings</div><div style="font-size:15.5px;line-height:1.55;color:rgba(255,255,255,.82)">{{ detail.gear }}</div></div>
+        </div>
+      </div>
+
+      <div style="background:rgba(13,30,48,.6);border:1px solid rgba(231,159,43,.2);border-radius:5px;padding:22px">
+        <div style="font-family:Oswald,sans-serif;font-size:13.5px;letter-spacing:.2em;text-transform:uppercase;color:#e79f2b;font-weight:600;margin-bottom:18px">Honors This Image Earned</div>
+        <div style="display:flex;flex-wrap:wrap;gap:16px">
+          <sc-for list="{{ detail.badges }}" as="b" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:8px;width:74px;text-align:center">
+              <div style="width:54px;height:60px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:rgba(231,159,43,.13);border:1px solid rgba(231,159,43,.55);display:flex;align-items:center;justify-content:center;font-size:22.5px;color:#e79f2b">{{ b.glyph }}</div>
+              <div style="font-size:12.5px;font-weight:700;line-height:1.2;color:rgba(255,255,255,.85)">{{ b.name }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <sc-if value="{{ detail.candidate }}" hint-placeholder-val="">
+        <div style="background:linear-gradient(160deg,rgba(231,159,43,.16),rgba(231,159,43,.05));border:1px solid rgba(231,159,43,.45);border-radius:5px;padding:20px;text-align:center">
+          <div style="font-size:23.5px;color:#e79f2b;margin-bottom:6px">✪</div>
+          <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:17.5px;color:#e79f2b;margin-bottom:5px">Image of the Week Contender</div>
+          <div style="font-size:14.5px;color:rgba(255,255,255,.7);line-height:1.5">Entered in this week's vote. Winners are crowned every Monday.</div>
+          <button style="width:100%;margin-top:15px;background:#e79f2b;color:#091625;border:none;border-radius:2px;padding:11px;font-family:Oswald,sans-serif;font-weight:600;font-size:14.5px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">Vote for This Image</button>
+        </div>
+      </sc-if>
+    </aside>
+  </div>
+</main>
+</sc-if>
+
+<!-- ===================== SUBMIT ===================== -->
+<sc-if value="{{ isSubmit }}" hint-placeholder-val="">
+<main style="max-width:1120px;margin:0 auto;padding:38px 40px 90px">
+  <div style="margin-bottom:8px;display:flex;align-items:center;gap:9px">
+    <img src="uploads/MWPG_Logo_FAVICON.png" style="width:20px;height:20px;border-radius:50%;display:block">
+    <span style="font-family:Oswald,sans-serif;font-size:14px;letter-spacing:.26em;text-transform:uppercase;color:#e79f2b;font-weight:500">New Submission</span>
+  </div>
+  <h1 style="margin:0 0 6px;font-family:Oswald,sans-serif;font-weight:600;font-size:36px">File a Field Report</h1>
+  <p style="margin:0 0 26px;color:rgba(255,255,255,.6);font-size:16.5px;max-width:620px">Tell the Guild about your night under the stars. The more you share about how you made it, the more everyone learns.</p>
+
+  <div style="display:flex;align-items:center;gap:14px;background:rgba(231,159,43,.07);border:1px solid rgba(231,159,43,.3);border-radius:4px;padding:13px 18px;margin-bottom:28px">
+    <span style="color:#e79f2b;font-size:19.5px">✪</span>
+    <div style="font-size:15px;color:rgba(255,255,255,.82)"><span style="color:#e79f2b;font-weight:700">{{ submit.weekLeft }} of 3 submissions left</span> this week · only one image may be entered for Image of the Week.</div>
+  </div>
+
+  <!-- Upload -->
+  <div style="margin-bottom:22px">
+    <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:14.5px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:10px">The Image <span style="color:#e79f2b">*</span></div>
+    <sc-if value="{{ submit.photo }}" hint-placeholder-val="">
+      <div style="position:relative;border-radius:5px;overflow:hidden;border:1px solid rgba(231,159,43,.4)">
+        <img src="{{ submit.photoSrc }}" style="width:100%;max-height:360px;object-fit:cover;display:block">
+        <div style="position:absolute;top:12px;right:12px;background:rgba(8,19,33,.85);color:#5fcf94;padding:6px 12px;border-radius:2px;font-size:13.5px;font-weight:700">✓ Image attached</div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ submit.noPhoto }}" hint-placeholder-val="{{ true }}">
+      <div onClick="{{ submit.pickPhoto }}" style="border:1.5px dashed rgba(231,159,43,.4);border-radius:5px;padding:46px;text-align:center;cursor:pointer;background:rgba(231,159,43,.03)">
+        <div style="font-size:30px;color:#e79f2b;margin-bottom:10px">↑</div>
+        <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:18.5px;margin-bottom:5px">Drop your Milky Way image here</div>
+        <div style="font-size:14.5px;color:rgba(255,255,255,.5)">or click to browse · full-resolution JPEG up to 30MB</div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ submit.ePhoto }}" hint-placeholder-val=""><div style="color:#ff8b6b;font-size:14px;margin-top:7px">{{ submit.ePhoto }}</div></sc-if>
+  </div>
+
+  <!-- Title -->
+  <div style="margin-bottom:20px">
+    <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:14.5px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:9px">Image Title <span style="color:#e79f2b">*</span></div>
+    <input value="{{ submit.title }}" onInput="{{ submit.onTitle }}" placeholder="Give your image a name worth remembering" style="width:100%;background:rgba(13,30,48,.6);border:1px solid rgba(255,255,255,.13);border-radius:4px;padding:13px 15px;color:#fff;font-size:16.5px;outline:none">
+    <sc-if value="{{ submit.eTitle }}" hint-placeholder-val=""><div style="color:#ff8b6b;font-size:14px;margin-top:7px">{{ submit.eTitle }}</div></sc-if>
+  </div>
+
+  <!-- Date + Country + Region -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px">
+    <div>
+      <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:14.5px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:9px">Capture Date <span style="color:#e79f2b">*</span></div>
+      <input type="date" value="{{ submit.date }}" onInput="{{ submit.onDate }}" style="width:100%;background:rgba(13,30,48,.6);border:1px solid rgba(255,255,255,.13);border-radius:4px;padding:12px 14px;color:#fff;font-size:16px;outline:none">
+      <sc-if value="{{ submit.eDate }}" hint-placeholder-val=""><div style="color:#ff8b6b;font-size:14px;margin-top:7px">{{ submit.eDate }}</div></sc-if>
+    </div>
+    <div>
+      <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:14.5px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:9px">Country <span style="color:#e79f2b">*</span></div>
+      <input value="{{ submit.country }}" onInput="{{ submit.onCountry }}" placeholder="United States" style="width:100%;background:rgba(13,30,48,.6);border:1px solid rgba(255,255,255,.13);border-radius:4px;padding:13px 15px;color:#fff;font-size:16px;outline:none">
+      <sc-if value="{{ submit.eCountry }}" hint-placeholder-val=""><div style="color:#ff8b6b;font-size:14px;margin-top:7px">{{ submit.eCountry }}</div></sc-if>
+    </div>
+    <div>
+      <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:14.5px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:9px">State / Region <span style="color:#e79f2b">*</span></div>
+      <input value="{{ submit.region }}" onInput="{{ submit.onRegion }}" placeholder="Utah" style="width:100%;background:rgba(13,30,48,.6);border:1px solid rgba(255,255,255,.13);border-radius:4px;padding:13px 15px;color:#fff;font-size:16px;outline:none">
+      <sc-if value="{{ submit.eRegion }}" hint-placeholder-val=""><div style="color:#ff8b6b;font-size:14px;margin-top:7px">{{ submit.eRegion }}</div></sc-if>
+    </div>
+  </div>
+
+  <!-- Gear -->
+  <div style="margin-bottom:20px">
+    <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:14.5px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:9px">Gear &amp; Settings <span style="color:#e79f2b">*</span></div>
+    <input value="{{ submit.gear }}" onInput="{{ submit.onGear }}" placeholder="Camera · lens · focal length · aperture · shutter · ISO · technique" style="width:100%;background:rgba(13,30,48,.6);border:1px solid rgba(255,255,255,.13);border-radius:4px;padding:13px 15px;color:#fff;font-size:16px;outline:none">
+    <sc-if value="{{ submit.eGear }}" hint-placeholder-val=""><div style="color:#ff8b6b;font-size:14px;margin-top:7px">{{ submit.eGear }}</div></sc-if>
+  </div>
+
+  <!-- Optional specific location -->
+  <div style="margin-bottom:28px">
+    <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:14.5px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:9px">Specific Location <span style="color:rgba(255,255,255,.35);font-weight:500;text-transform:none;letter-spacing:0">— optional, kept private if you wish</span></div>
+    <input value="{{ submit.spot }}" onInput="{{ submit.onSpot }}" placeholder="The exact spot — share as much as you're comfortable" style="width:100%;background:rgba(13,30,48,.6);border:1px solid rgba(255,255,255,.13);border-radius:4px;padding:13px 15px;color:#fff;font-size:16px;outline:none">
+  </div>
+
+  <div style="height:1px;background:rgba(255,255,255,.08);margin-bottom:28px"></div>
+  <div style="font-family:Oswald,sans-serif;font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:#e79f2b;font-weight:600;margin-bottom:20px">Tell Us About This Night <span style="color:rgba(255,255,255,.35);font-weight:500;letter-spacing:0;text-transform:none">— optional, but it's how we all learn</span></div>
+
+  <div style="margin-bottom:20px">
+    <div style="font-size:15.5px;font-weight:700;margin-bottom:9px;color:rgba(255,255,255,.85)">The story, in 3–5 sentences</div>
+    <textarea value="{{ submit.story }}" onInput="{{ submit.onStory }}" placeholder="What was the adventure? How did you find this spot, and what was the night like?" style="width:100%;min-height:96px;background:rgba(13,30,48,.6);border:1px solid rgba(255,255,255,.13);border-radius:4px;padding:13px 15px;color:#fff;font-size:16px;line-height:1.55;outline:none"></textarea>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px">
+    <div>
+      <div style="font-size:15.5px;font-weight:700;margin-bottom:9px;color:#5fcf94">What went well?</div>
+      <textarea value="{{ submit.went }}" onInput="{{ submit.onWent }}" placeholder="What are you proud of in this shot?" style="width:100%;min-height:84px;background:rgba(13,30,48,.6);border:1px solid rgba(255,255,255,.13);border-radius:4px;padding:13px 15px;color:#fff;font-size:16px;line-height:1.55;outline:none"></textarea>
+    </div>
+    <div>
+      <div style="font-size:15.5px;font-weight:700;margin-bottom:9px;color:#e79f2b">What could've gone better?</div>
+      <textarea value="{{ submit.better }}" onInput="{{ submit.onBetter }}" placeholder="What would you do differently next time?" style="width:100%;min-height:84px;background:rgba(13,30,48,.6);border:1px solid rgba(255,255,255,.13);border-radius:4px;padding:13px 15px;color:#fff;font-size:16px;line-height:1.55;outline:none"></textarea>
+    </div>
+  </div>
+
+  <!-- IOTW checkbox -->
+  <div onClick="{{ submit.toggleIotw }}" style="display:flex;align-items:flex-start;gap:14px;background:rgba(231,159,43,.06);border:1px solid rgba(231,159,43,.3);border-radius:5px;padding:18px 20px;cursor:pointer;margin-bottom:30px">
+    <div style="{{ submit.iotwBoxStyle }}">✓</div>
+    <div>
+      <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:17.5px;color:#fff;margin-bottom:3px">Enter this image for Image of the Week</div>
+      <div style="font-size:14.5px;color:rgba(255,255,255,.6);line-height:1.5">Members vote each week. The winner is celebrated, and Aaron picks a favorite for the Monday Moment of Envy.</div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:16px">
+    <button onClick="{{ submit.onSubmit }}" style="display:inline-flex;align-items:center;gap:10px;background:#e79f2b;color:#091625;border:none;border-radius:2px;padding:15px 30px;font-family:Oswald,sans-serif;font-weight:600;font-size:16.5px;letter-spacing:.07em;text-transform:uppercase;cursor:pointer">File This Field Report</button>
+    <span style="font-size:14.5px;color:rgba(255,255,255,.45)">Your image goes live in the Guild gallery immediately.</span>
+  </div>
+</main>
+</sc-if>
+
+<!-- ===================== GUILD HALL (community feed) ===================== -->
+<sc-if value="{{ isHall }}" hint-placeholder-val="{{ true }}">
+<main style="max-width:1680px;margin:0 auto;padding:34px 40px 90px">
+  <div style="margin-bottom:8px;display:flex;align-items:center;gap:9px">
+    <img src="uploads/MWPG_Logo_FAVICON.png" style="width:20px;height:20px;border-radius:50%;display:block">
+    <span style="font-family:Oswald,sans-serif;font-size:14px;letter-spacing:.26em;text-transform:uppercase;color:#e79f2b;font-weight:500">The Guild Hall</span>
+  </div>
+  <h1 style="margin:0 0 6px;font-family:Oswald,sans-serif;font-weight:600;font-size:38px">The Hall is Open</h1>
+  <p style="margin:0 0 30px;color:rgba(255,255,255,.55);font-size:16.5px">Field reports from across the Guild. React with intent, leave feedback that teaches.</p>
+
+  <!-- Ranking board -->
+  <section style="background:linear-gradient(180deg,rgba(47,68,93,.3),rgba(13,30,48,.55));border:1px solid rgba(231,159,43,.16);border-radius:6px;padding:24px 30px 34px;margin-bottom:36px">
+    <div style="display:flex;align-items:center;gap:11px;margin-bottom:8px">
+      <span style="font-family:Oswald,sans-serif;font-size:14.5px;letter-spacing:.2em;text-transform:uppercase;color:#e79f2b;font-weight:600">The Ascent</span>
+      <span style="font-size:14px;color:rgba(255,255,255,.45)">Every guildie's climb toward Master — hover a face</span>
+    </div>
+    <div style="position:relative;height:118px;margin-top:30px">
+      <div style="position:absolute;left:0;right:0;top:30px;height:2px;background:linear-gradient(90deg,rgba(255,255,255,.1),rgba(231,159,43,.4))"></div>
+      <sc-for list="{{ boardMarks }}" as="mk" hint-placeholder-count="6">
+        <div style="position:absolute;top:22px;transform:translateX(-50%);left:{{ mk.leftPct }}%;display:flex;flex-direction:column;align-items:center;gap:8px">
+          <div style="width:11px;height:11px;border-radius:50%;background:#091625;border:2px solid rgba(231,159,43,.6)"></div>
+          <span style="font-family:Oswald,sans-serif;font-weight:600;font-size:13px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;{{ mk.labelStyle }}">{{ mk.name }}</span>
+        </div>
+      </sc-for>
+      <sc-for list="{{ board }}" as="mb" hint-placeholder-count="8">
+        <div class="mw-boardav" style="position:absolute;top:6px;transform:translateX(-50%);left:{{ mb.leftPct }}%;z-index:2">
+          <img src="{{ mb.avatar }}" title="{{ mb.chipText }}" style="width:48px;height:48px;border-radius:50%;border:2px solid;object-fit:cover;display:block;cursor:pointer;{{ mb.ringStyle }}">
+          <div class="mw-avname" style="position:absolute;top:56px;left:50%;transform:translateX(-50%);white-space:nowrap;background:#0d1e30;border:1px solid rgba(231,159,43,.4);border-radius:3px;padding:5px 9px;font-size:13px;font-weight:700;color:#fff;pointer-events:none;z-index:40">{{ mb.chipText }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- Sort -->
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:26px;flex-wrap:wrap">
+    <span style="font-family:Oswald,sans-serif;font-size:14.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.5);font-weight:600">Recent Activity</span>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <span style="font-size:13px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.12em">Sort</span>
+      <sc-for list="{{ hallSorts }}" as="s" hint-placeholder-count="4"><button onClick="{{ s.onClick }}" style="{{ s.style }}">{{ s.label }}</button></sc-for>
+    </div>
+  </div>
+
+  <!-- Posts -->
+  <div style="display:flex;flex-direction:column;gap:34px;max-width:1240px;margin:0 auto">
+    <sc-for list="{{ hallPosts }}" as="p" hint-placeholder-count="4">
+      <article style="background:#0b1a2b;border:1px solid rgba(255,255,255,.08);border-radius:6px;overflow:hidden">
+        <div style="display:flex;align-items:center;gap:12px;padding:15px 18px">
+          <sc-if value="{{ p.authorHasAvatar }}" hint-placeholder-val="{{ true }}"><img src="{{ p.authorAvatar }}" style="width:42px;height:42px;border-radius:50%;border:1.5px solid rgba(231,159,43,.55);object-fit:cover;display:block;flex:none"></sc-if>
+          <sc-if value="{{ p.authorNoAvatar }}" hint-placeholder-val=""><div style="width:42px;height:42px;border-radius:50%;flex:none;background:rgba(231,159,43,.16);border:1.5px solid #e79f2b;display:flex;align-items:center;justify-content:center;font-family:Oswald,sans-serif;font-weight:600;color:#e79f2b;font-size:16.5px">{{ p.initials }}</div></sc-if>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-weight:700;font-size:16.5px">{{ p.photog }}</span><span style="font-size:12.5px;font-weight:600;color:#e79f2b;letter-spacing:.03em">{{ p.role }}</span><sc-if value="{{ p.authorStreak }}" hint-placeholder-val=""><span title="Year streak" style="display:inline-flex;align-items:center;gap:3px;background:rgba(231,159,43,.16);border:1px solid rgba(231,159,43,.5);color:#e79f2b;border-radius:999px;padding:1px 7px;font-size:12px;font-weight:800">☄ {{ p.authorStreak }}y</span></sc-if></div>
+            <div style="font-size:14px;color:rgba(255,255,255,.5)">{{ p.ago }} · {{ p.loc }}</div>
+          </div>
+          <sc-if value="{{ p.showRibbon }}" hint-placeholder-val=""><div style="padding:5px 11px;border-radius:2px;font-family:Oswald,sans-serif;font-weight:600;font-size:12px;letter-spacing:.09em;text-transform:uppercase;{{ p.ribbonStyle }}">{{ p.ribbon }}</div></sc-if>
+        </div>
+        <div onClick="{{ p.open }}" style="cursor:pointer"><img src="{{ p.src }}" loading="lazy" style="width:100%;display:block"></div>
+        <div style="padding:17px 18px 4px">
+          <h3 onClick="{{ p.open }}" style="margin:0 0 9px;font-family:Oswald,sans-serif;font-weight:600;font-size:26px;cursor:pointer">{{ p.title }}</h3>
+          <p style="margin:0;font-size:16px;line-height:1.6;color:rgba(255,255,255,.74)">{{ p.storySnip }}</p>
+        </div>
+        <div style="padding:16px 18px 4px;display:flex;flex-wrap:wrap;gap:9px">
+          <sc-for list="{{ p.bigReacts }}" as="r" hint-placeholder-count="7"><button class="mw-chip" onClick="{{ r.toggle }}" style="{{ r.style }}"><span style="font-size:16.5px;color:#e79f2b">{{ r.glyph }}</span>{{ r.label }}<span style="opacity:.65;font-weight:700">{{ r.countText }}</span></button></sc-for>
+        </div>
+        <div style="padding:14px 18px 16px;margin-top:12px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(255,255,255,.05)">
+          <span style="font-size:14.5px;color:rgba(255,255,255,.55)">{{ p.totalText }}</span>
+          <button onClick="{{ p.open }}" style="background:none;border:none;color:#e79f2b;font-family:Oswald,sans-serif;font-weight:600;font-size:14.5px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">Open &amp; Comment →</button>
+        </div>
+      </article>
+    </sc-for>
+  </div>
+</main>
+</sc-if>
+
+<!-- ===================== GUILD PROGRESS ===================== -->
+<sc-if value="{{ isProgress }}" hint-placeholder-val="">
+<main style="max-width:1680px;margin:0 auto;padding:34px 40px 90px">
+  <div style="margin-bottom:8px;display:flex;align-items:center;gap:9px">
+    <img src="uploads/MWPG_Logo_FAVICON.png" style="width:20px;height:20px;border-radius:50%;display:block">
+    <span style="font-family:Oswald,sans-serif;font-size:14px;letter-spacing:.26em;text-transform:uppercase;color:#e79f2b;font-weight:500">Guild Progress</span>
+  </div>
+  <h1 style="margin:0 0 28px;font-family:Oswald,sans-serif;font-weight:600;font-size:38px">Your Climb to Master</h1>
+
+  <!-- Member card + streaks -->
+  <section style="display:grid;grid-template-columns:1.15fr 1fr;gap:20px;margin-bottom:20px">
+    <div style="background:linear-gradient(155deg,rgba(47,68,93,.4),rgba(13,30,48,.65));border:1px solid rgba(231,159,43,.24);border-radius:6px;padding:26px;display:flex;gap:22px;align-items:center">
+      <img src="{{ memberAvatar }}" style="width:120px;height:120px;border-radius:50%;border:3px solid #e79f2b;object-fit:cover;flex:none;box-shadow:0 0 0 4px rgba(231,159,43,.14)">
+      <div>
+        <div style="font-family:Oswald,sans-serif;color:#e79f2b;letter-spacing:.2em;text-transform:uppercase;font-size:13.5px;font-weight:600;margin-bottom:6px">Member Standing</div>
+        <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:37px;line-height:1.02">{{ memberName }}</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap">
+          <span style="display:inline-flex;align-items:center;gap:7px;background:rgba(231,159,43,.16);border:1px solid rgba(231,159,43,.5);color:#e79f2b;border-radius:999px;padding:6px 14px;font-family:Oswald,sans-serif;font-weight:600;font-size:17.5px;letter-spacing:.04em;text-transform:uppercase">{{ memberRankShort }}</span>
+          <sc-if value="{{ memberStreak }}" hint-placeholder-val=""><span style="display:inline-flex;align-items:center;gap:5px;background:rgba(231,159,43,.16);border:1px solid rgba(231,159,43,.55);color:#e79f2b;border-radius:999px;padding:6px 13px;font-size:15.5px;font-weight:800">☄ {{ memberStreak }}-Year Streak</span></sc-if>
+        </div>
+        <div style="font-size:16px;color:rgba(255,255,255,.62);margin-top:11px">{{ earnedCount }} field honors earned · {{ memberRank }}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div style="background:rgba(13,30,48,.6);border:1px solid rgba(231,159,43,.25);border-radius:6px;padding:20px;display:flex;flex-direction:column;justify-content:center">
+        <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:46px;color:#e79f2b;line-height:1">{{ yearStreak }}</div>
+        <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:15.5px;letter-spacing:.08em;text-transform:uppercase;margin-top:2px">Year Streak</div>
+        <div style="font-size:13.5px;color:rgba(255,255,255,.55);margin-top:5px">A new Milky Way every year since 2016</div>
+      </div>
+      <div style="background:rgba(13,30,48,.6);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:20px;display:flex;flex-direction:column;justify-content:center">
+        <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:46px;color:#fff;line-height:1">{{ monthStreak }}</div>
+        <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:15.5px;letter-spacing:.08em;text-transform:uppercase;margin-top:2px">Month Streak</div>
+        <div style="font-size:13.5px;color:rgba(255,255,255,.55);margin-top:5px">Consecutive months, right now</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Progress to next rank -->
+  <section style="background:rgba(13,30,48,.6);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:22px 24px;margin-bottom:20px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px">
+      <span style="font-family:Oswald,sans-serif;font-weight:600;font-size:16.5px;letter-spacing:.04em;text-transform:uppercase">Progress to {{ progress.next }}</span>
+      <span style="font-size:14.5px;color:#e79f2b;font-weight:600">{{ progress.toNext }} more honors to rank up</span>
+    </div>
+    <div style="height:12px;border-radius:6px;background:rgba(255,255,255,.07);overflow:hidden">
+      <div style="height:100%;background:linear-gradient(90deg,#e79f2b,#f0bd66);border-radius:6px;{{ progress.barStyle }}"></div>
+    </div>
+  </section>
+
+  <!-- This year grid -->
+  <section style="background:rgba(13,30,48,.6);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:24px;margin-bottom:20px">
+    <div style="display:flex;align-items:center;gap:11px;margin-bottom:18px">
+      <span style="font-family:Oswald,sans-serif;font-size:14.5px;letter-spacing:.2em;text-transform:uppercase;color:#e79f2b;font-weight:600">2026 Field Year</span>
+      <span style="font-size:14px;color:rgba(255,255,255,.45)">A Milky Way in every month you shoot</span>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:14px">
+      <sc-for list="{{ monthsYear }}" as="mo" hint-placeholder-count="12"><div style="{{ mo.style }}">{{ mo.m }}</div></sc-for>
+    </div>
+    <div style="display:flex;gap:9px">
+      <sc-for list="{{ seasonsYear }}" as="se" hint-placeholder-count="4"><div style="{{ se.style }}">{{ se.name }}</div></sc-for>
+    </div>
+  </section>
+
+  <!-- Previous years credibility -->
+  <section style="background:rgba(13,30,48,.6);border:1px solid rgba(231,159,43,.18);border-radius:6px;padding:24px;margin-bottom:34px">
+    <div style="display:flex;align-items:center;gap:11px;margin-bottom:8px">
+      <span style="font-size:17.5px;color:#e79f2b">❖</span>
+      <span style="font-family:Oswald,sans-serif;font-size:14.5px;letter-spacing:.2em;text-transform:uppercase;color:#e79f2b;font-weight:600">A Decade Under the Stars</span>
+    </div>
+    <p style="margin:0 0 16px;font-size:15.5px;color:rgba(255,255,255,.65)">Credibility bonus — a new Milky Way image captured every single year since 2016.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <sc-for list="{{ prevYears }}" as="y" hint-placeholder-count="10"><div style="padding:9px 15px;border-radius:3px;font-family:Oswald,sans-serif;font-weight:600;font-size:15.5px;background:rgba(231,159,43,.13);color:#e79f2b;border:1px solid rgba(231,159,43,.4)">{{ y.y }}</div></sc-for>
+    </div>
+  </section>
+
+  <!-- Constellation of Honors -->
+  <section style="margin-bottom:8px">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span style="font-family:Oswald,sans-serif;font-size:14.5px;letter-spacing:.18em;text-transform:uppercase;color:#e79f2b;font-weight:600">The Constellation of Honors</span>
+      <span style="font-size:14px;color:rgba(255,255,255,.45)">Hover any star for details — a fully-earned cluster lights its constellation gold</span>
+    </div>
+  </section>
+  <div style="position:relative;width:100%;height:640px;border-radius:8px;overflow:hidden;border:1px solid rgba(231,159,43,.16);background:radial-gradient(1300px 760px at 50% -5%,rgba(47,68,93,.5),rgba(6,14,25,.97) 76%)">
+    <div style="position:absolute;inset:0;background-image:radial-gradient(1px 1px at 12% 22%,rgba(255,255,255,.5),transparent),radial-gradient(1px 1px at 70% 14%,rgba(255,255,255,.4),transparent),radial-gradient(1px 1px at 40% 58%,rgba(255,255,255,.35),transparent),radial-gradient(1px 1px at 86% 70%,rgba(255,255,255,.4),transparent),radial-gradient(1px 1px at 24% 84%,rgba(255,255,255,.3),transparent),radial-gradient(1px 1px at 55% 40%,rgba(255,255,255,.3),transparent)"></div>
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%">
+      <sc-for list="{{ skyLinks }}" as="l" hint-placeholder-count="22"><line x1="{{ l.x1 }}" y1="{{ l.y1 }}" x2="{{ l.x2 }}" y2="{{ l.y2 }}" stroke="{{ l.stroke }}" stroke-width="{{ l.sw }}" stroke-linecap="round"></line></sc-for>
+    </svg>
+    <sc-for list="{{ skyNodes }}" as="n" hint-placeholder-count="34">
+      <div class="mw-star" style="position:absolute;transform:translate(-50%,-50%);{{ n.posStyle }}z-index:3">
+        <div class="mw-starshape" style="clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);display:flex;align-items:center;justify-content:center;cursor:pointer;{{ n.starStyle }}"><span style="{{ n.glyphStyle }}">{{ n.glyph }}</span></div>
+        <div class="mw-startip" style="position:absolute;top:calc(100% + 9px);left:50%;transform:translateX(-50%);width:224px;background:#0d1e30;border:1px solid rgba(231,159,43,.45);border-radius:5px;padding:13px 15px;z-index:70;box-shadow:0 16px 38px rgba(0,0,0,.6)">
+          <div style="font-family:Mulish;font-weight:800;font-size:15.5px;margin-bottom:5px">{{ n.name }}</div>
+          <div style="font-size:13.5px;line-height:1.5;color:rgba(255,255,255,.62);margin-bottom:8px">{{ n.how }}</div>
+          <div style="font-size:13px;font-weight:700;letter-spacing:.03em;{{ n.tipStatusStyle }}">{{ n.statusText }}</div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:24px;margin-top:18px;font-size:14.5px;color:rgba(255,255,255,.6)">
+    <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:18px;height:18px;clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);background:linear-gradient(155deg,#f3c674,#e79f2b);display:inline-block"></span>Earned honor</span>
+    <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:18px;height:18px;clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);background:rgba(74,96,128,.4);display:inline-block"></span>Locked — not yet earned</span>
+    <span style="display:inline-flex;align-items:center;gap:8px"><span style="width:24px;height:2px;background:rgba(231,159,43,.6);display:inline-block"></span>Gold line = complete constellation</span>
+  </div>
+</main>
+</sc-if>
+
+<!-- ===================== IMAGE OF THE WEEK VOTING ===================== -->
+<sc-if value="{{ iotw.open }}" hint-placeholder-val="">
+<div style="position:fixed;inset:0;z-index:300;background:rgba(4,10,18,.85);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);display:flex;align-items:center;justify-content:center;padding:26px">
+  <div style="width:100%;max-width:1080px;max-height:92vh;overflow:auto;background:#0b1a2b;border:1px solid rgba(231,159,43,.3);border-radius:9px;box-shadow:0 34px 100px rgba(0,0,0,.65);position:relative">
+    <button onClick="{{ iotw.close }}" style="position:absolute;top:15px;right:15px;z-index:6;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:#fff;font-size:19px;cursor:pointer;line-height:1">×</button>
+
+    <!-- PRE-VOTE STATE -->
+    <sc-if value="{{ iotw.showPre }}" hint-placeholder-val="">
+      <div style="padding:36px 40px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <span style="color:#e79f2b;font-size:19px">✪</span>
+          <span style="font-family:Oswald,sans-serif;font-size:13.5px;letter-spacing:.22em;text-transform:uppercase;color:#e79f2b;font-weight:600">Image of the Week</span>
+        </div>
+        <h2 style="margin:0 0 7px;font-family:Oswald,sans-serif;font-weight:600;font-size:30px">Voting opens at 10 submissions</h2>
+        <p style="margin:0 0 22px;color:rgba(255,255,255,.62);font-size:15.5px;line-height:1.6;max-width:680px">The Guild needs {{ iotw.need }} candidates before voting can begin this week. Get your image in before {{ iotw.deadline }} so voting runs Sunday night.</p>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
+          <span style="font-family:Oswald,sans-serif;font-weight:600;font-size:15px;text-transform:uppercase;letter-spacing:.04em">{{ iotw.submitted }} of {{ iotw.need }} submitted</span>
+          <span style="font-size:13.5px;color:#e79f2b">Deadline · {{ iotw.deadline }}</span>
+        </div>
+        <div style="height:12px;border-radius:6px;background:rgba(255,255,255,.07);overflow:hidden;margin-bottom:24px"><div style="height:100%;background:linear-gradient(90deg,#e79f2b,#f0bd66);border-radius:6px;{{ iotw.prePct }}"></div></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:12px;margin-bottom:26px">
+          <sc-for list="{{ iotw.preItems }}" as="p" hint-placeholder-count="8">
+            <div style="position:relative;border-radius:5px;overflow:hidden;border:1px solid rgba(255,255,255,.08)">
+              <img src="{{ p.src }}" loading="lazy" style="width:100%;height:104px;object-fit:cover;display:block;filter:grayscale(.75) brightness(.45)">
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><span style="font-family:Oswald,sans-serif;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.25);border-radius:2px;padding:3px 8px">Locked</span></div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center">
+          <button onClick="{{ iotw.goSubmit }}" style="background:#e79f2b;color:#091625;border:none;border-radius:3px;padding:15px 28px;font-family:Oswald,sans-serif;font-weight:600;font-size:15.5px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">Submit an Image for IOTW →</button>
+          <span style="font-size:14px;color:rgba(255,255,255,.55);max-width:340px">Already shared this week? You can mark one of your uploads as a contender from its detail page.</span>
+        </div>
+        <sc-if value="{{ iotw.previewing }}" hint-placeholder-val=""><button onClick="{{ iotw.togglePre }}" style="margin-top:20px;background:none;border:none;color:rgba(255,255,255,.5);font-size:13.5px;cursor:pointer;text-decoration:underline">← Back to live voting</button></sc-if>
+      </div>
+    </sc-if>
+
+    <!-- VOTING STATE -->
+    <sc-if value="{{ iotw.showVote }}" hint-placeholder-val="{{ true }}">
+
+      <!-- STEP 1 — intro -->
+      <sc-if value="{{ iotw.step1 }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:42px 46px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px">
+            <span style="color:#e79f2b;font-size:19px">✪</span>
+            <span style="font-family:Oswald,sans-serif;font-size:13.5px;letter-spacing:.22em;text-transform:uppercase;color:#e79f2b;font-weight:600">Image of the Week · Voting Open</span>
+          </div>
+          <h2 style="margin:0 0 12px;font-family:Oswald,sans-serif;font-weight:600;font-size:34px">Cast your Top 3</h2>
+          <p style="margin:0 0 14px;color:rgba(255,255,255,.7);font-size:16px;line-height:1.65;max-width:640px">{{ iotw.poolCount }} images are in the running this week. Rank your three favorites from #1 to #3 — you can change your ranking any time until <b>{{ iotw.deadline }}</b>.</p>
+          <p style="margin:0 0 28px;color:rgba(255,255,255,.5);font-size:14px;line-height:1.6;max-width:640px">Every member's Top 3 is tallied — #1 picks weigh heaviest, with ties broken by how many ballots an image appears on. Aaron then crowns a Photog Phavorite from outside the Top 3.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center">
+            <button onClick="{{ iotw.begin }}" style="background:#e79f2b;color:#091625;border:none;border-radius:3px;padding:15px 30px;font-family:Oswald,sans-serif;font-weight:600;font-size:16px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">Begin Voting →</button>
+            <button onClick="{{ iotw.togglePre }}" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:13.5px;cursor:pointer;text-decoration:underline">Preview the pre-voting screen</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- STEP 2 — vote -->
+      <sc-if value="{{ iotw.step2 }}" hint-placeholder-val="">
+        <div style="padding:26px 30px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:20px">
+            <div>
+              <h2 style="margin:0;font-family:Oswald,sans-serif;font-weight:600;font-size:25px">Rank your Top 3</h2>
+              <div style="font-size:13.5px;color:rgba(255,255,255,.55);margin-top:3px">Tap a candidate to add it · revise until {{ iotw.deadline }}</div>
+            </div>
+            <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:15px;color:#e79f2b;letter-spacing:.04em">{{ iotw.ballotCount }} of 3 chosen</div>
+          </div>
+          <div style="display:grid;grid-template-columns:312px 1fr;gap:22px">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <sc-for list="{{ iotw.slots }}" as="s" hint-placeholder-count="3">
+                <div style="position:relative;border-radius:6px;border:1px solid rgba(231,159,43,.28);background:rgba(8,19,33,.5);padding:10px;display:flex;gap:11px;align-items:center;min-height:86px">
+                  <div style="width:36px;height:36px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Oswald,sans-serif;font-weight:700;font-size:17px;{{ s.rankStyle }}">{{ s.rank }}</div>
+                  <sc-if value="{{ s.filled }}" hint-placeholder-val="">
+                    <img src="{{ s.src }}" style="width:78px;height:62px;object-fit:cover;border-radius:4px;flex:none">
+                    <div style="flex:1;min-width:0">
+                      <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.title }}</div>
+                      <div style="font-size:12.5px;color:rgba(255,255,255,.55)">{{ s.photog }}</div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:4px;flex:none">
+                      <button onClick="{{ s.up }}" style="width:24px;height:20px;border-radius:3px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:#e79f2b;font-size:8px;cursor:pointer;display:flex;align-items:center;justify-content:center">▲</button>
+                      <button onClick="{{ s.down }}" style="width:24px;height:20px;border-radius:3px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:#e79f2b;font-size:8px;cursor:pointer;display:flex;align-items:center;justify-content:center">▼</button>
+                    </div>
+                    <button onClick="{{ s.remove }}" style="width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:#fff;font-size:15px;cursor:pointer;flex:none">×</button>
+                  </sc-if>
+                  <sc-if value="{{ s.empty }}" hint-placeholder-val="{{ true }}">
+                    <div style="flex:1;color:rgba(255,255,255,.4);font-size:14px;border:1px dashed rgba(255,255,255,.16);border-radius:5px;padding:14px 12px;text-align:center">Pick your #{{ s.rank }} from the right</div>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+            <div>
+              <div style="font-family:Oswald,sans-serif;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.5);font-weight:600;margin-bottom:13px">This Week's Candidates · {{ iotw.poolCount }}</div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:12px;max-height:48vh;overflow:auto;padding-right:4px">
+                <sc-for list="{{ iotw.poolItems }}" as="c" hint-placeholder-count="9">
+                  <div onClick="{{ c.assign }}" style="{{ c.poolStyle }}">
+                    <img src="{{ c.src }}" loading="lazy" style="width:100%;height:112px;object-fit:cover;display:block">
+                    <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 52%,rgba(8,19,33,.9))"></div>
+                    <div style="position:absolute;left:9px;right:9px;bottom:7px;font-family:Oswald,sans-serif;font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.title }}</div>
+                    <sc-if value="{{ c.placed }}" hint-placeholder-val=""><div style="position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:#e79f2b;color:#091625;display:flex;align-items:center;justify-content:center;font-family:Oswald,sans-serif;font-weight:700;font-size:14px">{{ c.rankNum }}</div></sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,.07)">
+            <span style="font-size:13.5px;color:rgba(255,255,255,.5)">Your ballot saves automatically — change it any time before the deadline.</span>
+            <button onClick="{{ iotw.lock }}" style="background:#e79f2b;color:#091625;border:none;border-radius:3px;padding:14px 26px;font-family:Oswald,sans-serif;font-weight:600;font-size:15px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">Lock in my Top 3</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- STEP 3 — confirm -->
+      <sc-if value="{{ iotw.step3 }}" hint-placeholder-val="">
+        <div style="padding:40px 44px;text-align:center">
+          <div style="font-size:34px;color:#e79f2b;margin-bottom:6px">✪</div>
+          <h2 style="margin:0 0 8px;font-family:Oswald,sans-serif;font-weight:600;font-size:30px">Your ballot is locked in</h2>
+          <p style="margin:0 0 26px;color:rgba(255,255,255,.62);font-size:15.5px">You can revise your ranking any time before {{ iotw.deadline }}.</p>
+          <div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-bottom:30px">
+            <sc-for list="{{ iotw.confirmItems }}" as="c" hint-placeholder-count="3">
+              <div style="width:210px;text-align:left">
+                <div style="position:relative;border-radius:6px;overflow:hidden;border:1px solid rgba(231,159,43,.3)">
+                  <img src="{{ c.src }}" style="width:100%;height:140px;object-fit:cover;display:block">
+                  <div style="position:absolute;top:10px;left:10px;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Oswald,sans-serif;font-weight:700;font-size:16px;{{ c.rankStyle }}">{{ c.rank }}</div>
+                </div>
+                <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:16px;margin-top:8px">{{ c.title }}</div>
+                <div style="font-size:13px;color:rgba(255,255,255,.55)">{{ c.photog }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap">
+            <button onClick="{{ iotw.backToVote }}" style="background:rgba(255,255,255,.05);color:#fff;border:1px solid rgba(255,255,255,.16);border-radius:3px;padding:13px 24px;font-family:Oswald,sans-serif;font-weight:600;font-size:14.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer">Revise my picks</button>
+            <button onClick="{{ iotw.close }}" style="background:#e79f2b;color:#091625;border:none;border-radius:3px;padding:13px 30px;font-family:Oswald,sans-serif;font-weight:600;font-size:14.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer">Done</button>
+          </div>
+        </div>
+      </sc-if>
+
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<!-- Toast -->
+<sc-if value="{{ toast }}" hint-placeholder-val="">
+  <div style="position:fixed;bottom:30px;left:50%;transform:translateX(-50%);z-index:200;display:flex;align-items:center;gap:12px;background:#0d1e30;border:1px solid rgba(231,159,43,.5);border-radius:4px;padding:15px 24px;box-shadow:0 18px 50px rgba(0,0,0,.5)">
+    <span style="color:#e79f2b;font-size:18.5px">✪</span>
+    <span style="font-size:16px;font-weight:600">{{ toast }}</span>
+  </div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    screen: 'hall',
+    activeId: 'salt',
+    myReacted: {},
+    extraComments: {},
+    commentDraft: '',
+    f: { title:'', date:'', country:'', region:'', gear:'', spot:'', story:'', went:'', better:'', iotw:true, photo:false, photoSrc:'' },
+    errors: {},
+    weekUsed: 1,
+    filter: 'all',
+    hallSort: 'recent',
+    iotwOpen: true,
+    iotwStep: 1,
+    ballot: [],
+    iotwVoted: false,
+    iotwPreviewPre: false,
+    toast: null,
+  };
+
+  U = 'uploads/';
+  member = { name:'Aaron King', first:'Aaron', initials:'AK', avatar:'AaronKing_2023_2.jpg', rank:'Veteran Milky Way Photographer', rankShort:'Veteran' };
+  ranks = ['Beginner','Amateur','Novice','Veteran','Master'];
+  RANKMARKS = [
+    {key:'unranked', name:'Unranked', at:0},
+    {key:'beginner', name:'Beginner', at:1},
+    {key:'amateur',  name:'Amateur',  at:8},
+    {key:'novice',   name:'Novice',   at:18},
+    {key:'veteran',  name:'Veteran',  at:25},
+    {key:'master',   name:'Master',   at:33},
+  ];
+  rankFromCount(c){ if(c>=33)return'Master'; if(c>=25)return'Veteran'; if(c>=18)return'Novice'; if(c>=8)return'Amateur'; if(c>=1)return'Beginner'; return'Unranked'; }
+  MEMBERS = [
+    {key:'aaron', name:'Aaron King', initials:'AK', avatar:'AaronKing_2023_2.jpg', count:28, streak:10, you:true},
+    {key:'folks', name:'Elder & Sister King', initials:'EK', avatar:'Parents_MissionZoom_12.jpg', count:36, streak:9},
+    {key:'garrett', name:'Garrett Briggs', initials:'GB', avatar:'IMG_8954.jpg', count:21, streak:6},
+    {key:'josie', name:'Josie & Jaeden', initials:'JJ', avatar:'JosieJaeden.png', count:16, streak:4},
+    {key:'mabel', name:'Mabel P.', initials:'MP', avatar:'Mabel.jpg', count:12, streak:3},
+    {key:'mason', name:'Mason King', initials:'MK', avatar:'Mason.jpg', count:5, streak:1},
+    {key:'sokka', name:'Sokka', initials:'SK', avatar:'Aang.jpg', count:3, streak:0},
+    {key:'aang', name:'Aang', initials:'AA', avatar:'AvatarAang.jpg', count:0, streak:0},
+  ];
+  memberByName(n){ return this.MEMBERS.find(x=>x.name===n); }
+  RECENT = ['kilns','salt','bridges','nz','sandcave','island','spire','dancehall','goshen','goblin','hoodoo'];
+  AGO = { kilns:'4 hours ago', salt:'1 day ago', bridges:'2 days ago', nz:'3 days ago', sandcave:'5 days ago', island:'1 week ago', spire:'1 week ago', dancehall:'2 weeks ago', goshen:'3 weeks ago', goblin:'1 month ago', hoodoo:'2 months ago' };
+  IOTW_POOL = ['kilns','salt','bridges','nz','sandcave','island','spire','dancehall','goblin','goshen','hoodoo'];
+  WINNERS = { first:'salt', second:'nz', third:'bridges', phavorite:'island' };
+
+  openIotw(){ this.setState({iotwOpen:true, iotwStep:1}); }
+  closeIotw(){ this.setState({iotwOpen:false}); }
+  setIotwStep(n){ this.setState({iotwStep:n}); }
+  togglePreVote(){ this.setState(s=>({iotwPreviewPre:!s.iotwPreviewPre, iotwStep:1})); }
+  ballotAssign(id){ this.setState(s=>{ if(s.ballot.includes(id)) return {ballot:s.ballot.filter(x=>x!==id)}; if(s.ballot.length>=3) return {}; return {ballot:[...s.ballot,id]}; }); }
+  ballotRemove(i){ this.setState(s=>{ const b=[...s.ballot]; b.splice(i,1); return {ballot:b}; }); }
+  ballotMove(i,d){ this.setState(s=>{ const b=[...s.ballot]; const j=i+d; if(j<0||j>=b.length) return {}; const t=b[i]; b[i]=b[j]; b[j]=t; return {ballot:b}; }); }
+  lockBallot(){ this.setState({iotwStep:3, iotwVoted:true}); this.flash('Your Top 3 is locked in — revise any time before Sunday noon.'); }
+
+  QUICK = [
+    {key:'love',label:'Love',glyph:'♥',special:true},
+    {key:'wow',label:'Wow',glyph:'✺'},
+    {key:'envy',label:'Envy',glyph:'◆'},
+    {key:'like',label:'Like',glyph:'●'},
+  ];
+  CRAFT = [
+    {key:'sky',label:'Beautiful Sky',glyph:'★'},
+    {key:'foreground',label:'Great Foreground',glyph:'▲'},
+    {key:'composition',label:'Strong Composition',glyph:'◇'},
+    {key:'adventure',label:'Inspiring Adventure',glyph:'✦'},
+    {key:'story',label:'Helpful Story',glyph:'❝'},
+  ];
+  BMAP = {
+    core:{name:'Core Season',glyph:'✦'},
+    pano:{name:'Panorama',glyph:'▭'},
+    reflection:{name:'Water Reflection',glyph:'≈'},
+    tracked:{name:'Tracked Sky',glyph:'⊕'},
+    arch:{name:'Arch Foreground',glyph:'◠'},
+    desert:{name:'Desert Foreground',glyph:'▲'},
+    summer:{name:'Summer Milky Way',glyph:'☀'},
+    winter:{name:'Winter Milky Way',glyph:'❄'},
+    manmade:{name:'Human History',glyph:'⌂'},
+    vertical:{name:'Vertical Pano',glyph:'▯'},
+  };
+
+  ACH = [
+    {key:'twelve',cat:'grand',name:'Twelve-Month Milky Way',glyph:'✪',earned:false,grand:true,progress:'9 of 12 months',how:'Capture the Milky Way in all twelve calendar months \u2014 the Guild\u2019s highest field honor.'},
+    {key:'seasons4',cat:'grand',name:'Four Seasons',glyph:'✣',earned:true,grand:true,how:'Earn all four seasonal Milky Way honors.'},
+    {key:'decade',cat:'grand',name:'Decade of Dark',glyph:'❖',earned:true,grand:true,how:'Submit a Milky Way image in ten or more different years.'},
+    {key:'core',cat:'grand',name:'Core Chaser',glyph:'✦',earned:true,how:'Photograph the bright galactic core during core season.'},
+    {key:'envywin',cat:'grand',name:'Monday Moment of Envy',glyph:'♛',earned:true,how:'Have an image chosen by Aaron as the Monday Moment of Envy.'},
+    {key:'mJan',cat:'month',name:'January Milky Way',glyph:'☾',earned:false,progress:'Locked',how:'Submit a Milky Way captured in January.'},
+    {key:'mFeb',cat:'month',name:'February Milky Way',glyph:'☾',earned:true,how:'Submit a Milky Way captured in February.'},
+    {key:'mMar',cat:'month',name:'March Milky Way',glyph:'☾',earned:true,how:'Submit a Milky Way captured in March.'},
+    {key:'mApr',cat:'month',name:'April Milky Way',glyph:'☾',earned:true,how:'Submit a Milky Way captured in April.'},
+    {key:'mMay',cat:'month',name:'May Milky Way',glyph:'☾',earned:true,how:'Submit a Milky Way captured in May.'},
+    {key:'mJun',cat:'month',name:'June Milky Way',glyph:'☾',earned:true,how:'Submit a Milky Way captured in June.'},
+    {key:'mJul',cat:'month',name:'July Milky Way',glyph:'☾',earned:true,how:'Submit a Milky Way captured in July.'},
+    {key:'mAug',cat:'month',name:'August Milky Way',glyph:'☾',earned:true,how:'Submit a Milky Way captured in August.'},
+    {key:'mSep',cat:'month',name:'September Milky Way',glyph:'☾',earned:true,how:'Submit a Milky Way captured in September.'},
+    {key:'mOct',cat:'month',name:'October Milky Way',glyph:'☾',earned:true,how:'Submit a Milky Way captured in October.'},
+    {key:'mNov',cat:'month',name:'November Milky Way',glyph:'☾',earned:false,progress:'Locked',how:'Submit a Milky Way captured in November.'},
+    {key:'mDec',cat:'month',name:'December Milky Way',glyph:'☾',earned:false,progress:'Locked',how:'Submit a Milky Way captured in December.'},
+    {key:'sSpring',cat:'season',name:'Spring Milky Way',glyph:'❀',earned:true,how:'Capture the Milky Way during spring.'},
+    {key:'sSummer',cat:'season',name:'Summer Milky Way',glyph:'☀',earned:true,how:'Capture the Milky Way during summer.'},
+    {key:'sAutumn',cat:'season',name:'Autumn Milky Way',glyph:'❧',earned:true,how:'Capture the Milky Way during autumn.'},
+    {key:'sWinter',cat:'season',name:'Winter Milky Way',glyph:'❄',earned:true,how:'Capture the faint winter Milky Way.'},
+    {key:'fArch',cat:'foreground',name:'Arch & Bridge',glyph:'◠',earned:true,how:'Frame the Milky Way through a natural arch or bridge.'},
+    {key:'fDesert',cat:'foreground',name:'Desert Tower',glyph:'▲',earned:true,how:'Feature a desert spire, hoodoo or tower as foreground.'},
+    {key:'fWater',cat:'foreground',name:'Water Reflection',glyph:'≈',earned:true,how:'Capture the galaxy mirrored in water.'},
+    {key:'fMountain',cat:'foreground',name:'Mountain Sky',glyph:'△',earned:true,how:'Include a mountain range beneath the Milky Way.'},
+    {key:'fDune',cat:'foreground',name:'Sand & Dune',glyph:'◡',earned:true,how:'Feature sand dunes or sandstone as foreground.'},
+    {key:'fHistory',cat:'foreground',name:'Human History',glyph:'⌂',earned:true,how:'Include human-built history \u2014 kilns, ruins, structures.'},
+    {key:'fForest',cat:'foreground',name:'Into the Forest',glyph:'♣',earned:false,progress:'Locked',how:'Feature a forest or treeline beneath the stars.'},
+    {key:'tTracked',cat:'technique',name:'Tracked Sky',glyph:'⊕',earned:true,how:'Use a star tracker for a sharp, deep sky.'},
+    {key:'tStacked',cat:'technique',name:'Stacked Frames',glyph:'▤',earned:true,how:'Stack multiple frames to reduce noise.'},
+    {key:'tPano',cat:'technique',name:'Panorama',glyph:'▭',earned:true,how:'Stitch a multi-pane Milky Way panorama.'},
+    {key:'tVert',cat:'technique',name:'Vertical Panorama',glyph:'▯',earned:true,how:'Stitch a vertical panel from foreground to core.'},
+    {key:'tBlend',cat:'technique',name:'Time Blend',glyph:'◐',earned:true,how:'Blend exposures from blue hour to full dark.'},
+    {key:'tLapse',cat:'technique',name:'Timelapse',glyph:'▷',earned:false,progress:'Locked',how:'Submit a Milky Way timelapse sequence.'},
+  ];
+
+  IMAGES = [
+    { id:'salt', src:'AaronKing_SaltFlatsPano_PhotogAdventures.jpg', title:'Two Against the Galaxy', photog:'Aaron King', initials:'AK', role:'Guild Master',
+      date:'Jun 8, 2024', loc:'Bonneville Salt Flats, Utah', country:'United States',
+      gear:'Sony a7 III · 20mm · f/1.8 · 15s · ISO 3200 · 9-pane arch panorama',
+      story:'We drove out onto the flooded salt flats around 1am when the water finally went still. The whole galactic arch mirrored on the surface so cleanly it was disorienting which way was up. Stood out there with a friend for two hours, barely talking.',
+      went:'The reflection held perfectly still — not a breath of wind. Spacing the two of us against the core landed exactly as I pre-visualized.',
+      better:'A touch of green airglow crept into the lower band. I would dial the white balance cooler next time to keep it neutral.',
+      candidate:true, winner:true, envy:true, votes:148, b:['pano','reflection','core'],
+      r:{love:58, envy:71, sky:64, composition:40, adventure:33, wow:46, like:88, story:12},
+      comments:[
+        {author:'Mabel P.',initials:'ML',role:'Master',text:'The symmetry is unreal — the airglow doubling on the salt makes it feel infinite. How long was your total pano sequence?'},
+        {author:'Josie & Jaeden',initials:'KW',role:'Veteran',text:'Both figures perfectly spaced against the core. Pure silhouette, or did you add a hair of light?'},
+      ]},
+    { id:'nz', src:'NewZealand-Pano-MidEdit.jpg', title:'The Arch Down Under', photog:'Garrett Briggs', initials:'RS', role:'Veteran',
+      date:'Mar 22, 2024', loc:'Lake Ōhau, Canterbury', country:'New Zealand',
+      gear:'Nikon Z6 · 14mm · f/2.8 · 20s · ISO 6400 · tracked sky, static foreground',
+      story:'Chasing clear skies across the South Island finally paid off above Lake Ōhau. The Magellanic Clouds sitting off to the left still get me — a sky I never see from home. Snow still on the peaks, dead calm water.',
+      went:'Caught the full galactic arch edge to edge with the Magellanic Clouds. The blend between tracked sky and still foreground is seamless.',
+      better:'A little light pollution glow on the left horizon I could have masked more carefully in post.',
+      candidate:true, winner:false, envy:false, votes:96, b:['pano','core','tracked'],
+      r:{love:31, sky:48, adventure:40, composition:22, wow:19, like:54, envy:27},
+      comments:[
+        {author:'Aaron King',initials:'AK',role:'Guild Master',text:'That core over the Southern Alps is on my life list. Color is restrained and believable — not over-cooked. Nicely done.'},
+      ]},
+    { id:'sandcave', src:'AaronKing_SandCave_PhotogAdventures.jpg', title:'Through the Keyhole', photog:'Mabel P.', initials:'ML', role:'Master',
+      date:'May 12, 2024', loc:'Grand Staircase–Escalante, Utah', country:'United States',
+      gear:'Canon R6 · 15mm · f/2.8 · 25s · ISO 6400 · single frame',
+      story:'Hiked into the sand cave at dusk and waited for the core to climb into the opening. Stood on the dune ridge for scale once it framed up. The walls glow faintly from a single warm headlamp behind me.',
+      went:'The core landed dead-center in the cave mouth. The lone figure gives the whole scene a sense of scale.',
+      better:'ISO 6400 single frame is noisier than I would like — a stack would have cleaned the shadows.',
+      candidate:true, winner:false, envy:false, votes:74, b:['arch','core'],
+      r:{love:40, sky:33, foreground:29, composition:38, wow:25, like:61, adventure:18},
+      comments:[
+        {author:'Mason King',initials:'DR',role:'Amateur',text:'The scale of the figure against that opening is incredible. Did you light-paint the walls or is that ambient?'},
+      ]},
+    { id:'island', src:'AaronKing_IslandInTheSky_PhotogAdventures.jpg', title:'Island in the Sky', photog:'Garrett Briggs', initials:'RS', role:'Veteran',
+      date:'Sep 1, 2024', loc:'Canyonlands, Utah', country:'United States',
+      gear:'Nikon Z6 · 20mm · f/2.0 · 13s · ISO 5000 · blue-hour blend',
+      story:'Late-season core setting over the canyons. The potholes in the foreground caught just enough skyglow to read. One of those quiet nights where the wind finally dies after midnight.',
+      went:'The foreground potholes lead the eye nicely toward the setting core.',
+      better:'Caught it a little late in the season — the core is already low and dim.',
+      candidate:false, winner:false, envy:false, votes:0, b:['core'],
+      r:{love:18, sky:24, foreground:20, like:39, composition:15} },
+    { id:'kilns', src:'2024CharcoalKilns.jpg', title:'The Charcoal Kilns', photog:'Aaron King', initials:'AK', role:'Guild Master',
+      date:'Feb 14, 2024', loc:'Ward Charcoal Ovens, Nevada', country:'United States',
+      gear:'Sony a7 III · 24mm · f/2.8 · 20s · ISO 4000 · warm-lit interior',
+      story:'Winter Milky Way over the old 1870s charcoal ovens. Snow on the ground, a lantern tucked inside one oven for warmth and glow. Hands went numb fast but worth it.',
+      went:'The warm lantern glow inside the oven balances the cold blue sky beautifully.',
+      better:'Snow reflected a bit more skyglow than expected — slightly lifted the shadows.',
+      candidate:false, winner:false, envy:false, votes:0, b:['winter','manmade'],
+      r:{love:22, sky:19, foreground:26, adventure:21, like:44, wow:14} },
+    { id:'bridges', src:'09_NaturalBridges.jpg', title:'Owachomo Under Stars', photog:'Josie & Jaeden', initials:'KW', role:'Veteran',
+      date:'Jul 6, 2024', loc:'Natural Bridges N.M., Utah', country:'United States',
+      gear:'Canon R5 · 16mm · f/2.8 · 20s · ISO 6400 · low-level warm light',
+      story:'The core framed perfectly under the Owachomo span. One of the darkest skies in the country — you can read the galaxy by eye here.',
+      went:'Threading the core through the arch opening came together on the second composition.',
+      better:'The warm light on the rock is a hair strong on the right edge.',
+      candidate:true, winner:false, envy:false, votes:61, b:['arch'],
+      r:{love:26, sky:30, foreground:24, composition:33, like:47, wow:16} },
+    { id:'spire', src:'AaronKing_SecretSpire_2400Tall_PAlogo.jpg', title:'The Secret Spire', photog:'Aaron King', initials:'AK', role:'Guild Master',
+      date:'Apr 18, 2024', loc:'San Rafael Swell, Utah', country:'United States',
+      gear:'Sony a7 III · 20mm · f/1.8 · 15s · ISO 3200 · vertical core',
+      story:'A balanced-rock spire with the core rising straight out of the desert behind it. Found this formation by accident scouting in daylight and came back that night.',
+      went:'Vertical core composition lines up right alongside the spire — clean and simple.',
+      better:'Could have used a touch more foreground light to separate the rock from the sky.',
+      candidate:false, winner:false, envy:false, votes:0, b:['desert','core'],
+      r:{love:20, sky:27, foreground:18, like:36, composition:14} },
+    { id:'hoodoo', src:'AaronKing_HoodooVillage_2400Tall_PAlogo.jpg', title:'Hoodoo Village', photog:'Mason King', initials:'DR', role:'Amateur',
+      date:'Oct 4, 2023', loc:'San Rafael Swell, Utah', country:'United States',
+      gear:'Sony a6400 · 12mm · f/2.8 · 25s · ISO 5000 · single frame',
+      story:'My first real attempt at a vertical Milky Way panel. A friend stood by the rock spire with a red headlamp for scale. Learned a ton this night.',
+      went:'Got the core sharp and the red accent light reads as a person without blowing out.',
+      better:'Lots of noise in the shadows — I now know to expose longer or stack.',
+      candidate:false, winner:false, envy:false, votes:0, b:['desert'],
+      r:{love:14, sky:16, adventure:22, like:31, story:8} },
+    { id:'dancehall', src:'BONUS_AaronKing_DanceHallRockPano_PhotogAdventures.jpg', title:'Dance Hall Rock', photog:'Mason King', initials:'DR', role:'Amateur',
+      date:'Jun 25, 2024', loc:'Dance Hall Rock, Utah', country:'United States',
+      gear:'Sony a6400 · 14mm · f/2.8 · 20s · ISO 6400 · 5-pane panorama',
+      story:'Warm light-painted the slickrock dome while the arch stretched overhead. My first panorama that actually stitched without errors.',
+      went:'The light painting on the dome separates it cleanly from the dark foreground.',
+      better:'The stitch is good but the foreground exposure is a little hot near the light source.',
+      candidate:false, winner:false, envy:false, votes:0, b:['pano','desert'],
+      r:{love:17, sky:21, foreground:24, like:33, composition:12} },
+    { id:'goblin', src:'BONUS_GoblinValleyVillage.jpg', title:'Goblins Under Stars', photog:'Josie & Jaeden', initials:'KW', role:'Veteran',
+      date:'Nov 11, 2023', loc:'Goblin Valley S.P., Utah', country:'United States',
+      gear:'Canon R5 · 16mm · f/2.8 · 25s · ISO 6400 · warm low-level light',
+      story:'The hoodoos here look like a crowd of little figures. Walked low-level warm light across the field while the camera ran. Eerie and wonderful place at night.',
+      went:'Even low-level lighting across the goblins kept the texture without hotspots.',
+      better:'The autumn core is already past its best — fainter than summer.',
+      candidate:false, winner:false, envy:false, votes:0, b:['desert'],
+      r:{love:15, sky:18, foreground:27, like:30, wow:11} },
+    { id:'goshen', src:'01_GoshenDryBedCropped.jpg', title:'Life in the Cracks', photog:'Garrett Briggs', initials:'RS', role:'Veteran',
+      date:'Aug 30, 2024', loc:'Goshen, Utah', country:'United States',
+      gear:'Nikon Z6 · 14mm · f/2.8 · 20s · ISO 6400 · focus blend',
+      story:'A cracked dry lakebed with a single green shrub clinging to life, lit softly from the side. The galaxy rose straight up out of the cracks. Spent an hour finding the one composition that worked.',
+      went:'The leading cracks pull straight up into the rising core — exactly the line I wanted.',
+      better:'The foreground light on the shrub is slightly too saturated green.',
+      candidate:false, winner:false, envy:false, votes:0, b:['summer'],
+      r:{love:24, foreground:31, composition:28, sky:22, like:41, story:9} },
+  ];
+
+  imgById(id){ return this.IMAGES.find(i=>i.id===id) || this.IMAGES[0]; }
+
+  setScreen(s){ this.setState({screen:s}); this.top(); }
+  openDetail(id){ this.setState({screen:'detail', activeId:id, commentDraft:''}); this.top(); }
+  top(){ try{ window.scrollTo(0,0); }catch(e){} }
+
+  react(id,key){
+    this.setState(s=>{
+      const mr={...(s.myReacted[id]||{})};
+      mr[key]=!mr[key];
+      return { myReacted:{...s.myReacted,[id]:mr} };
+    });
+  }
+
+  addComment(){
+    const t=(this.state.commentDraft||'').trim();
+    if(!t) return;
+    const id=this.state.activeId;
+    this.setState(s=>{
+      const list=[...(s.extraComments[id]||[])];
+      list.push({author:this.member.name,initials:this.member.initials,role:'You',text:t,mine:true});
+      return { extraComments:{...s.extraComments,[id]:list}, commentDraft:'' };
+    });
+  }
+
+  setField(name,val){ this.setState(s=>({ f:{...s.f,[name]:val}, errors:{...s.errors,[name]:undefined} })); }
+  pickPhoto(){ this.setField('photo',true); this.setState(s=>({ f:{...s.f, photo:true, photoSrc:this.U+'AaronKing_SandCave_PhotogAdventures.jpg'} })); }
+
+  submitReport(){
+    const f=this.state.f; const e={};
+    if(this.state.weekUsed>=3){ this.flash('You have used all 3 Guild submissions this week.'); return; }
+    if(!f.photo) e.photo='Add your image to file the report.';
+    if(!f.title.trim()) e.title='Give your image a title.';
+    if(!f.date) e.date='When did you capture it?';
+    if(!f.country.trim()) e.country='Required.';
+    if(!f.region.trim()) e.region='Required.';
+    if(!f.gear.trim()) e.gear='Share your gear & settings.';
+    if(Object.keys(e).length){ this.setState({errors:e}); return; }
+    this.setState(s=>({
+      weekUsed:s.weekUsed+1,
+      f:{ title:'', date:'', country:'', region:'', gear:'', spot:'', story:'', went:'', better:'', iotw:true, photo:false, photoSrc:'' },
+      errors:{}, screen:'dashboard'
+    }));
+    this.flash(f.iotw ? 'Field report filed — entered for Image of the Week.' : 'Field report filed to the Guild gallery.');
+    this.top();
+  }
+
+  flash(msg){ this.setState({toast:msg}); clearTimeout(this._t); this._t=setTimeout(()=>this.setState({toast:null}),3200); }
+
+  chipStyle(active,special,craft){
+    const base='display:inline-flex;align-items:center;gap:9px;padding:'+(craft?'11px 17px':'11px 19px')+';border-radius:'+(craft?'5px':'999px')+';font-family:Mulish,sans-serif;font-weight:700;font-size:15.5px;cursor:pointer;transition:all .15s ease;user-select:none;white-space:nowrap;';
+    if(special){
+      return base + (active
+        ? 'background:linear-gradient(160deg,#f0bd66,#e79f2b);color:#091625;border:1px solid #e79f2b;box-shadow:0 6px 20px rgba(231,159,43,.4);'
+        : 'background:rgba(231,159,43,.07);color:#e79f2b;border:1px solid rgba(231,159,43,.5);');
+    }
+    return base + (active
+      ? 'background:rgba(231,159,43,.18);color:#fff;border:1px solid #e79f2b;'
+      : (craft
+        ? 'background:rgba(47,68,93,.22);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.12);'
+        : 'background:rgba(255,255,255,.04);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.14);'));
+  }
+
+  bigBtnStyle(active){ return 'display:inline-flex;align-items:center;gap:9px;padding:12px 18px;border-radius:3px;font-family:Mulish,sans-serif;font-weight:700;font-size:15.5px;cursor:pointer;transition:all .14s ease;user-select:none;white-space:nowrap;'+(active?'background:rgba(231,159,43,.18);color:#fff;border:1px solid #e79f2b;box-shadow:0 4px 14px rgba(231,159,43,.18);':'background:rgba(255,255,255,.04);color:rgba(255,255,255,.82);border:1px solid rgba(255,255,255,.14);'); }
+
+  computeImage(img){
+    const all=[...this.QUICK,...this.CRAFT];
+    const mr=this.state.myReacted[img.id]||{};
+    let total=0; const arr=[];
+    all.forEach(r=>{ const c=((img.r&&img.r[r.key])||0)+(mr[r.key]?1:0); if(c>0){ arr.push({glyph:r.glyph,count:c,key:r.key}); total+=c; } });
+    arr.sort((a,b)=>b.count-a.count);
+    return {
+      id:img.id, src:this.U+img.src, title:img.title, photog:img.photog,
+      initials:(this.memberByName(img.photog)||{}).initials||img.initials,
+      role:this.memberByName(img.photog)?this.rankFromCount(this.memberByName(img.photog).count):(img.role||''),
+      authorAvatar:(this.memberByName(img.photog)&&this.memberByName(img.photog).avatar)?this.U+this.memberByName(img.photog).avatar:'',
+      authorHasAvatar:!!(this.memberByName(img.photog)&&this.memberByName(img.photog).avatar),
+      authorNoAvatar:!(this.memberByName(img.photog)&&this.memberByName(img.photog).avatar),
+      authorStreak:(this.memberByName(img.photog)||{}).streak||0,
+      date:img.date, loc:img.loc, country:img.country, meta:img.date+'  ·  '+img.loc,
+      candidate:!!img.candidate, winner:!!img.winner, envy:!!img.envy,
+      ribbon: img.winner?'Image of the Week':(img.candidate?'IOTW Contender':''),
+      ribbonStyle: img.winner
+        ? 'background:#e79f2b;color:#091625;'
+        : 'background:rgba(9,22,37,.72);color:#e79f2b;border:1px solid rgba(231,159,43,.5);',
+      showRibbon: !!(img.winner||img.candidate),
+      total, totalText: total>0? (total+' reactions'):'Be the first to react',
+      top: arr.slice(0,3),
+      badges: (img.b||[]).map(k=>({name:this.BMAP[k].name,glyph:this.BMAP[k].glyph})),
+      open:()=>this.openDetail(img.id),
+    };
+  }
+
+  buildSky(){
+    const seq={
+      grand:[[16,22],[33,14],[50,19],[67,13],[84,21]],
+      foreground:[[11,41],[20,53],[29,43],[17,64],[31,61],[24,33],[36,52]],
+      technique:[[64,43],[73,54],[83,45],[69,64],[81,62],[90,52]],
+      season:[[50,75],[60,84],[50,93],[40,84]],
+    };
+    const order={ grand:[0,2,1,3,4], foreground:[5,0,2,6,4,1,3], technique:[0,1,2,4,5,3], season:[0,1,2,3,0] };
+    const nodes=[]; const links=[];
+    ['grand','foreground','technique','season','month'].forEach(cat=>{
+      const items=this.ACH.filter(a=>a.cat===cat);
+      let pos = cat==='month' ? items.map((_,i)=>[8+i*(84/11), 70-15*Math.sin(i/11*Math.PI)]) : seq[cat];
+      const allEarned=items.every(a=>a.earned);
+      const base=nodes.length;
+      items.forEach((a,i)=>{ const p=pos[i]||[50,50];
+        nodes.push({cat,xPct:p[0],yPct:p[1],glyph:a.glyph,earned:!!a.earned,grand:!!a.grand,name:a.name,how:a.how||'',statusText:a.earned?'Earned':(a.progress||'Locked')}); });
+      const seqArr = cat==='month' ? items.map((_,i)=>i) : order[cat];
+      for(let k=0;k<seqArr.length-1;k++){ const A=nodes[base+seqArr[k]], B=nodes[base+seqArr[k+1]]; if(A&&B) links.push({x1:A.xPct,y1:A.yPct,x2:B.xPct,y2:B.yPct,gold:allEarned}); }
+    });
+    return {nodes,links};
+  }
+
+  renderVals(){
+    const m=this.member;
+    const ci=this.ranks.indexOf(m.rankShort);
+    const rankTrack=this.ranks.map((r,i)=>({
+      name:r, current:i===ci,
+      dotStyle: i<ci? 'background:#e79f2b;border-color:#e79f2b;'
+        : i===ci? 'background:#e79f2b;border-color:#e79f2b;box-shadow:0 0 0 5px rgba(231,159,43,.18);'
+        : 'background:transparent;border-color:rgba(255,255,255,.2);',
+      labelStyle: i<=ci? 'color:#fff;' : 'color:rgba(255,255,255,.4);',
+    }));
+
+    const navDef=[{key:'hall',label:'Guild Hall'},{key:'feed',label:'Gallery'},{key:'dashboard',label:'Field Desk'},{key:'progress',label:'Progress'},{key:'submit',label:'Submit'}];
+    const navItems=navDef.map(n=>({
+      label:n.label, onClick:()=>this.setScreen(n.key),
+      style: 'padding:8px 4px;font-family:Oswald,sans-serif;font-weight:600;font-size:15.5px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;background:none;border:none;border-bottom:2px solid '+(this.state.screen===n.key?'#e79f2b':'transparent')+';color:'+(this.state.screen===n.key?'#fff':'rgba(255,255,255,.55)')+';transition:all .15s;',
+    }));
+
+    const filterDef=[{key:'all',label:'All Submissions'},{key:'contenders',label:'IOTW Contenders'},{key:'winners',label:'Hall of Envy'},{key:'mine',label:'My Field Reports'}];
+    const filterChips=filterDef.map(fl=>({
+      label:fl.label, onClick:()=>this.setState({filter:fl.key}),
+      style:'padding:8px 16px;border-radius:2px;font-family:Mulish;font-weight:700;font-size:14px;letter-spacing:.03em;cursor:pointer;transition:all .15s;'+(this.state.filter===fl.key?'background:rgba(231,159,43,.16);color:#e79f2b;border:1px solid rgba(231,159,43,.5);':'background:rgba(255,255,255,.03);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.1);'),
+    }));
+
+    let feedSrc=this.IMAGES;
+    const fil=this.state.filter;
+    if(fil==='contenders') feedSrc=this.IMAGES.filter(i=>i.candidate);
+    else if(fil==='winners') feedSrc=this.IMAGES.filter(i=>i.winner||i.envy);
+    else if(fil==='mine') feedSrc=this.IMAGES.filter(i=>i.photog===m.name);
+    const feedImages=feedSrc.map(i=>this.computeImage(i));
+
+    const winnerImg=this.imgById('salt');
+    const winner=this.computeImage(winnerImg);
+    winner.votes=winnerImg.votes;
+
+    const recentSubs=this.IMAGES.filter(i=>i.photog===m.name).map(i=>this.computeImage(i));
+
+    const contendersPreview=this.IMAGES.filter(i=>i.candidate && !i.winner).map(i=>this.computeImage(i));
+
+    const earned=this.ACH.filter(a=>a.earned).length;
+    const achievements=this.ACH.map(a=>({
+      name:a.name, glyph:a.glyph, earned:!!a.earned, grand:!!a.grand,
+      progress:a.progress||'',
+      hexStyle: a.earned
+        ? (a.grand? 'background:linear-gradient(160deg,#e79f2b,#b9791b);color:#091625;'
+                  : 'background:rgba(231,159,43,.12);color:#e79f2b;border:1px solid rgba(231,159,43,.55);')
+        : 'background:rgba(255,255,255,.03);color:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.08);',
+      nameStyle: a.earned? 'color:#fff;' : 'color:rgba(255,255,255,.35);',
+    }));
+
+    const weekSlots=[0,1,2].map(i=>({ used:i<this.state.weekUsed,
+      style:'flex:1;height:6px;border-radius:3px;'+(i<this.state.weekUsed?'background:#e79f2b;':'background:rgba(255,255,255,.1);') }));
+
+    // detail
+    const di=this.imgById(this.state.activeId);
+    const detail=this.computeImage(di);
+    detail.gear=di.gear; detail.story=di.story; detail.went=di.went; detail.better=di.better;
+    detail.back=()=>this.setScreen('feed');
+    detail.quickChips=this.QUICK.map(r=>{
+      const mr=this.state.myReacted[di.id]||{}; const active=!!mr[r.key];
+      const count=((di.r&&di.r[r.key])||0)+(active?1:0);
+      return {label:r.label,glyph:r.glyph,countText:count>0?(''+count):'',active,style:this.chipStyle(active,r.special),toggle:()=>this.react(di.id,r.key)};
+    });
+    detail.craftChips=this.CRAFT.map(r=>{
+      const mr=this.state.myReacted[di.id]||{}; const active=!!mr[r.key];
+      const count=((di.r&&di.r[r.key])||0)+(active?1:0);
+      return {label:r.label,glyph:r.glyph,countText:count>0?(''+count):'',active,style:this.chipStyle(active,false,true),toggle:()=>this.react(di.id,r.key)};
+    });
+    const seed=di.comments||[]; const extra=this.state.extraComments[di.id]||[];
+    detail.comments=[...seed,...extra].map(c=>{
+      const CM=this.memberByName(c.author);
+      return {author:c.author, initials:(CM&&CM.initials)||c.initials, role:c.mine?'You':(CM?this.rankFromCount(CM.count):c.role), text:c.text, streak:(CM&&CM.streak)||0,
+        avatar:(CM&&CM.avatar)?this.U+CM.avatar:'', hasAvatar:!!(CM&&CM.avatar), noAvatar:!(CM&&CM.avatar),
+        roleStyle:'color:'+(c.mine?'#e79f2b':'rgba(231,159,43,.85)')+';',
+        avatarStyle:'background:'+(c.mine?'#e79f2b':'rgba(231,159,43,.16)')+';color:'+(c.mine?'#091625':'#e79f2b')+';'};
+    });
+    detail.commentCount=detail.comments.length;
+    detail.commentDraft=this.state.commentDraft;
+    detail.onDraft=(e)=>this.setState({commentDraft:e.target.value});
+    detail.addComment=()=>this.addComment();
+    const prompts=['What stands out to you?','What did they do well?','What would you try differently?'];
+    detail.promptChips=prompts.map(p=>({label:p,fill:()=>this.setState({commentDraft:p+' '})}));
+
+    // ---------- Guild Hall community feed ----------
+    const HALLREACT=[
+      {key:'wow',label:'Wow',glyph:'✺'},
+      {key:'envy',label:'Envy',glyph:'◆'},
+      {key:'sky',label:'Beautiful Sky',glyph:'★'},
+      {key:'foreground',label:'Great Foreground',glyph:'▲'},
+      {key:'composition',label:'Strong Composition',glyph:'◇'},
+      {key:'adventure',label:'Inspiring Adventure',glyph:'✦'},
+      {key:'story',label:'Loved the Story',glyph:'❝'},
+    ];
+    const sortKey=this.state.hallSort;
+    let hallList=this.RECENT.map(id=>this.imgById(id));
+    if(sortKey==='reactions') hallList=this.IMAGES.slice().sort((a,b)=>this.computeImage(b).total-this.computeImage(a).total);
+    else if(sortKey==='contenders') hallList=this.IMAGES.filter(i=>i.candidate);
+    else if(sortKey==='story') hallList=this.IMAGES.slice().sort((a,b)=>((b.r&&b.r.story)||0)-((a.r&&a.r.story)||0));
+    const hallPosts=hallList.map(img=>{
+      const ci2=this.computeImage(img);
+      ci2.ago=this.AGO[img.id]||'recently';
+      ci2.storySnip=img.story;
+      ci2.bigReacts=HALLREACT.map(r=>{
+        const mr=this.state.myReacted[img.id]||{}; const active=!!mr[r.key];
+        const count=((img.r&&img.r[r.key])||0)+(active?1:0);
+        return {label:r.label,glyph:r.glyph,countText:''+count,active,style:this.bigBtnStyle(active),toggle:()=>this.react(img.id,r.key)};
+      });
+      return ci2;
+    });
+    const hallSorts=[['recent','Most Recent'],['reactions','Most Reactions'],['contenders','IOTW Contenders'],['story','Best Stories']].map(s=>({
+      label:s[1], onClick:()=>this.setState({hallSort:s[0]}),
+      style:'padding:8px 15px;border-radius:2px;font-family:Mulish;font-weight:700;font-size:14px;cursor:pointer;transition:all .15s;'+(sortKey===s[0]?'background:rgba(231,159,43,.16);color:#e79f2b;border:1px solid rgba(231,159,43,.5);':'background:rgba(255,255,255,.03);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.1);'),
+    }));
+
+    // ---------- Ranking board ----------
+    const markPct=this.RANKMARKS.map((_,i)=>6+i*17.6);
+    const boardMarks=this.RANKMARKS.map((rm,i)=>({name:rm.name, leftPct:markPct[i],
+      labelStyle:'color:'+(rm.key==='unranked'?'rgba(255,255,255,.32)':'#e79f2b')+';'}));
+    const posFor=(c)=>{
+      if(c<=0) return markPct[0];
+      if(c>=33) return markPct[5];
+      for(let s=1;s<5;s++){ const lo=this.RANKMARKS[s].at, hi=this.RANKMARKS[s+1].at; if(c<hi){ const fr=(c-lo)/(hi-lo); return markPct[s]+fr*(markPct[s+1]-markPct[s]); } }
+      return markPct[5];
+    };
+    const board=this.MEMBERS.slice().sort((a,b)=>a.count-b.count).map(mb=>{
+      const rank=this.rankFromCount(mb.count); const grayed=mb.count<=0;
+      return {name:mb.name, initials:mb.initials, avatar:mb.avatar?this.U+mb.avatar:'', hasAvatar:!!mb.avatar,
+        count:mb.count, rank, you:!!mb.you, leftPct:posFor(mb.count),
+        ringStyle: grayed?'border-color:rgba(255,255,255,.25);filter:grayscale(1);opacity:.55;':(mb.you?'border-color:#e79f2b;box-shadow:0 0 0 3px rgba(231,159,43,.3);':'border-color:rgba(231,159,43,.6);'),
+        chipText: grayed?(mb.name+' · No honors yet'):(mb.name+' · '+rank+' · '+mb.count) };
+    });
+
+    // ---------- Progress page ----------
+    const myCount=earned;
+    const myRank=this.rankFromCount(myCount);
+    const nextMap={Beginner:'Amateur',Amateur:'Novice',Novice:'Veteran',Veteran:'Master',Master:'Master'};
+    const loMap={Beginner:1,Amateur:8,Novice:18,Veteran:25,Master:33};
+    const hiMap={Beginner:8,Amateur:18,Novice:25,Veteran:33,Master:33};
+    const pct = myRank==='Master'?100:Math.round(((myCount-loMap[myRank])/(hiMap[myRank]-loMap[myRank]))*100);
+    const progress={ rank:myRank, count:myCount, next:nextMap[myRank], toNext:Math.max(0,hiMap[myRank]-myCount), pct, barStyle:'width:'+pct+'%' };
+    const catNames={grand:'Grand Honors',month:'Monthly Milky Way',season:'The Four Seasons',foreground:'Foreground Mastery',technique:'Technique & Craft'};
+    const achGroups=['grand','month','season','foreground','technique'].map(cat=>({
+      cat, title:catNames[cat],
+      earnedText:this.ACH.filter(a=>a.cat===cat&&a.earned).length+' / '+this.ACH.filter(a=>a.cat===cat).length+' earned',
+      items:this.ACH.filter(a=>a.cat===cat).map(a=>({
+        name:a.name, glyph:a.glyph, how:a.how||'', grand:!!a.grand,
+        cardStyle:a.earned?(a.grand?'background:linear-gradient(160deg,rgba(231,159,43,.2),rgba(231,159,43,.05));border:1px solid rgba(231,159,43,.55);':'background:rgba(231,159,43,.07);border:1px solid rgba(231,159,43,.32);'):'background:rgba(13,30,48,.5);border:1px solid rgba(255,255,255,.07);',
+        medalStyle:a.earned?(a.grand?'background:linear-gradient(160deg,#e79f2b,#b9791b);color:#091625;':'background:rgba(231,159,43,.14);color:#e79f2b;border:1px solid rgba(231,159,43,.55);'):'background:rgba(255,255,255,.03);color:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.08);',
+        nameStyle:a.earned?'color:#fff;':'color:rgba(255,255,255,.42);',
+        statusText:a.earned?'✓ Earned':(a.progress||'Locked'),
+        statusStyle:a.earned?'color:#5fcf94;':'color:rgba(255,255,255,.4);' })),
+    }));
+    const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const filledM=[1,2,3,4,5,6];
+    const monthsYear=monthNames.map((mn,i)=>({m:mn,
+      style:'flex:1;min-width:0;text-align:center;padding:13px 0;border-radius:3px;font-family:Oswald,sans-serif;font-weight:600;font-size:14.5px;'+(filledM.includes(i)?'background:rgba(231,159,43,.16);color:#e79f2b;border:1px solid rgba(231,159,43,.5);':'background:rgba(255,255,255,.03);color:rgba(255,255,255,.3);border:1px solid rgba(255,255,255,.07);')}));
+    const seasonsYear=[['Spring',true],['Summer',true],['Autumn',true],['Winter',true]].map(s=>({name:s[0],
+      style:'flex:1;text-align:center;padding:11px;border-radius:3px;font-family:Oswald,sans-serif;font-weight:600;font-size:14.5px;letter-spacing:.06em;text-transform:uppercase;'+(s[1]?'background:rgba(231,159,43,.12);color:#e79f2b;border:1px solid rgba(231,159,43,.42);':'background:rgba(255,255,255,.03);color:rgba(255,255,255,.3);border:1px solid rgba(255,255,255,.07);')}));
+    const prevYears=[]; for(let y=2016;y<=2025;y++) prevYears.push({y:''+y});
+    const yearStreak='10', monthStreak='6';
+    const achievementsFeatured=achievements.filter(a=>a.grand||a.earned).slice(0,12);
+
+    // ---------- Constellation sky ----------
+    const sky=this.buildSky();
+    const skyLinks=sky.links.map(l=>({ x1:l.x1, y1:l.y1, x2:l.x2, y2:l.y2,
+      stroke:l.gold?'rgba(231,159,43,.55)':'rgba(120,142,176,.22)', sw:l.gold?'0.35':'0.22' }));
+    const skyNodes=sky.nodes.map(n=>{ const sz=n.grand?64:46;
+      return { glyph:n.glyph, name:n.name, how:n.how, statusText:n.earned?'\u2713 Earned':n.statusText,
+        posStyle:'left:'+n.xPct+'%;top:'+n.yPct+'%;',
+        starStyle:'width:'+sz+'px;height:'+sz+'px;'+(n.earned?'background:linear-gradient(155deg,#f3c674,#e79f2b);':'background:rgba(74,96,128,.3);border:1px solid rgba(120,142,176,.25);'),
+        glyphStyle:'font-size:'+(n.grand?23:16)+'px;color:'+(n.earned?'#0a1830':'rgba(255,255,255,.34)')+';font-weight:700;',
+        tipStatusStyle:n.earned?'color:#5fcf94;':'color:rgba(255,255,255,.5);' };
+    });
+    const memberStreak=m.avatar?10:0;
+
+    // ---------- Image of the Week voting ----------
+    const pool=this.IOTW_POOL.map(id=>this.imgById(id));
+    const submitted=pool.length;
+    const votingActive=submitted>=10;
+    const showPre=this.state.iotwPreviewPre || !votingActive;
+    const step=this.state.iotwStep; const ballot=this.state.ballot;
+    const medalStyle=(i)=> i===0?'background:linear-gradient(160deg,#f3c674,#e79f2b);color:#091625;':(i===1?'background:linear-gradient(160deg,#e6edf6,#aebccd);color:#0a1830;':'background:linear-gradient(160deg,#e0a978,#bd8049);color:#0a1830;');
+    const slots=[0,1,2].map(idx=>{ const id=ballot[idx]; const img=id?this.computeImage(this.imgById(id)):null;
+      return { rank:idx+1, filled:!!id, empty:!id, src:img?img.src:'', title:img?img.title:'', photog:img?img.photog:'',
+        rankStyle:medalStyle(idx), remove:()=>this.ballotRemove(idx), up:()=>this.ballotMove(idx,-1), down:()=>this.ballotMove(idx,1),
+        canUp:idx>0, canUpNo:!(idx>0), canDown:idx<ballot.length-1, canDownNo:!(idx<ballot.length-1) }; });
+    const poolItems=pool.map(i=>{ const c=this.computeImage(i); c.placed=ballot.includes(i.id); c.notPlaced=!c.placed; c.rankNum=ballot.indexOf(i.id)+1; c.assign=()=>this.ballotAssign(i.id);
+      c.poolStyle='position:relative;border-radius:5px;overflow:hidden;cursor:pointer;border:2px solid '+(c.placed?'#e79f2b':'rgba(255,255,255,.09)')+';'+(c.placed?'':'filter:saturate(.92);'); return c; });
+    const confirmItems=ballot.map((id,idx)=>{ const c=this.computeImage(this.imgById(id)); c.rank=idx+1; c.rankStyle=medalStyle(idx); return c; });
+    const preItems=pool.map(i=>this.computeImage(i));
+    const iotw={ open:this.state.iotwOpen, votingActive, showPre, showVote:!showPre,
+      step1:step===1, step2:step===2, step3:step===3, voted:this.state.iotwVoted, previewing:this.state.iotwPreviewPre,
+      submitted, need:10, remaining:Math.max(0,10-submitted), prePct:'width:'+Math.min(100,Math.round(submitted/10*100))+'%',
+      deadline:'Sunday 12:00 PM Mountain', poolCount:submitted, ballotCount:ballot.length, ballotFull:ballot.length===3, ballotEmpty:ballot.length===0,
+      slots, poolItems, confirmItems, preItems,
+      close:()=>this.closeIotw(), begin:()=>this.setIotwStep(2), lock:()=>this.lockBallot(), backToVote:()=>this.setIotwStep(2),
+      goSubmit:()=>{ this.closeIotw(); this.setScreen('submit'); }, togglePre:()=>this.togglePreVote(), reopen:()=>this.openIotw() };
+    const throne={ first:this.computeImage(this.imgById(this.WINNERS.first)), second:this.computeImage(this.imgById(this.WINNERS.second)),
+      third:this.computeImage(this.imgById(this.WINNERS.third)), phavorite:this.computeImage(this.imgById(this.WINNERS.phavorite)) };
+
+    // submit
+    const f=this.state.f; const er=this.state.errors;
+    const mk=(name)=>(e)=>this.setField(name, e.target.value);
+    const submit={
+      title:f.title, date:f.date, country:f.country, region:f.region, gear:f.gear, spot:f.spot, story:f.story, went:f.went, better:f.better,
+      iotw:f.iotw, photo:f.photo, noPhoto:!f.photo, photoSrc:f.photoSrc,
+      onTitle:mk('title'), onDate:mk('date'), onCountry:mk('country'), onRegion:mk('region'), onGear:mk('gear'), onSpot:mk('spot'), onStory:mk('story'), onWent:mk('went'), onBetter:mk('better'),
+      toggleIotw:()=>this.setField('iotw',!f.iotw),
+      pickPhoto:()=>this.pickPhoto(),
+      onSubmit:()=>this.submitReport(),
+      eTitle:er.title||'', eDate:er.date||'', eCountry:er.country||'', eRegion:er.region||'', eGear:er.gear||'', ePhoto:er.photo||'',
+      weekUsed:this.state.weekUsed, weekLeft:3-this.state.weekUsed,
+      iotwBoxStyle:'width:22px;height:22px;border-radius:3px;flex:none;display:flex;align-items:center;justify-content:center;transition:all .15s;'+(f.iotw?'background:#e79f2b;border:1px solid #e79f2b;color:#091625;':'background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.22);color:transparent;'),
+    };
+
+    return {
+      navItems, goHome:()=>this.setScreen('hall'), gotoSubmit:()=>this.setScreen('submit'), gotoProgress:()=>this.setScreen('progress'),
+      isDashboard:this.state.screen==='dashboard', isFeed:this.state.screen==='feed',
+      isDetail:this.state.screen==='detail', isSubmit:this.state.screen==='submit',
+      isHall:this.state.screen==='hall', isProgress:this.state.screen==='progress',
+      memberName:m.name, memberFirst:m.first, memberInitials:m.initials, memberAvatar:this.U+(m.avatar||''), memberRank:m.rank, memberRankShort:m.rankShort,
+      rankTrack, nextRank:'Master',
+      navToFeed:()=>this.setScreen('feed'), navToHall:()=>this.setScreen('hall'),
+      winner, recentSubs, contendersPreview, feedImages,
+      achievements:achievementsFeatured, earnedCount:earned, achTotal:this.ACH.length,
+      weekSlots, weekUsedText:this.state.weekUsed+' of 3 used',
+      statSubs:'34', statAch:''+earned, statReactions:'2,140', statWins:'4',
+      board, boardMarks, hallPosts, hallSorts,
+      progress, achGroups, monthsYear, seasonsYear, prevYears, yearStreak, monthStreak,
+      skyNodes, skyLinks, memberStreak,
+      iotw, throne,
+      detail, submit,
+      toast:this.state.toast,
+    };
+  }
+}
+</script>
+</body>
+</html>
