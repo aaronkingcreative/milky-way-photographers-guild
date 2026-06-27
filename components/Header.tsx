@@ -28,21 +28,21 @@ export async function Header() {
         {user ? (
           <>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-[#dbe5f1] lg:gap-x-7">
-              {navItems.map(([label, href]) => <Link key={`${label}-${href}`} href={href} className="nav-link pb-1 uppercase tracking-[.16em] text-white/78 hover:text-[#f0bd66]">{label}</Link>)}
+              {navItems.map(([label, href]) => <Link key={`${label}-${href}`} href={href} className="mw-nav-text pb-1 text-white/78 hover:text-[#f0bd66]">{label}</Link>)}
             </div>
             <div className="ml-auto flex items-center gap-3">
-              <Link href="/feed" className="hidden rounded-full border border-[#e79f2b]/45 bg-[#e79f2b]/10 px-4 py-2 font-display text-xs uppercase tracking-[.08em] text-[#f0bd66] sm:inline-flex">✪ Vote</Link>
-              <Link href="/submit" className="btn btn-primary rounded-sm px-4 py-2 text-xs">Submit Image</Link>
-              {isAdmin && <Link href="/admin" className="hidden font-display text-xs uppercase tracking-[.16em] text-white/45 hover:text-[#f0bd66] md:inline">Admin</Link>}
+              <Link href="/feed" className="hidden rounded-full border border-[#e79f2b]/45 bg-[#e79f2b]/10 px-4 py-2 mw-chip-text text-[#f0bd66] sm:inline-flex">✪ Vote</Link>
+              <Link href="/submit" className="mw-btn-primary rounded-sm px-4 py-2 text-xs">Submit Image</Link>
+              {isAdmin && <Link href="/admin" className="hidden mw-meta text-white/45 hover:text-[#f0bd66] md:inline">Admin</Link>}
               <Link href="/profile" className="flex items-center gap-3 border-l border-white/10 pl-3">
-                <span className="hidden text-right leading-tight sm:block"><span className="block text-sm font-bold text-white">{name}</span><span className="font-display text-[.72rem] uppercase tracking-[.08em] text-[#f0bd66]">Member</span></span>
+                <span className="hidden text-right leading-tight sm:block"><span className="block text-sm font-bold text-white">{name}</span><span className="mw-chip-text text-[.72rem] text-[#f0bd66]">Member</span></span>
                 <span className="grid h-9 w-9 place-items-center rounded-full border-2 border-[#e79f2b] bg-[#e79f2b]/15 font-display text-[#f0bd66]">{initial}</span>
               </Link>
-              <form action={signOut}><button className="hidden nav-link uppercase tracking-[.14em] text-white/45 hover:text-[#f0bd66] lg:inline">Sign out</button></form>
+              <form action={signOut}><button className="hidden mw-nav-text text-white/45 hover:text-[#f0bd66] lg:inline">Sign out</button></form>
             </div>
           </>
         ) : (
-          <div className="ml-auto flex items-center gap-3"><span className="rounded-full border border-[#e79f2b]/40 px-3 py-1 font-display text-xs uppercase tracking-[.18em] text-[#f0bd66]">Coming soon</span><Link href="/login" className="btn btn-secondary px-4 py-2 text-xs">Sign in</Link></div>
+          <div className="ml-auto flex items-center gap-3"><span className="rounded-full border border-[#e79f2b]/40 px-3 py-1 font-display text-xs uppercase tracking-[.18em] text-[#f0bd66]">Coming soon</span><Link href="/login" className="mw-btn-secondary px-4 py-2 text-xs">Sign in</Link></div>
         )}
       </nav>
     </header>
