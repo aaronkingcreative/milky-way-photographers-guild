@@ -15,9 +15,11 @@
 
 * { box-sizing: border-box; }
 
+html { background:#091625; }
 body {
   margin: 0;
   min-height: 100vh;
+  background-attachment: fixed;
   background:
     radial-gradient(circle at 16% 12%, rgba(231,159,43,.10), transparent 18rem),
     radial-gradient(circle at 84% 4%, rgba(77,126,170,.18), transparent 24rem),
@@ -80,3 +82,17 @@ a { color: inherit; text-decoration: none; }
 .field-label { display:block; color:rgba(255,255,255,.86); text-transform:uppercase; font-size:.82rem; }
 .chip { border:1px solid var(--color-border-muted); background:rgba(47,68,93,.38); color:rgba(255,255,255,.86); }
 .honor-hex { clip-path: polygon(25% 6%,75% 6%,100% 50%,75% 94%,25% 94%,0 50%); }
+
+
+.guild-wide { max-width:1680px; margin:0 auto; padding:2.5rem 2.5rem 5.5rem; }
+@media (max-width: 768px){ .guild-wide{ padding:1.75rem 1.25rem 4rem; } }
+.claude-section { border:1px solid rgba(255,255,255,.07); border-radius:5px; background:rgba(13,30,48,.60); }
+.claude-gold-section { border:1px solid rgba(231,159,43,.20); border-radius:5px; background:linear-gradient(180deg,rgba(47,68,93,.30),rgba(13,30,48,.55)); }
+.gallery-masonry { column-count:3; column-gap:18px; }
+.gallery-masonry > * { break-inside: avoid; margin-bottom:18px; }
+@media (max-width: 1100px){ .gallery-masonry{ column-count:2; } }
+@media (max-width: 700px){ .gallery-masonry{ column-count:1; } }
+.reaction-chip { display:inline-flex; align-items:center; gap:.5rem; min-height:40px; border-radius:999px; border:1px solid rgba(255,255,255,.13); background:rgba(47,68,93,.45); padding:.55rem .9rem; font-family:Oswald,Impact,'Arial Narrow',sans-serif; font-size:.86rem; letter-spacing:.06em; text-transform:uppercase; color:rgba(255,255,255,.86); transition:all 160ms ease; }
+.reaction-chip:hover { transform:translateY(-1px); border-color:rgba(231,159,43,.65); color:#f0bd66; }
+.reaction-chip-love { border-color:rgba(231,159,43,.58); background:linear-gradient(90deg,rgba(231,159,43,.24),rgba(47,68,93,.38)); color:#f0bd66; box-shadow:0 0 22px rgba(231,159,43,.08); }
+.honor-badge { width:72px; height:80px; clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%); display:grid; place-items:center; font-family:Oswald,Impact,'Arial Narrow',sans-serif; font-size:1.7rem; }
