@@ -58,7 +58,7 @@ export function UpdatePasswordForm() {
       return;
     }
 
-    router.push("/dashboard");
+    router.push("/guild-hall");
     router.refresh();
   }
 

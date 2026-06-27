@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     }
 
     const next = requestUrl.searchParams.get("next");
-    return NextResponse.redirect(new URL(isSafeNextPath(next) ? next! : "/dashboard", requestUrl.origin));
+    return NextResponse.redirect(new URL(isSafeNextPath(next) ? next! : "/guild-hall", requestUrl.origin));
   }
 
   if (error || errorDescription) {
