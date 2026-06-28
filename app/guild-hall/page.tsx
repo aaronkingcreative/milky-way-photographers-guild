@@ -17,12 +17,30 @@ const ranks = [
   { label: "Master", count: 33, position: 95, range: "33+ Field Honors" },
 ];
 const sortChips = ["Most Recent", "Most Reactions", "IOTW Contenders", "Best Stories"];
-const reactionIcons: Record<string, string> = { love: "♥", wow: "✦", helpful: "◎", composition: "◫", processing: "✧", story: "☄" };
+const reactionIcons: Record<string, string> = { love: "♥", wow: "✺", envy: "◆", like: "•", beautiful_sky: "★", great_foreground: "▲", strong_composition: "◇", inspiring_adventure: "✦" };
+const reactionGroups = [
+  { title: "Quick Reactions", types: ["love", "wow", "envy", "like"] },
+  { title: "Praise the Craft", types: ["beautiful_sky", "great_foreground", "strong_composition", "inspiring_adventure"] },
+];
+const reactionLabels = new Map(REACTION_TYPES.map(([type, label]) => [type, label]));
 
 function reactionCounts(reactions: any[], imageId: string) {
   const counts = new Map<string, number>();
   reactions.filter((r) => r.image_id === imageId).forEach((r) => counts.set(r.reaction_type, (counts.get(r.reaction_type) || 0) + 1));
   return counts;
+}
+
+function postTime(value: string) {
+  const created = new Date(value);
+  const diff = Date.now() - created.getTime();
+  const day = 24 * 60 * 60 * 1000;
+  if (diff >= 0 && diff < 7 * day) {
+    const hours = Math.max(1, Math.floor(diff / (60 * 60 * 1000)));
+    if (hours < 24) return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
+    const days = Math.floor(diff / day);
+    return `${days} ${days === 1 ? "day" : "days"} ago`;
+  }
+  return created.toLocaleDateString();
 }
 
 function authorName(image: any, index: number) {
@@ -99,7 +117,7 @@ export default async function Page() {
                   <div key={image.id} className={`mw-rank-avatar ${count === 0 ? "mw-rank-avatar-unranked" : ""}`} style={{ left: `${rankPosition(count)}%`, top: `${top}px` }}>
                     <img src={image.image_url} alt="" />
                     <span className="mw-rank-avatar-initials">{initials(name)}</span>
-                    <span className="mw-rank-avatar-tooltip">{name} • {rank} • {count} Field Honors</span>
+                    <span className="mw-rank-avatar-tooltip">{name} • {rank} • {count}</span>
                   </div>
                 );
               })}
@@ -116,7 +134,7 @@ export default async function Page() {
               const name = authorName(image, index);
               const counts = reactionCounts(reactions, image.id);
               const total = Array.from(counts.values()).reduce((sum, count) => sum + count, 0);
-              return <article key={image.id} className="mw-card-soft overflow-hidden"><div className="flex items-center gap-3 p-5"><div className="grid h-12 w-12 place-items-center overflow-hidden rounded-full border border-[#e79f2b]/65 bg-[#e79f2b]/10 font-display text-[#f0bd66]"><span>{initials(name)}</span></div><div><div className="flex flex-wrap items-center gap-2"><h3 className="text-lg font-bold text-white">{name}</h3><span className="mw-chip-text text-[#f0bd66]">Veteran</span>{index === 0 && <span className="rounded-full border border-[#e79f2b]/60 px-2 py-0.5 mw-chip-text text-[.68rem] text-[#f0bd66]">☄ 10y</span>}</div><p className="text-sm text-white/55">{new Date(image.created_at).toLocaleDateString()} · {[image.specific_location_name, image.state_or_province, image.country].filter(Boolean).join(", ") || "Dark sky field report"}</p></div></div><Link href={`/images/${image.id}`}><img src={image.image_url} alt={image.title || "Guild image"} className="max-h-[720px] w-full object-cover" /></Link><div className="space-y-4 p-5"><h3 className="mw-section-title text-white">{image.title}</h3><p className="mw-body line-clamp-3">{image.short_story || image.what_went_well || "A fresh field report from under the Milky Way, ready for thoughtful reactions and craft feedback."}</p><div className="flex flex-wrap items-center gap-2">{REACTION_TYPES.slice(0, 4).map(([type, label]) => <span key={type} className="mw-reaction-chip"><span className="text-[#f0bd66]">{reactionIcons[type]}</span>{label}<span className="opacity-70">{counts.get(type) || 0}</span></span>)}<span className="ml-auto text-sm text-white/55">{total} total reactions</span></div><Link href={`/images/${image.id}`} className="mw-btn-secondary rounded-sm">Open &amp; Comment</Link></div></article>;
+              return <article key={image.id} className="mw-card-soft overflow-hidden"><div className="flex items-center gap-3 p-5"><div className="grid h-12 w-12 place-items-center overflow-hidden rounded-full border border-[#e79f2b]/65 bg-[#e79f2b]/10 font-display text-[#f0bd66]"><span>{initials(name)}</span></div><div><div className="flex flex-wrap items-center gap-2"><h3 className="text-lg font-bold text-white">{name}</h3><span className="mw-chip-text text-[#f0bd66]">Veteran</span>{index === 0 && <span className="rounded-full border border-[#e79f2b]/60 px-2 py-0.5 mw-chip-text text-[.68rem] text-[#f0bd66]">☄ 10 y</span>}</div><p className="text-sm text-white/55">{postTime(image.created_at)} · {[image.specific_location_name, image.state_or_province, image.country].filter(Boolean).join(", ") || "Dark sky field report"}</p></div></div><Link href={`/images/${image.id}?from=guild-hall`}><img src={image.image_url} alt={image.title || "Guild image"} className="h-auto w-full object-contain" /></Link><div className="space-y-4 p-5"><h3 className="mw-post-title">{image.title}</h3><p className="mw-body mw-four-line-excerpt">{image.short_story || image.what_went_well || "A fresh field report from under the Milky Way, ready for thoughtful reactions and craft feedback."}</p><Link href={`/images/${image.id}?from=guild-hall`} className="font-display text-sm uppercase tracking-[.08em] text-[#f0bd66]">Continue →</Link><div className="space-y-5 rounded-md border border-white/7 bg-[#06101c]/35 p-4">{reactionGroups.map((group) => <div key={group.title}><p className="mb-3 mw-section-label">{group.title}</p><div className="flex flex-wrap gap-2">{group.types.map((type) => <span key={type} className="mw-reaction-chip"><span className="text-[#f0bd66]">{reactionIcons[type]}</span>{reactionLabels.get(type as any) || type}<span className="opacity-70">{counts.get(type) || 0}</span></span>)}</div></div>)}</div><div className="flex items-center justify-between gap-4 border-t border-white/10 pt-4"><span className="text-sm text-white/55">{total} reactions · 0 comments</span><Link href={`/images/${image.id}?from=guild-hall`} className="font-display text-sm uppercase tracking-[.08em] text-[#f0bd66]">Open &amp; Comment →</Link></div></div></article>;
             })}
             {images.length === 0 && <div className="mw-card-soft p-8 text-center text-white/60">The Hall is ready. Community field reports will appear here after members submit images.</div>}
           </div>

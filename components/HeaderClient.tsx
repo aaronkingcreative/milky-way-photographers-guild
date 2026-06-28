@@ -49,7 +49,7 @@ export function HeaderClient({
     .slice(0, 2)
     .map((part) => part.charAt(0).toUpperCase())
     .join("") || "GM";
-  const displayRank = rankLabel || "Veteran";
+  const displayRank = (rankLabel || "Veteran").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
   const displayStreak = normalizeStreakLabel(streakLabel) || "☄ 10 y";
 
   return (

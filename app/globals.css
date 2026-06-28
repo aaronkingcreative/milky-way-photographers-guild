@@ -175,3 +175,23 @@ a { color: inherit; text-decoration: none; }
   .mw-sort-chip-selected:hover { color:#f0bd66; border-color:rgba(231,159,43,.72); background:rgba(231,159,43,.20); }
   @media (max-width: 700px) { .mw-ascent-board { padding:1.2rem 1rem; } .mw-rank-map { min-height:156px; overflow-x:auto; overflow-y:visible; min-width:0; } .mw-rank-line { left:.5rem; right:.5rem; } .mw-rank-label { font-size:.68rem; } .mw-rank-avatar { width:42px; height:42px; } .mw-sort-chip { padding:.55rem .72rem; font-size:.8rem; } }
 }
+
+@layer components {
+  .mw-member-rank { text-transform:none; letter-spacing:.03em; }
+  .mw-post-title { margin:0; font-family:var(--font-guild-display); font-weight:700; font-size:clamp(1.65rem,2.35vw,2.25rem); line-height:1.1; letter-spacing:.01em; text-transform:none; color:#fff; }
+  .mw-four-line-excerpt { display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; }
+  .mw-field-report-label, .mw-feedback-heading, .mw-capture-heading { margin:0; font-family:var(--font-guild-display); font-weight:800; font-size:.92rem; letter-spacing:.22em; text-transform:uppercase; color:rgba(255,255,255,.48); }
+  .mw-feedback-heading span { color:#f0bd66; margin-left:.45rem; }
+  .mw-capture-heading { font-weight:900; }
+  .mw-capture-label { font-family:'Mulish', sans-serif; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; text-transform:uppercase; letter-spacing:.1em; color:rgba(255,255,255,.45); font-weight:800; }
+  .mw-insight-good, .mw-insight-better { border-radius:5px; }
+  .mw-insight-good { border:1px solid rgba(95,207,148,.28); background:rgba(95,207,148,.07); }
+  .mw-insight-good .mw-card-title { color:rgb(95,207,148); }
+  .mw-insight-better { border:1px solid rgba(231,159,43,.34); background:rgba(231,159,43,.07); }
+  .mw-insight-better .mw-card-title { color:#f0bd66; }
+  .mw-iotw-panel { text-align:center; border:1px solid rgba(231,159,43,.42); border-radius:5px; background:linear-gradient(135deg, rgba(231,159,43,.12), rgba(11,26,43,.96) 52%, rgba(231,159,43,.10)); box-shadow:0 18px 50px rgba(0,0,0,.24); }
+  .mw-iotw-panel h3 { margin-top:.35rem; font-family:var(--font-guild-display); font-weight:800; font-size:1.35rem; color:#f0bd66; }
+  .mw-iotw-panel p { margin-top:.55rem; color:rgba(255,255,255,.72); font-size:.95rem; line-height:1.55; }
+  .mw-lightbox { position:fixed; inset:0; z-index:100; display:grid; place-items:center; padding:1.25rem; background:rgba(3,9,16,.50); backdrop-filter:blur(16px); cursor:zoom-out; }
+  .mw-lightbox img { max-width:100vw; max-height:100vh; width:auto; height:auto; object-fit:contain; box-shadow:0 22px 80px rgba(0,0,0,.55); cursor:default; }
+}
