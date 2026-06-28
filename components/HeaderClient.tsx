@@ -25,7 +25,8 @@ function isActive(pathname: string, href: string) {
 
 function normalizeStreakLabel(label?: string | null) {
   if (!label) return null;
-  return label.replace(/(\d+)\s*y\b/i, "$1 y").replace(/\bY\b/g, "y");
+  const normalized = label.replace(/☄/g, "").replace(/(\d+)\s*y\b/i, "$1 y").replace(/\bY\b/g, "y").trim();
+  return normalized ? `☄ ${normalized}` : null;
 }
 
 export function HeaderClient({
@@ -49,8 +50,8 @@ export function HeaderClient({
     .slice(0, 2)
     .map((part) => part.charAt(0).toUpperCase())
     .join("") || "GM";
-  const displayRank = rankLabel || "Member";
-  const displayStreak = normalizeStreakLabel(streakLabel);
+  const displayRank = rankLabel || "Veteran";
+  const displayStreak = normalizeStreakLabel(streakLabel) || "☄ 10 y";
 
   return (
     <header className="mw-app-header">
