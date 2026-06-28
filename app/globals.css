@@ -178,6 +178,7 @@ a { color: inherit; text-decoration: none; }
 
 @layer components {
   .mw-member-rank { text-transform:none; letter-spacing:.03em; }
+  .mw-streak-pill { text-transform:none; }
   .mw-post-title { margin:0; font-family:var(--font-guild-display); font-weight:700; font-size:clamp(1.65rem,2.35vw,2.25rem); line-height:1.1; letter-spacing:.01em; text-transform:none; color:#fff; }
   .mw-four-line-excerpt { display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; }
   .mw-field-report-label, .mw-feedback-heading, .mw-capture-heading { margin:0; font-family:var(--font-guild-display); font-weight:800; font-size:.92rem; letter-spacing:.22em; text-transform:uppercase; color:rgba(255,255,255,.48); }

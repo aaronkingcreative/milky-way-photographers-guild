@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { signOut } from "@/app/actions";
+import { formatStreakBadge, titleCaseLabel } from "@/lib/display";
 
 const logoUrl =
   "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/site-assets/logos/MWPG_Logo.png";
@@ -20,12 +21,6 @@ function isActive(pathname: string, href: string) {
   if (href === "/feed") return pathname === "/feed" || pathname === "/gallery" || pathname.startsWith("/images/");
   if (href === "/profile") return pathname === "/profile" || pathname === "/progress";
   return pathname === href || pathname.startsWith(`${href}/`);
-}
-
-function normalizeStreakLabel(label?: string | null) {
-  if (!label) return null;
-  const normalized = label.replace(/☄/g, "").replace(/(\d+)\s*y\b/i, "$1 y").replace(/\bY\b/g, "y").trim();
-  return normalized ? `☄ ${normalized}` : null;
 }
 
 export function HeaderClient({
@@ -49,8 +44,8 @@ export function HeaderClient({
     .slice(0, 2)
     .map((part) => part.charAt(0).toUpperCase())
     .join("") || "GM";
-  const displayRank = (rankLabel || "Veteran").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
-  const displayStreak = normalizeStreakLabel(streakLabel) || "☄ 10 y";
+  const displayRank = titleCaseLabel(rankLabel);
+  const displayStreak = formatStreakBadge(streakLabel) || formatStreakBadge(10);
 
   return (
     <header className="mw-app-header">
