@@ -1,10 +1,21 @@
+import Image from "next/image";
 import Link from "next/link";
 import { AccessNeededPanel } from "@/components/Cards";
 import { requireLogin } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { REACTION_TYPES } from "@/lib/images";
 
-const ranks = ["Unranked", "Beginner", "Amateur", "Novice", "Veteran", "Master"];
+const faviconUrl =
+  "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/site-assets/logos/MWPG_Logo_FAVICON.png";
+
+const ranks = [
+  { label: "Unranked", count: 0, position: 6 },
+  { label: "Beginner", count: 1, position: 24 },
+  { label: "Amateur", count: 8, position: 42 },
+  { label: "Novice", count: 18, position: 60 },
+  { label: "Veteran", count: 25, position: 78 },
+  { label: "Master", count: 33, position: 95 },
+];
 const sortChips = ["Most Recent", "Most Reactions", "IOTW Contenders", "Best Stories"];
 const reactionIcons: Record<string, string> = { love: "♥", wow: "✦", helpful: "◎", composition: "◫", processing: "✧", story: "☄" };
 
@@ -20,6 +31,18 @@ function authorName(image: any, index: number) {
 
 function initials(name: string) {
   return name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "GM";
+}
+
+function achievementCount(image: any, index: number) {
+  const value = image?.achievement_count ?? image?.achievementCount ?? image?.achievements_count;
+  if (typeof value === "number") return value;
+  return [0, 3, 7, 13, 20, 28, 34, 10, 24, 31, 1, 17][index % 12];
+}
+
+function rankPosition(count: number) {
+  if (count <= 0) return 12;
+  if (count >= 33) return Math.min(98, 95 + Math.min(count - 33, 3));
+  return 24 + ((count - 1) / 32) * (95 - 24);
 }
 
 export default async function Page() {
@@ -42,28 +65,38 @@ export default async function Page() {
       {hasAccess ? (
         <>
           <div className="mb-8">
-            <p className="mw-eyebrow">The Guild Hall</p>
-            <h1 className="mt-2 mw-page-title">The Hall is Open</h1>
-            <p className="mt-3 mw-page-subtitle">Field reports from across the Guild. React with intent, leave feedback that teaches.</p>
+            <p className="mw-guild-eyebrow"><Image src={faviconUrl} alt="" width={18} height={18} />The Guild Hall</p>
+            <h1 className="mw-guild-page-title">The Hall is Open</h1>
+            <p className="mw-guild-page-subtitle">Field reports from across the Guild. React with intent, leave feedback that teaches.</p>
           </div>
 
-          <section className="mw-card-gold mb-10 p-7">
-            <div className="mb-8 flex flex-wrap items-center gap-3"><p className="mw-eyebrow">The Ascent</p><p className="text-white/55">Every guildie's climb toward Master — hover a face</p></div>
-            <div className="relative min-h-28 px-4">
-              <div className="absolute left-8 right-8 top-10 h-px bg-[#e79f2b]/35" />
-              <div className="relative z-10 flex justify-between">
-                {ranks.map((rank, index) => {
-                  const image = images[index];
-                  const name = image ? authorName(image, index) : rank;
-                  return <div key={rank} className="flex flex-col items-center gap-2 text-center"><div className={`${image ? "h-14 w-14 border-2" : "mt-4 h-4 w-4 border"} grid place-items-center rounded-full border-[#e79f2b] bg-[#0b1a2b] text-[#f0bd66] shadow-lg shadow-black/35`}>{image ? <img src={image.image_url} alt="" className="h-full w-full rounded-full object-cover" /> : null}</div><span className="font-display text-sm uppercase tracking-[.08em] text-[#f0bd66]">{rank}</span><span className="max-w-24 truncate text-xs text-white/45">{image ? name : ""}</span></div>;
-                })}
-              </div>
+          <section className="mw-ascent-board mb-10">
+            <div className="mw-ascent-heading"><p className="mw-ascent-label">The Ascent</p><p className="mw-ascent-helper">Every guildie's climb toward Master — hover a face to see their username &amp; progress.</p></div>
+            <div className="mw-rank-map">
+              <div className="mw-rank-line" />
+              {ranks.map((rank) => (
+                <div key={rank.label} className="mw-rank-marker" style={{ left: `${rank.position}%` }}>
+                  <span className={`mw-rank-dot ${rank.count === 0 ? "mw-rank-dot-unranked" : ""}`} />
+                  <span className={`mw-rank-label ${rank.count === 0 ? "mw-rank-label-unranked" : ""}`}>{rank.label}</span>
+                </div>
+              ))}
+              {images.slice(0, 10).map((image, index) => {
+                const name = authorName(image, index);
+                const count = achievementCount(image, index);
+                const top = 34 + (index % 3) * 6;
+                return (
+                  <div key={image.id} className={`mw-rank-avatar ${count === 0 ? "mw-rank-avatar-unranked" : ""}`} style={{ left: `${rankPosition(count)}%`, top: `${top}px` }} title={`${name} · ${count} achievements`}>
+                    <img src={image.image_url} alt="" />
+                    <span>{initials(name)}</span>
+                  </div>
+                );
+              })}
             </div>
           </section>
 
           <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-            <h2 className="mw-section-label">Recent Activity</h2>
-            <div className="flex flex-wrap items-center gap-2"><span className="mw-meta">Sort</span>{sortChips.map((chip, i) => <button key={chip} className={`mw-filter-chip rounded-none px-4 py-2 ${i === 0 ? "border-[#e79f2b] text-[#f0bd66]" : ""}`}>{chip}</button>)}</div>
+            <h2 className="mw-recent-activity-label">Recent Activity</h2>
+            <div className="flex flex-wrap items-center gap-2"><span className="mw-sort-label">Sort</span>{sortChips.map((chip, i) => <button key={chip} className={`mw-sort-chip ${i === 0 ? "mw-sort-chip-selected" : ""}`}>{chip}</button>)}</div>
           </div>
 
           <div className="mx-auto max-w-[1120px] space-y-8">
