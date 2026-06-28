@@ -9,12 +9,12 @@ const faviconUrl =
   "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/site-assets/logos/MWPG_Logo_FAVICON.png";
 
 const ranks = [
-  { label: "Unranked", count: 0, position: 6 },
-  { label: "Beginner", count: 1, position: 24 },
-  { label: "Amateur", count: 8, position: 42 },
-  { label: "Novice", count: 18, position: 60 },
-  { label: "Veteran", count: 25, position: 78 },
-  { label: "Master", count: 33, position: 95 },
+  { label: "Unranked", count: 0, position: 6, range: "No Field Honors yet" },
+  { label: "Beginner", count: 1, position: 24, range: "1–7 Field Honors" },
+  { label: "Amateur", count: 8, position: 42, range: "8–17 Field Honors" },
+  { label: "Novice", count: 18, position: 60, range: "18–24 Field Honors" },
+  { label: "Veteran", count: 25, position: 78, range: "25–32 Field Honors" },
+  { label: "Master", count: 33, position: 95, range: "33+ Field Honors" },
 ];
 const sortChips = ["Most Recent", "Most Reactions", "IOTW Contenders", "Best Stories"];
 const reactionIcons: Record<string, string> = { love: "♥", wow: "✦", helpful: "◎", composition: "◫", processing: "✧", story: "☄" };
@@ -43,6 +43,15 @@ function rankPosition(count: number) {
   if (count <= 0) return 12;
   if (count >= 33) return Math.min(98, 95 + Math.min(count - 33, 3));
   return 24 + ((count - 1) / 32) * (95 - 24);
+}
+
+function rankLabelForCount(count: number) {
+  if (count >= 33) return "Master";
+  if (count >= 25) return "Veteran";
+  if (count >= 18) return "Novice";
+  if (count >= 8) return "Amateur";
+  if (count >= 1) return "Beginner";
+  return "Unranked";
 }
 
 export default async function Page() {
@@ -78,16 +87,19 @@ export default async function Page() {
                 <div key={rank.label} className="mw-rank-marker" style={{ left: `${rank.position}%` }}>
                   <span className={`mw-rank-dot ${rank.count === 0 ? "mw-rank-dot-unranked" : ""}`} />
                   <span className={`mw-rank-label ${rank.count === 0 ? "mw-rank-label-unranked" : ""}`}>{rank.label}</span>
+                  <span className="mw-rank-tooltip">{rank.range}</span>
                 </div>
               ))}
               {images.slice(0, 10).map((image, index) => {
                 const name = authorName(image, index);
                 const count = achievementCount(image, index);
+                const rank = rankLabelForCount(count);
                 const top = 34 + (index % 3) * 6;
                 return (
-                  <div key={image.id} className={`mw-rank-avatar ${count === 0 ? "mw-rank-avatar-unranked" : ""}`} style={{ left: `${rankPosition(count)}%`, top: `${top}px` }} title={`${name} · ${count} achievements`}>
+                  <div key={image.id} className={`mw-rank-avatar ${count === 0 ? "mw-rank-avatar-unranked" : ""}`} style={{ left: `${rankPosition(count)}%`, top: `${top}px` }}>
                     <img src={image.image_url} alt="" />
-                    <span>{initials(name)}</span>
+                    <span className="mw-rank-avatar-initials">{initials(name)}</span>
+                    <span className="mw-rank-avatar-tooltip">{name} • {rank} • {count} Field Honors</span>
                   </div>
                 );
               })}

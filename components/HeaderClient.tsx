@@ -14,7 +14,6 @@ const navItems = [
   ["Gallery", "/feed"],
   ["Field Desk", "/field-desk"],
   ["Progress", "/profile"],
-  ["Submit", "/submit"],
 ];
 
 function isActive(pathname: string, href: string) {
@@ -56,11 +55,11 @@ export function HeaderClient({
   return (
     <header className="mw-app-header">
       <nav className="mw-header-nav mx-auto max-w-[1680px] px-4 lg:px-8">
-        <Link href={user ? "/field-desk" : "/"} className="mw-header-logo-link" aria-label="Milky Way Photographers Guild home">
-          <Image src={logoUrl} alt="Milky Way Photographers Guild" width={360} height={180} priority className="mw-header-logo h-auto" />
-        </Link>
-        {user ? (
-          <>
+        <div className="mw-header-left-group">
+          <Link href={user ? "/field-desk" : "/"} className="mw-header-logo-link" aria-label="Milky Way Photographers Guild home">
+            <Image src={logoUrl} alt="Milky Way Photographers Guild" width={360} height={180} priority className="mw-header-logo h-auto" />
+          </Link>
+          {user && (
             <div className="mw-primary-nav">
               {navItems.map(([label, href]) => (
                 <Link key={`${label}-${href}`} href={href} className={`mw-primary-nav-link ${isActive(pathname, href) ? "mw-primary-nav-link-active" : ""}`}>
@@ -68,6 +67,10 @@ export function HeaderClient({
                 </Link>
               ))}
             </div>
+          )}
+        </div>
+        {user ? (
+          <>
             <div className="mw-header-actions">
               <Link href="/feed" className="mw-vote-chip">✪ Vote · closes Sun</Link>
               <Link href="/submit" className="mw-submit-image-button">Submit Image</Link>
