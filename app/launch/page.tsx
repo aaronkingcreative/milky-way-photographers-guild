@@ -15,64 +15,73 @@ const workshops = [
   ["Oregon Coast Vertical Milky Way", "August 1 to 8, 2027", "Oregon Coast", "Vertical Milky Way"],
 ];
 
-const honors = ["Decade of Dark", "Year Streak", "Month Streak", "Galactic Core", "Natural Arch", "Panorama", "Reflections", "Winter Milky Way"];
+const storyHonors = ["Decade of Dark", "Year Streak", "Month Streak", "Galactic Core", "Natural Arch", "Panorama", "Reflections", "Winter Milky Way"];
+const ascentRanks = ["Unranked", "Beginner", "Amateur", "Novice", "Veteran", "Master"];
+const rankTrack = ["Beginner", "Amateur", "Novice", "Veteran", "Master"];
+const avatars = [
+  ["/launch/mwpg/Mason.jpg", "Mason", "13%"],
+  ["/launch/mwpg/Mabel.jpg", "Mabel", "33%"],
+  ["/launch/mwpg/JosieJaeden.png", "Josie and Jaeden", "46%"],
+  ["/launch/mwpg/IMG_8954.jpg", "Garrett", "58%"],
+  ["/launch/mwpg/AaronKing_SaltFlatsPano_PhotogAdventures.jpg", "Aaron", "69%"],
+  ["/launch/mwpg/NewZealand-Pano-MidEdit.jpg", "Guild Master", "82%"],
+];
+const stats = [["34", "Guild Submissions"], ["28", "Achievements Earned"], ["2,140", "Reactions Received"], ["4", "Image of the Week Wins"]];
+const grandHonors = [["✪", "Twelve-Month Milky Way", false], ["✣", "Four Seasons", true], ["❖", "Decade of Dark", true], ["✦", "Core Chaser", true], ["♛", "Monday Moment of Envy", true]];
+const craftHonors = [["◠", "Arch & Bridge", true], ["▲", "Desert Tower", true], ["≈", "Water Reflection", true], ["△", "Mountain Sky", true], ["⊕", "Tracked Sky", true], ["▭", "Panorama", true], ["▷", "Timelapse", false]];
+const seasonHonors = [["❀", "Spring Milky Way", true], ["☀", "Summer Milky Way", true], ["❧", "Autumn Milky Way", true], ["❄", "Winter Milky Way", true]];
+
+function SectionTitle({ kicker, title, centered = false }: { kicker: string; title: string; centered?: boolean }) {
+  return <div className={centered ? "mx-auto max-w-5xl text-center" : ""}><p className="font-display text-sm font-bold uppercase tracking-[.24em] text-[#e79f2b] md:text-base">{kicker}</p><h2 className="mt-4 font-display text-5xl font-black uppercase leading-[1.02] tracking-tight text-white md:text-7xl">{title}</h2></div>;
+}
+
+function HonorBadge({ glyph, name, earned }: { glyph: string; name: string; earned: boolean }) {
+  return <div className="flex w-36 flex-col items-center gap-3 sm:w-44"><div className={`grid h-24 w-28 place-items-center text-4xl [clip-path:polygon(25%_0,75%_0,100%_50%,75%_100%,25%_100%,0_50%)] ${earned ? "border border-[#e79f2b]/55 bg-[#e79f2b]/15 text-[#f0bd66] shadow-[0_0_30px_rgba(231,159,43,.12)]" : "border border-white/10 bg-white/[.03] text-white/25"}`}>{glyph}</div><span className={`text-center font-display text-base font-bold uppercase leading-tight tracking-wide ${earned ? "text-white" : "text-white/35"}`}>{name}</span></div>;
+}
 
 export default function LaunchPage() {
   return (
-    <div className="overflow-hidden bg-[#050d18] text-white">
-      <section className="relative min-h-[92vh] px-5 py-20 md:py-28">
+    <div className="overflow-hidden bg-[#050d18] font-body text-white">
+      <section className="relative min-h-screen px-5 py-10 md:py-12">
         <Image src="/launch/mwpg/AaronKing_SaltFlatsPano_PhotogAdventures.jpg" alt="Milky Way arch over the Bonneville Salt Flats" fill priority className="object-cover opacity-55" sizes="100vw" />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,13,24,.48),rgba(5,13,24,.38)_38%,rgba(5,13,24,.96))]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,13,24,.55),rgba(5,13,24,.35)_40%,rgba(5,13,24,.94))]" />
         <div className="absolute inset-0 bg-[radial-gradient(1px_1px_at_12%_18%,rgba(255,255,255,.8),transparent),radial-gradient(1px_1px_at_78%_12%,rgba(255,255,255,.6),transparent),radial-gradient(1px_1px_at_40%_32%,rgba(255,255,255,.55),transparent),radial-gradient(1px_1px_at_90%_40%,rgba(255,255,255,.45),transparent),radial-gradient(1px_1px_at_22%_60%,rgba(255,255,255,.5),transparent)]" />
         <div className="relative mx-auto flex max-w-6xl flex-col items-center text-center">
-          <Image src="/launch/mwpg/MWPG_Logo-ed9aab66.png" alt="Milky Way Photographers Guild" width={360} height={180} className="h-auto w-64 drop-shadow-2xl md:w-80" />
-          <p className="mt-8 font-display text-sm font-bold uppercase tracking-[.34em] text-[#f0bd66]">The Guild Is Almost Open</p>
-          <h1 className="mt-5 max-w-5xl font-display text-6xl font-black uppercase leading-[.86] tracking-tight text-white md:text-8xl lg:text-9xl">
-            Something is rising in the dark.
-          </h1>
-          <p className="mt-7 max-w-3xl text-xl leading-9 text-white/82 md:text-2xl">
-            The new Milky Way Photographers Guild goes fully live Monday, July 6 at 12:00 Noon Pacific. Community gallery, ranks, field reports, and the hunt for Image of the Week, all in one place.
-          </p>
-          <div className="mt-10 w-full max-w-4xl"><LaunchCountdownClient /></div>
-          <p className="mt-7 font-display text-lg font-bold uppercase tracking-[.18em] text-[#f0bd66]">Monday, July 6, 2026 at 12:00 Noon Pacific</p>
+          <Image src="/launch/mwpg/MWPG_Logo-ed9aab66.png" alt="Milky Way Photographers Guild" width={360} height={180} className="h-auto w-52 drop-shadow-2xl md:w-64" />
+          <p className="mt-5 font-display text-sm font-bold uppercase tracking-[.34em] text-[#f0bd66]">The Guild Is Almost Open</p>
+          <h1 className="mt-4 max-w-5xl font-display text-[clamp(3.5rem,8vw,7rem)] font-black uppercase leading-[.92] tracking-tight text-white">Something is rising in the dark.</h1>
+          <p className="mt-6 max-w-3xl text-lg leading-8 text-white/82 md:text-xl">The new Milky Way Photographers Guild goes fully live Wednesday, July 8 at 7:00 PM Mountain Time. Community gallery, ranks, field reports, and the hunt for Image of the Week, all in one place.</p>
+          <div className="mt-8 w-full max-w-4xl"><LaunchCountdownClient /></div>
+          <p className="mt-6 font-display text-base font-bold uppercase tracking-[.18em] text-[#f0bd66] md:text-lg">Wednesday, July 8, 2026 at 7:00 PM Mountain Time</p>
           <p className="mt-2 text-sm text-white/55">Deadline source: {GUILD_LAUNCH_DEADLINE}</p>
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl gap-8 px-5 py-16 lg:grid-cols-[.9fr_1.1fr] lg:py-24">
-        <div>
-          <p className="mw-eyebrow">The Guild Hall</p>
-          <h2 className="mt-3 font-display text-5xl font-black uppercase leading-none md:text-7xl">The Hall Is Open.</h2>
-          <p className="mt-6 text-lg leading-8 text-white/72">Every guildie gets a shared home for field reports, useful reactions, weekly voting, and a visible climb toward Master. It is built for photographers who would rather learn from the night than chase another social feed.</p>
-        </div>
-        <div className="grid gap-5 md:grid-cols-2">
-          <div className="mw-card-gold p-6"><p className="mw-eyebrow">The Ascent</p><h3 className="mt-3 text-2xl font-black">Every climb on one board</h3><p className="mt-4 text-white/70">Unranked, Beginner, Amateur, Novice, Veteran, and Master, with real progress tied to the work you share.</p></div>
-          <div className="mw-card p-6"><p className="mw-eyebrow">Hall of Envy</p><h3 className="mt-3 text-2xl font-black">Image of the Week</h3><p className="mt-4 text-white/70">Members vote each week, and Aaron picks a favorite for the Monday Moment of Envy.</p></div>
-          <Image src="/launch/mwpg/NewZealand-Pano-MidEdit.jpg" alt="Milky Way panorama" width={760} height={430} className="md:col-span-2 h-72 w-full rounded-sm border border-white/10 object-cover shadow-2xl" />
-        </div>
-      </section>
+      <section className="bg-[#091625] px-5 py-16 lg:py-24"><div className="mx-auto max-w-7xl"><SectionTitle kicker="The Guild Hall" title="The Hall Is Open." /><div className="mt-8 rounded-md border border-[#e79f2b]/20 bg-[linear-gradient(180deg,rgba(47,68,93,.32),rgba(13,30,48,.66))] p-6 shadow-2xl md:p-8"><div className="flex flex-wrap items-center gap-3"><span className="font-display text-sm font-bold uppercase tracking-[.2em] text-[#e79f2b]">The Ascent</span><span className="text-white/50">Every guildie&apos;s climb toward Master, in one shared board</span></div><div className="relative mt-9 h-28"><div className="absolute left-0 right-0 top-8 h-px bg-gradient-to-r from-white/10 via-[#e79f2b]/40 to-[#e79f2b]/20" />{ascentRanks.map((rank, index) => <div key={rank} className="absolute top-5 flex -translate-x-1/2 flex-col items-center gap-3" style={{ left: `${6 + index * 17.8}%` }}><span className={`h-3 w-3 rounded-full border-2 ${index === 0 ? "border-white/25 bg-[#091625]" : "border-[#e79f2b]/70 bg-[#091625]"}`} /><span className={`font-display text-xs font-bold uppercase tracking-wider ${index === 0 ? "text-white/35" : "text-[#f0bd66]"}`}>{rank}</span></div>)}{avatars.map(([src, alt, left]) => <Image key={alt} src={src} alt={`${alt} guildie marker`} width={44} height={44} className="absolute top-0 h-11 w-11 -translate-x-1/2 rounded-full border-2 border-[#e79f2b]/70 object-cover shadow-lg" style={{ left }} />)}</div></div><div className="mt-10 grid gap-10 lg:grid-cols-[.8fr_1.2fr]"><p className="self-center text-xl leading-9 text-white/70">Our goal: make every field report feel like it landed in front of people who actually get it. Real reactions like Beautiful Sky, Envy, and Great Foreground, not just a like, so members learn from each other&apos;s craft and the week&apos;s best rise to the top naturally.</p><div className="overflow-hidden rounded-lg border border-white/10 bg-[#0b1a2b] shadow-2xl"><div className="flex items-center gap-3 p-5"><div className="grid h-11 w-11 place-items-center rounded-full border-2 border-[#e79f2b] bg-[#e79f2b]/15 font-display text-[#f0bd66]">AK</div><div className="flex-1"><p className="font-bold">Aaron King <span className="ml-2 text-sm text-[#f0bd66]">Guild Master</span></p><p className="text-sm text-white/50">Jun 8, 2024 · Bonneville Salt Flats, Utah</p></div><span className="rounded-sm bg-[#e79f2b] px-3 py-1 font-display text-xs font-bold uppercase tracking-wider text-[#091625]">Hall of Envy</span></div><Image src="/launch/mwpg/AaronKing_SaltFlatsPano_PhotogAdventures.jpg" alt="Two Against the Galaxy field report" width={900} height={420} className="h-72 w-full object-cover" /><div className="p-5"><h3 className="font-display text-3xl font-bold uppercase">Two Against the Galaxy</h3><div className="mt-4 flex flex-wrap gap-2">{["♥ Love · 58", "◆ Envy · 71", "★ Beautiful Sky · 64"].map((r) => <span key={r} className="rounded-full border border-white/12 bg-white/[.04] px-4 py-2 text-sm font-bold text-white/75 first:border-[#e79f2b]/55 first:bg-[#e79f2b]/15 first:text-[#f0bd66]">{r}</span>)}</div><div className="mt-5 flex justify-between border-t border-white/10 pt-4 text-sm text-white/55"><span>148 votes · IOTW Winner</span><span className="font-display font-bold uppercase tracking-wider text-[#f0bd66]">Open &amp; Comment</span></div></div></div></div></div></section>
 
-      <section className="bg-[#091625] px-5 py-16 lg:py-24">
-        <div className="mx-auto max-w-7xl">
-          <p className="mw-eyebrow">Your Field Desk</p>
-          <h2 className="mt-3 font-display text-5xl font-black uppercase leading-none md:text-7xl">A story, not just a photo.</h2>
-          <div className="mt-10 grid gap-6 lg:grid-cols-3">
-            {["File a Field Report with gear, settings, and the adventure behind the image.", "Earn achievements for seasons, foregrounds, techniques, and grand feats.", "Get reactions that say something useful: Beautiful Sky, Envy, Great Foreground, and more."].map((text) => <div className="mw-card p-6" key={text}><p className="text-lg leading-8 text-white/76">{text}</p></div>)}
-          </div>
-          <div className="mt-8 flex flex-wrap gap-3">{honors.map((honor) => <span className="rounded-full border border-[#e79f2b]/30 bg-[#e79f2b]/10 px-4 py-2 font-display text-sm uppercase tracking-wider text-[#f0bd66]" key={honor}>{honor}</span>)}</div>
-        </div>
-      </section>
+      <section className="bg-[#091625] px-5 py-16 lg:py-24"><div className="mx-auto max-w-7xl"><div className="flex flex-col justify-between gap-4 md:flex-row md:items-end"><SectionTitle kicker="Your Field Desk" title="Welcome back, Aaron." /><p className="max-w-xl text-lg leading-8 text-white/65 md:text-right">Your Profile Page is called the Field Desk. See your progress earning the next Milky Way Rank and share your adventures with Field Reports.</p></div><div className="mt-8 grid gap-4 md:grid-cols-4">{stats.map(([value, label], i) => <div key={label} className="rounded-md border border-white/10 bg-[#0d1e30]/70 p-5"><div className={`font-display text-4xl font-bold ${i % 2 ? "text-[#f0bd66]" : "text-white"}`}>{value}</div><div className="mt-1 text-xs font-bold uppercase tracking-wider text-white/55">{label}</div></div>)}</div><div className="mt-6 rounded-md border border-[#e79f2b]/25 bg-[linear-gradient(180deg,rgba(47,68,93,.3),rgba(13,30,48,.62))] p-6 md:p-8"><div className="flex flex-wrap items-center gap-3"><span className="text-[#f0bd66]">✪</span><span className="font-display text-sm font-bold uppercase tracking-[.2em] text-[#e79f2b]">The Winners&apos; Throne</span><span className="text-sm text-white/45">Last week&apos;s Image of the Week, the Top 3</span></div><div className="mt-6 grid items-end gap-5 lg:grid-cols-[1fr_1.4fr_1fr]"><WinnerCard place="2" image="/launch/mwpg/NewZealand-Pano-MidEdit.jpg" title="The Arch Down Under" name="Garrett Briggs" /><div><div className="mb-2 text-center text-2xl text-[#f0bd66]">♛</div><div className="overflow-hidden rounded-md border-2 border-[#e79f2b]"><Image src="/launch/mwpg/AaronKing_SaltFlatsPano_PhotogAdventures.jpg" alt="Winning Image of the Week" width={700} height={360} className="h-64 w-full object-cover" /></div><h3 className="mt-3 font-display text-2xl font-bold uppercase">Two Against the Galaxy</h3><p className="text-white/60">Aaron King · 148 votes</p></div><WinnerCard place="3" image="/launch/mwpg/IMG_8954.jpg" title="Owachomo Under Stars" name="Josie and Jaeden" /></div></div></div></section>
 
-      <section className="mx-auto max-w-7xl px-5 py-16 lg:py-24">
-        <div className="grid gap-8 lg:grid-cols-[.85fr_1.15fr]">
-          <div><p className="mw-eyebrow">Launch-Week Offer</p><h2 className="mt-3 font-display text-5xl font-black uppercase leading-none md:text-7xl">Ready to shoot it yourself?</h2><p className="mt-6 text-lg leading-8 text-white/72">Join Aaron on a Milky Way workshop before the crowds catch on. Through midnight Pacific, July 6, take $200 off any workshop, from $700 down to $500.</p><a className="btn btn-primary mt-8" href="https://workshops.photogadventures.com">Claim $200 Off Workshops</a></div>
-          <div className="overflow-hidden border border-[#e79f2b]/25 bg-[#0b1a2b]/90 shadow-2xl">
-            {workshops.map(([name, dates, location, type]) => <div className="grid gap-2 border-b border-white/10 p-4 last:border-b-0 md:grid-cols-[1.4fr_.9fr_.7fr_.8fr] md:items-center" key={`${name}-${dates}`}><strong className="font-display text-lg uppercase text-white">{name}</strong><span className="text-[#f0bd66]">{dates}</span><span className="text-white/65">{location}</span><span className="text-white/55">{type}</span></div>)}
-          </div>
-        </div>
-      </section>
+      <section className="px-5 py-16 lg:py-24"><div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[.8fr_1.2fr]"><div><SectionTitle kicker="Your Field Desk" title="A Story, Not Just a Photo." /><p className="mt-6 text-xl leading-9 text-white/68">Our goal: get past nice shot. Gear, what went well, what you would try differently: the same questions Aaron asks himself, so every submission teaches the Guild something.</p></div><div><div className="grid gap-5 md:grid-cols-3">{["File a Field Report with gear, settings, and the adventure behind the image.", "Earn achievements for seasons, foregrounds, techniques, and grand feats.", "Get reactions that say something useful: Beautiful Sky, Envy, Great Foreground, and more."].map((text) => <div className="rounded-md border border-white/10 bg-[#0b1a2b] p-6 shadow-xl" key={text}><p className="text-lg leading-8 text-white/76">{text}</p></div>)}</div><div className="mt-8 flex flex-wrap gap-3">{storyHonors.map((honor) => <span className="rounded-full border border-[#e79f2b]/30 bg-[#e79f2b]/10 px-4 py-2 font-display text-sm font-bold uppercase tracking-wider text-[#f0bd66]" key={honor}>{honor}</span>)}</div></div></div></section>
+
+      <section className="bg-[#091625] px-5 py-16 lg:py-24"><div className="mx-auto max-w-7xl"><SectionTitle kicker="Your Climb to Master" title="A Rank Worth Chasing." centered /><p className="mx-auto mt-6 max-w-5xl text-center text-xl leading-9 text-white/68">Our goal: give ten years of quiet dedication somewhere to show. Aaron&apos;s own Decade of Dark streak, a new Milky Way every year since 2016, is exactly the kind of story this page is built to celebrate.</p><div className="mt-12 rounded-xl border border-[#e79f2b]/25 bg-[linear-gradient(180deg,rgba(47,68,93,.32),rgba(13,30,48,.7))] p-8 shadow-2xl md:p-14"><div className="relative flex justify-between"><div className="absolute left-[10%] right-[10%] top-4 h-px bg-white/15" />{rankTrack.map((rank, i) => <div key={rank} className="relative z-10 flex flex-1 flex-col items-center gap-4"><span className={`h-8 w-8 rounded-full border-[3px] ${i <= 3 ? "border-[#e79f2b] bg-[#e79f2b]" : "border-white/25 bg-transparent"} ${i === 3 ? "shadow-[0_0_0_8px_rgba(231,159,43,.18)]" : ""}`} /><span className={`font-display text-base font-bold uppercase tracking-wider md:text-xl ${i <= 3 ? "text-white" : "text-white/40"}`}>{rank}</span></div>)}</div></div><div className="mt-5 grid gap-5 md:grid-cols-3"><InfoCard value="10" label="Year Streak" text="A new Milky Way every year since 2016" gold /><InfoCard value="7" label="Month Streak" text="Consecutive months, right now" /><InfoCard value="❖" label="Decade of Dark" text="Grand honor for capturing the Milky Way in ten or more different years" gold /></div></div></section>
+
+      <section className="bg-[#091625] px-5 py-16 lg:py-24"><div className="mx-auto max-w-7xl"><SectionTitle kicker="Field Honors" title="Milky Way Achievements." centered /><p className="mx-auto mt-6 max-w-5xl text-center text-xl leading-9 text-white/68">Our goal: give every kind of shot a way to count. Honors unlock for the seasons you shoot in, the foregrounds you frame, the techniques you learn, and the grand feats only a few members ever reach.</p><HonorGroup title="Grand Honors" items={grandHonors} /><HonorGroup title="Foreground & Technique" items={craftHonors} /><HonorGroup title="Seasons" items={seasonHonors} /></div></section>
+
+      <section className="relative px-5 py-16 lg:py-24"><Image src="/launch/mwpg/AaronKing_SaltFlatsPano_PhotogAdventures.jpg" alt="Milky Way workshop background" fill className="-z-10 object-cover opacity-35" sizes="100vw" /><div className="absolute inset-0 -z-10 bg-[#050d18]/75" /><div className="mx-auto max-w-7xl"><div className="text-center"><SectionTitle kicker="Launch-Week Offer" title="Ready to shoot it yourself?" centered /><p className="mx-auto mt-6 max-w-4xl text-xl leading-9 text-white/75">Join Aaron on a Milky Way workshop before the crowds catch on. Through the Guild launch at Wednesday, July 8 at 7:00 PM Mountain Time, take $200 off any workshop, from $700 down to $500.</p><a className="btn btn-primary mt-8" href="https://workshops.photogadventures.com">Claim $200 Off Workshops</a></div><div className="mt-10 overflow-hidden rounded-lg border border-[#e79f2b]/30 bg-[#091625]/80 shadow-2xl backdrop-blur"><div className="hidden grid-cols-[1.5fr_1fr_.8fr_.8fr] bg-[#e79f2b]/12 p-4 font-display text-sm font-bold uppercase tracking-wider text-[#f0bd66] md:grid"><span>Workshop</span><span>Dates</span><span>Location</span><span>Type</span></div>{workshops.map(([name, dates, location, type]) => <div className="grid gap-2 border-b border-white/10 p-4 last:border-b-0 md:grid-cols-[1.5fr_1fr_.8fr_.8fr] md:items-center" key={`${name}-${dates}`}><strong className="font-display text-lg uppercase text-white">{name}</strong><span className="text-[#f0bd66]">{dates}</span><span className="text-white/65">{location}</span><span className="text-white/55">{type}</span></div>)}</div></div></section>
 
       <section className="px-5 pb-20"><div className="mx-auto max-w-5xl rounded-[2rem] border border-[#e79f2b]/30 bg-[linear-gradient(135deg,rgba(231,159,43,.15),rgba(13,30,48,.92))] p-8 text-center shadow-2xl md:p-12"><p className="mw-eyebrow">MilkyWayPhotographersGuild.com</p><h2 className="mt-3 font-display text-4xl font-black uppercase md:text-6xl">See you in the Guild Hall.</h2><p className="mx-auto mt-5 max-w-3xl text-lg leading-8 text-white/75">Bring your best night sky stories, your field notes, and the images you want the Guild to see first.</p><div className="mt-8 flex flex-wrap justify-center gap-3"><Link className="btn btn-secondary" href="/login">Member sign in</Link><a className="btn btn-ghost" href="https://www.photogadventures.com">Photog Adventures</a></div></div></section>
     </div>
   );
+}
+
+function WinnerCard({ place, image, title, name }: { place: string; image: string; title: string; name: string }) {
+  return <div><div className="relative overflow-hidden rounded-md border border-white/15"><Image src={image} alt={title} width={520} height={260} className="h-52 w-full object-cover" /><span className="absolute left-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white text-lg font-black text-[#091625]">{place}</span></div><h3 className="mt-3 font-display text-xl font-bold uppercase">{title}</h3><p className="text-white/60">{name}</p></div>;
+}
+
+function InfoCard({ value, label, text, gold = false }: { value: string; label: string; text: string; gold?: boolean }) {
+  return <div className={`rounded-lg border p-6 ${gold ? "border-[#e79f2b]/25 bg-[#e79f2b]/10" : "border-white/10 bg-[#0d1e30]/70"}`}><div className={`font-display text-5xl font-bold leading-none ${gold ? "text-[#f0bd66]" : "text-white"}`}>{value}</div><div className="mt-2 font-display text-base font-bold uppercase tracking-wider">{label}</div><p className="mt-2 text-white/58">{text}</p></div>;
+}
+
+function HonorGroup({ title, items }: { title: string; items: (string | boolean)[][] }) {
+  return <div className="mt-10"><h3 className="mb-5 font-display text-base font-bold uppercase tracking-[.2em] text-[#e79f2b]">{title}</h3><div className="flex flex-wrap gap-6">{items.map(([glyph, name, earned]) => <HonorBadge key={name as string} glyph={glyph as string} name={name as string} earned={earned as boolean} />)}</div></div>;
 }
