@@ -1,5 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { isBeforeGuildLaunch } from "@/lib/launch";
 
 const logoUrl =
   "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/site-assets/logos/MWPG_Logo.png";
@@ -14,6 +16,10 @@ const whatsComing = [
 ];
 
 export default function Home() {
+  if (isBeforeGuildLaunch()) {
+    redirect("/launch");
+  }
+
   return (
     <div className="overflow-hidden">
       <section className="starfield relative px-5 py-20 sm:py-24 lg:py-32">
