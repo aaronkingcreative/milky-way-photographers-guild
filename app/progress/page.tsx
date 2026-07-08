@@ -48,7 +48,7 @@ export default async function Page() {
   const yearStreak = stats.year_streak;
   const monthStreak = stats.month_streak;
   const monthly = definitions.filter((item) => item.category === "monthly");
-  const yearAchievements = definitions.filter((item) => item.category === "year" && earnedById.has(item.id));
+  const yearAchievements = definitions.filter((item) => item.category === "special" && earnedById.has(item.id));
   const stars = definitions.map((definition, index) => ({ definition, pos: starPositions[index % starPositions.length], earned: earnedById.has(definition.id), record: earnedById.get(definition.id) }));
 
   return <main className="mw-page-wide progress-page">

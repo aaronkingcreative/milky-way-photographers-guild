@@ -392,3 +392,19 @@ a { color: inherit; text-decoration: none; }
   .mw-iotw-checkbox { margin-top:4px; width:18px; height:18px; accent-color:#e79f2b; }
   .mw-iotw-checkbox:disabled { cursor:not-allowed; opacity:.45; }
 }
+
+.mw-submit-achievement-widget { position: sticky; top: 96px; max-height: calc(100vh - 120px); overflow: auto; border: 1px solid rgba(231,159,43,.32); border-radius: 7px; background: rgba(6,16,28,.96); padding: 18px; box-shadow: 0 20px 50px rgba(0,0,0,.34), inset 0 0 0 1px rgba(255,255,255,.03); }
+.mw-submit-achievement-widget h2 { font-family: var(--font-oswald), Oswald, sans-serif; text-transform: uppercase; letter-spacing: .08em; font-size: 1.45rem; color: #f0bd66; }
+.mw-submit-achievement-widget h3 { font-family: var(--font-oswald), Oswald, sans-serif; text-transform: uppercase; letter-spacing: .13em; font-size: .78rem; color: rgba(255,255,255,.56); }
+.mw-submit-achievement-widget p { color: rgba(255,255,255,.68); line-height: 1.55; }
+.mw-achievement-choice { display: flex; width: 100%; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,.1); border-radius: 6px; background: rgba(255,255,255,.035); padding: 10px; text-align: left; color: rgba(255,255,255,.86); transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
+.mw-achievement-choice:not(:disabled):hover { border-color: rgba(240,189,102,.5); transform: translateY(-1px); }
+.mw-achievement-choice .glyph { display: grid; height: 30px; width: 30px; flex: none; place-items: center; border-radius: 999px; border: 1px solid rgba(231,159,43,.32); color: #f0bd66; background: rgba(231,159,43,.1); }
+.mw-achievement-choice .state { margin-top: 2px; display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: rgba(255,255,255,.45); }
+.mw-achievement-choice.is-selected { border-color: #f0bd66; box-shadow: 0 0 0 1px rgba(240,189,102,.62), 0 0 22px rgba(231,159,43,.22); }
+.mw-achievement-choice.is-selected .state { color: #f0bd66; }
+.mw-achievement-choice.is-earned, .mw-achievement-choice.is-locked { opacity: .46; cursor: not-allowed; }
+.mw-auto-tracking { border: 1px solid rgba(95,207,148,.2); border-radius: 6px; background: rgba(95,207,148,.055); padding: 14px; }
+@media (max-width: 1023px) { .mw-submit-achievement-widget { position: static; max-height: none; } }
+@keyframes mw-reveal-pop { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.mw-achievement-reveal { animation: mw-reveal-pop .38s ease both; }
