@@ -111,10 +111,10 @@ export const seededAchievementDefinitions: AchievementDefinition[] = [
 ];
 
 export const rankThresholds = [
-  { short: "Beginner", full: "Beginner Milky Way Photographer", min: 0 },
-  { short: "Amateur", full: "Amateur Milky Way Photographer", min: 5 },
-  { short: "Novice", full: "Novice Milky Way Photographer", min: 12 },
-  { short: "Veteran", full: "Veteran Milky Way Photographer", min: 24 },
+  { short: "Beginner", full: "Beginner Milky Way Photographer", min: 1 },
+  { short: "Amateur", full: "Amateur Milky Way Photographer", min: 8 },
+  { short: "Novice", full: "Novice Milky Way Photographer", min: 18 },
+  { short: "Veteran", full: "Veteran Milky Way Photographer", min: 25 },
   { short: "Master", full: "Master Milky Way Photographer", min: 33 },
 ];
 
