@@ -74,7 +74,7 @@ export default async function Page() {
   if (hasAccess && user) {
     const week = getWeekStart();
     const [{ data: imgs }, { data: rx }, { count }, { count: cand }, { count: mine }] = await Promise.all([
-      supabase.from("guild_images").select("*").is("hidden_at", null).is("deleted_at", null).order("created_at", { ascending: false }).limit(9),
+      supabase.from("guild_images").select("*, profiles(display_name,avatar_url)").is("hidden_at", null).is("deleted_at", null).order("created_at", { ascending: false }).limit(9),
       supabase.from("image_reactions").select("image_id,reaction_type"),
       supabase.from("guild_images").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("week_starts_on", week).is("deleted_at", null),
       supabase.from("guild_images").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("week_starts_on", week).eq("is_weekly_candidate", true).is("deleted_at", null),
