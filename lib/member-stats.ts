@@ -1,4 +1,5 @@
 import { nextRankForCount, rankForCount } from "@/lib/achievements";
+import { consecutiveMonthStreakFromCoverage } from "@/lib/coverage";
 import { storagePublicUrl, PROFILE_AVATAR_BUCKET } from "@/lib/storage";
 
 export const EARNED_ACHIEVEMENT_STATUSES = ["auto_awarded_pending_review", "verified"];
@@ -58,31 +59,16 @@ function firstNameFor(displayName: string) {
   return displayName.split(/\s+/).filter(Boolean)[0] || displayName;
 }
 
-function consecutiveMonthStreak(dates: string[]) {
-  const months = [...new Set(dates.map((value) => {
-    const date = new Date(`${value}T00:00:00`);
-    return Number.isNaN(date.getTime()) ? null : date.getUTCFullYear() * 12 + date.getUTCMonth();
-  }).filter((value): value is number => value !== null))].sort((a, b) => b - a);
-  if (!months.length) return 0;
-  let streak = 1;
-  for (let index = 1; index < months.length; index += 1) {
-    if (months[index] === months[index - 1] - 1) streak += 1;
-    else break;
-  }
-  return streak;
-}
-
 export async function getMemberStats(supabase: SupabaseClient, user: AuthUser): Promise<MemberStats> {
-  const [{ data: profile }, { data: achievements }, { data: reports }] = await Promise.all([
+  const [{ data: profile }, { data: achievements }, { data: coverage }] = await Promise.all([
     supabase.from("profiles").select("display_name,full_name,email,avatar_url,avatar_path,country,region,state_or_province,specific_location,specific_location_name").eq("id", user.id).maybeSingle(),
-    supabase.from("user_achievements").select("achievement_id,status").eq("user_id", user.id).in("status", EARNED_ACHIEVEMENT_STATUSES),
-    supabase.from("field_reports").select("capture_date").eq("user_id", user.id).eq("status", "published").not("capture_date", "is", null),
+    supabase.from("user_achievements").select("achievement_id,status,achievement_definitions(counts_toward_rank)").eq("user_id", user.id).in("status", EARNED_ACHIEVEMENT_STATUSES),
+    supabase.from("user_field_coverage").select("capture_year,capture_month").eq("user_id", user.id),
   ]);
-  const earned = new Set((achievements || []).map((row: any) => row.achievement_id)).size;
+  const earned = new Set((achievements || []).filter((row: any) => row.achievement_definitions?.counts_toward_rank !== false).map((row: any) => row.achievement_id)).size;
   const rank = rankForCount(earned);
   const nextRank = nextRankForCount(earned);
-  const dates = (reports || []).map((row: any) => row.capture_date).filter(Boolean);
-  const years = new Set(dates.map((value: string) => new Date(`${value}T00:00:00`).getUTCFullYear()).filter((year: number) => !Number.isNaN(year)));
+  const years = new Set((coverage || []).map((row: any) => row.capture_year).filter((year: number) => !Number.isNaN(year)));
   const display_name = displayNameFromSources(profile, user);
   const avatar_path = profile?.avatar_path || null;
   return {
@@ -97,7 +83,7 @@ export async function getMemberStats(supabase: SupabaseClient, user: AuthUser): 
     next_rank: nextRank?.short || null,
     honors_to_next_rank: nextRank ? Math.max(0, nextRank.min - earned) : 0,
     year_streak: years.size,
-    month_streak: consecutiveMonthStreak(dates),
+    month_streak: consecutiveMonthStreakFromCoverage(coverage || []),
     country: profile?.country || null,
     region: profile?.region || null,
     state_or_province: profile?.state_or_province || null,

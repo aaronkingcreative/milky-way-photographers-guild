@@ -1,4 +1,4 @@
-export type AchievementCategory = "monthly" | "seasonal" | "foreground" | "technique" | "year" | "rank";
+export type AchievementCategory = "monthly" | "seasonal" | "foreground" | "technique" | "special" | "rank";
 export type AchievementRewardType = "sticker" | "square_pin" | "sticker_and_square_pin";
 
 export type AchievementDefinition = {
@@ -11,6 +11,10 @@ export type AchievementDefinition = {
   requirement: string;
   constellation: string | null;
   sortOrder: number;
+  isManualClaimable?: boolean;
+  isAutomatic?: boolean;
+  countsTowardRank?: boolean;
+  allowRepeat?: boolean;
   isActive: boolean;
   metadata?: Record<string, unknown>;
 };
@@ -60,9 +64,9 @@ export const seededAchievementDefinitions: AchievementDefinition[] = [
     isActive: true,
   })),
   {
-    id: "year_2018",
-    name: "2018 Milky Way",
-    category: "year",
+    id: "special_decade_under_the_stars",
+    name: "Decade Under the Stars",
+    category: "special",
     rewardType: "sticker_and_square_pin",
     glyph: "✦",
     description: "A Milky Way image captured during 2018.",
@@ -70,7 +74,7 @@ export const seededAchievementDefinitions: AchievementDefinition[] = [
     constellation: "decade",
     sortOrder: 220,
     isActive: true,
-    metadata: { year: 2018 },
+    metadata: { years: 10 },
   },
   ...seasons.map((season, index) => ({
     id: `seasonal_${season.toLowerCase()}`,
@@ -96,6 +100,22 @@ export const seededAchievementDefinitions: AchievementDefinition[] = [
     sortOrder: 300 + index,
     isActive: true,
   })),
+  {
+    id: "special_perfect_year",
+    name: "Perfect Year",
+    category: "special" as const,
+    rewardType: "sticker_and_square_pin" as const,
+    glyph: "✦",
+    description: "A field report from every month in one calendar year.",
+    requirement: "Submit at least one Milky Way field report from every month in the same calendar year.",
+    constellation: "special",
+    sortOrder: 360,
+    isManualClaimable: false,
+    isAutomatic: true,
+    countsTowardRank: true,
+    allowRepeat: true,
+    isActive: true,
+  },
   ...ranks.map((rank, index) => ({
     id: `rank_${rank.toLowerCase()}`,
     name: `${rank} Milky Way Photographer`,
@@ -119,7 +139,7 @@ export const rankThresholds = [
 ];
 
 export function rankForCount(count: number) {
-  return [...rankThresholds].reverse().find((rank) => count >= rank.min) ?? rankThresholds[0];
+  return [...rankThresholds].reverse().find((rank) => count >= rank.min) ?? { short: "Unranked", full: "Unranked", min: 0 };
 }
 
 export function nextRankForCount(count: number) {

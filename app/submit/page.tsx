@@ -8,7 +8,7 @@ export default async function Page() {
   const { user } = await requireAccess();
   const supabase = await createServerSupabaseClient();
   const week = getWeekStart();
-  const [{ count: candidateCount }, { data: achievements }] = await Promise.all([
+  const [{ count: candidateCount }, { data: achievements }, { data: earnedAchievements }] = await Promise.all([
     supabase
       .from("field_reports")
       .select("id", { count: "exact", head: true })
@@ -18,11 +18,16 @@ export default async function Page() {
       .neq("status", "removed"),
     supabase
       .from("achievement_definitions")
-      .select("id,name,category")
+      .select("id,name,category,glyph,requirement,allow_repeat,is_manual_claimable")
       .eq("is_active", true)
-      .neq("category", "rank")
+      .in("category", ["monthly", "seasonal", "foreground", "technique", "special"])
       .order("sort_order")
-      .limit(24),
+      .limit(60),
+    supabase
+      .from("user_achievements")
+      .select("achievement_id,status")
+      .eq("user_id", user.id)
+      .in("status", ["auto_awarded_pending_review", "verified"]),
   ]);
 
   return (
@@ -43,7 +48,7 @@ export default async function Page() {
           <strong>Submit as many field reports as you want.</strong> But only ONE IMAGE may be entered for Image of the Week each week. Choose your very best!
         </p>
       </div>
-      <SubmitImageForm remaining={999} hasCandidate={(candidateCount || 0) > 0} achievements={achievements || []} />
+      <SubmitImageForm remaining={999} hasCandidate={(candidateCount || 0) > 0} achievements={(achievements || []).filter((item: any) => item.is_manual_claimable || item.category === "special")} earnedAchievementIds={(earnedAchievements || []).map((item: any) => item.achievement_id)} currentHonorCount={new Set((earnedAchievements || []).map((item: any) => item.achievement_id)).size} />
     </section>
   );
 }
