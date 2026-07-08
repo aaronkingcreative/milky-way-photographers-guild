@@ -2,18 +2,18 @@ import Image from "next/image";
 import { SubmitImageForm } from "@/components/images/SubmitImageForm";
 import { requireAccess } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getWeekStart } from "@/lib/images";
+import { getIotwTargetPeriod } from "@/lib/iotw";
 
 export default async function Page() {
   const { user } = await requireAccess();
   const supabase = await createServerSupabaseClient();
-  const week = getWeekStart();
+  const period = getIotwTargetPeriod();
   const [{ count: candidateCount }, { data: achievements }, { data: earnedAchievements }] = await Promise.all([
     supabase
       .from("field_reports")
       .select("id", { count: "exact", head: true })
       .eq("user_id", user.id)
-      .eq("iotw_week_start", week)
+      .eq("iotw_week_start", period.period_start.slice(0,10))
       .eq("is_iotw_candidate", true)
       .neq("status", "removed"),
     supabase

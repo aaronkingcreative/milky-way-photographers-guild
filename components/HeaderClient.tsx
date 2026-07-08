@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { signOut } from "@/app/actions";
 import { formatStreakBadge, titleCaseLabel } from "@/lib/display";
+import { IotwVotingModal } from "@/components/iotw/IotwVotingModal";
 
 const logoUrl =
   "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/site-assets/logos/MWPG_Logo.png";
@@ -29,6 +30,7 @@ export function HeaderClient({
   rankLabel,
   streakLabel,
   avatarUrl,
+  iotw,
 }: {
   user: boolean;
   isAdmin: boolean;
@@ -36,6 +38,7 @@ export function HeaderClient({
   rankLabel?: string | null;
   streakLabel?: string | null;
   avatarUrl?: string | null;
+  iotw?: any;
 }) {
   const pathname = usePathname();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
@@ -68,7 +71,7 @@ export function HeaderClient({
         {user ? (
           <>
             <div className="mw-header-actions">
-              <Link href="/feed" className="mw-vote-chip">✪ Vote · closes Sun</Link>
+              {iotw ? <IotwVotingModal ballot={iotw.ballot} entries={iotw.entries} existingVote={iotw.vote} /> : null}
               <Link href="/submit" className="mw-submit-image-button">Submit Image</Link>
               {isAdmin && <Link href="/admin" className="hidden mw-meta text-white/45 hover:text-[#f0bd66] md:inline">Admin</Link>}
               <div className="mw-account-wrap">
