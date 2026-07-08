@@ -14,12 +14,11 @@ const navItems = [
   ["Guild Hall", "/guild-hall"],
   ["Gallery", "/feed"],
   ["Field Desk", "/field-desk"],
-  ["Progress", "/profile"],
+  ["Progress", "/progress"],
 ];
 
 function isActive(pathname: string, href: string) {
   if (href === "/feed") return pathname === "/feed" || pathname === "/gallery" || pathname.startsWith("/images/");
-  if (href === "/profile") return pathname === "/profile" || pathname === "/progress";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
@@ -47,7 +46,7 @@ export function HeaderClient({
     .map((part) => part.charAt(0).toUpperCase())
     .join("") || "GM";
   const displayRank = titleCaseLabel(rankLabel);
-  const displayStreak = formatStreakBadge(streakLabel) || formatStreakBadge(10);
+  const displayStreak = formatStreakBadge(streakLabel);
 
   return (
     <header className="mw-app-header">
