@@ -1,1 +1,13 @@
-export function WeeklySubmissionStatus({remaining,hasCandidate}:{remaining:number;hasCandidate:boolean}){const used=3-remaining;return <div className="mw-card-gold rounded-lg p-5"><p className="mw-eyebrow">This week's field reports</p><p className="mt-3 font-display text-5xl text-[#f0bd66]">{remaining}</p><p className="mt-1 mw-body">of 3 submissions left this week · only one image may be entered for Image of the Week.</p><div className="mt-4 grid grid-cols-3 gap-2">{[0,1,2].map(i=><span key={i} className={`h-2 rounded-full ${i<used?'bg-[#e79f2b]':'bg-white/15'}`}/>)}</div><p className="mt-4 mw-section-label text-white/75">Weekly candidate: <span className="text-[#f0bd66]">{hasCandidate?'selected':'open'}</span></p></div>}
+import Link from "next/link";
+
+export function WeeklySubmissionStatus({ remaining, hasCandidate }: { remaining: number; hasCandidate: boolean }) {
+  const used = 3 - remaining;
+
+  return <div className="fd-panel fd-weekly-status">
+    <p className="fd-label fd-label-muted">This Week&apos;s Field Reports</p>
+    <div className="fd-weekly-bars">{[0, 1, 2].map((i) => <span key={i} className={i < used ? "used" : ""} />)}</div>
+    <div className="fd-weekly-count"><span>{used} of 3 used</span><strong>{hasCandidate ? "IOTW candidate set" : "IOTW candidate open"}</strong></div>
+    <p>Up to 3 Guild images per week. One may be entered for Image of the Week.</p>
+    <Link href="/submit">+ New Field Report</Link>
+  </div>;
+}
