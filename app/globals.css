@@ -372,3 +372,23 @@ a { color: inherit; text-decoration: none; }
   @media (max-width: 1000px) { .progress-top-grid { grid-template-columns:1fr; } .progress-month-grid { grid-template-columns:repeat(4,1fr); } .progress-season-grid { grid-template-columns:repeat(2,1fr); } .progress-sky { height:760px; } }
   @media (max-width: 640px) { .progress-member-card { align-items:flex-start; flex-direction:column; } .progress-rank-panel > div:first-child { align-items:flex-start; flex-direction:column; } .progress-month-grid { grid-template-columns:repeat(3,1fr); } .progress-star { width:48px; height:48px; } }
 }
+
+@layer components {
+  .mw-prototype-eyebrow { display:flex; align-items:center; gap:9px; font-family:var(--font-guild-display); font-size:14px; letter-spacing:.26em; text-transform:uppercase; color:#e79f2b; font-weight:500; }
+  .mw-prototype-eyebrow img { width:20px; height:20px; border-radius:999px; display:block; }
+  .mw-prototype-title { margin:0 0 6px; font-family:var(--font-guild-display); font-weight:600; font-size:38px; line-height:1.08; color:#fff; }
+  .mw-prototype-subtitle { margin:0; color:rgba(255,255,255,.55); font-size:16.5px; line-height:1.5; }
+  .mw-submit-title { margin:0 0 6px; font-family:var(--font-guild-display); font-weight:600; font-size:clamp(2.25rem,3.2vw,2.7rem); line-height:1.05; color:#fff; text-transform:none; }
+  .mw-submit-intro { margin:0; max-width:620px; color:rgba(255,255,255,.6); font-size:16.5px; line-height:1.5; }
+  .mw-submit-notice { display:flex; align-items:center; gap:14px; border:1px solid rgba(231,159,43,.3); border-radius:4px; background:#0b1a2b; padding:13px 18px; color:rgba(255,255,255,.82); font-size:15px; line-height:1.55; }
+  .mw-submit-notice-icon { color:#e79f2b; font-size:19.5px; line-height:1; }
+  .mw-submit-notice strong { color:#e79f2b; font-weight:700; }
+  .mw-submit-card { border:1px solid rgba(231,159,43,.3); border-radius:5px; background:#0b1a2b; }
+  .mw-submit-field-label { display:block; font-family:var(--font-guild-display); font-weight:600; font-size:14.5px; letter-spacing:.06em; text-transform:uppercase; color:rgba(255,255,255,.7); }
+  .mw-submit-field-label span { color:#e79f2b; }
+  .mw-submit-section-label { font-family:var(--font-guild-display); font-size:14px; letter-spacing:.18em; text-transform:uppercase; color:#e79f2b; font-weight:600; }
+  .mw-submit-section-label span { color:rgba(255,255,255,.35); font-weight:500; letter-spacing:0; text-transform:none; margin-left:.4rem; }
+  .mw-iotw-submit-card { display:flex; align-items:flex-start; gap:14px; border:1px solid rgba(231,159,43,.3); border-radius:5px; background:#0b1a2b; padding:18px 20px; color:rgba(255,255,255,.82); cursor:pointer; }
+  .mw-iotw-checkbox { margin-top:4px; width:18px; height:18px; accent-color:#e79f2b; }
+  .mw-iotw-checkbox:disabled { cursor:not-allowed; opacity:.45; }
+}
