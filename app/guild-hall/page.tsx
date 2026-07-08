@@ -81,7 +81,7 @@ export default async function Page() {
 
   if (hasAccess) {
     const [{ data: imgs }, { data: rx }] = await Promise.all([
-      supabase.from("guild_images").select("*").is("hidden_at", null).is("deleted_at", null).not("moderation_status", "in", '("hidden","deleted")').order("created_at", { ascending: false }).limit(12),
+      supabase.from("guild_images").select("*, profiles(display_name,avatar_url)").is("hidden_at", null).is("deleted_at", null).not("moderation_status", "in", '("hidden","deleted")').order("created_at", { ascending: false }).limit(12),
       supabase.from("image_reactions").select("image_id,reaction_type"),
     ]);
     images = imgs || [];

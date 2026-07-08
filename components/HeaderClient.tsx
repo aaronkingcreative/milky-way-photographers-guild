@@ -29,12 +29,14 @@ export function HeaderClient({
   name,
   rankLabel,
   streakLabel,
+  avatarUrl,
 }: {
   user: boolean;
   isAdmin: boolean;
   name: string;
   rankLabel?: string | null;
   streakLabel?: string | null;
+  avatarUrl?: string | null;
 }) {
   const pathname = usePathname();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
@@ -87,7 +89,7 @@ export function HeaderClient({
                   aria-expanded={accountMenuOpen}
                   onClick={() => setAccountMenuOpen((open) => !open)}
                 >
-                  {initials}
+                  {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full rounded-full object-cover" /> : initials}
                 </button>
                 {accountMenuOpen && (
                   <div className="mw-account-menu">

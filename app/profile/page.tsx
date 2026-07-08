@@ -2,6 +2,7 @@ import Image from "next/image";
 import { requireLogin } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { AchievementDefinition, UserAchievement, nextRankForCount, rankForCount, seededAchievementDefinitions } from "@/lib/achievements";
+import { ProfileSettingsForm } from "@/components/ProfileSettingsForm";
 
 const favicon = "/launch/mwpg/MWPG_Logo_FAVICON.png";
 const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -29,7 +30,7 @@ function earnedDate(value: string | null) {
 export default async function Page() {
   const { user } = await requireLogin();
   const supabase = await createServerSupabaseClient();
-  const { data: profile } = await supabase.from("profiles").select("display_name,full_name,avatar_url").eq("id", user.id).single();
+  const { data: profile } = await supabase.from("profiles").select("display_name,full_name,avatar_url,avatar_path,country,region,state_or_province,specific_location,specific_location_name").eq("id", user.id).single();
   const { data: definitionRows } = await supabase.from("achievement_definitions").select("id,name,category,reward_type,glyph,description,requirement,constellation,sort_order,is_active,metadata").eq("is_active", true).order("sort_order");
   const { data: earnedRows } = await supabase.from("user_achievements").select("user_id,achievement_id,earned_at,source_submission_id,awarded_by,notes,metadata").eq("user_id", user.id);
 
@@ -61,6 +62,7 @@ export default async function Page() {
       <div className="progress-streak-card"><strong>{yearStreak}</strong><span>Year Streak</span><p>A new Milky Way in each earned year</p></div>
       <div className="progress-streak-card progress-streak-card-cool"><strong>{monthStreak}</strong><span>Month Streak</span><p>Earned calendar month honors</p></div>
     </section>
+    <ProfileSettingsForm profile={profile} />
     <section className="progress-panel progress-rank-panel"><div><h2>Progress to {nextRank?.short ?? "Master"}</h2><p>{nextRank ? `${Math.max(0, nextRank.min - earnedCount)} more honors to rank up` : "Master rank reached"}</p></div><div className="progress-bar"><span style={{ width: `${progressPct}%` }} /></div></section>
     <section className="progress-panel"><div className="progress-section-head"><h2>2026 Field Year</h2><p>A Milky Way in every month you shoot</p></div><div className="progress-month-grid">{monthly.map((achievement, index) => <div key={achievement.id} className={earnedById.has(achievement.id) ? "earned" : "locked"}>{monthLabels[index]}</div>)}</div><div className="progress-season-grid">{seasonIds.map((id, index) => <div key={id} className={earnedById.has(id) ? "earned" : "locked"}>{seasonLabels[index]}</div>)}</div></section>
     <section className="progress-panel progress-decade"><div className="progress-section-head"><h2>❖ A Decade Under the Stars</h2><p>Credibility bonus for Milky Way images captured across different years.</p></div>{yearAchievements.length ? <div className="progress-year-chips">{yearAchievements.map((achievement) => <span key={achievement.id}>{String(achievement.metadata?.year ?? achievement.name.replace(/\D/g, ""))}</span>)}</div> : <p className="progress-empty">No earned year honors yet.</p>}</section>
