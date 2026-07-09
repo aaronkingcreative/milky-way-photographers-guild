@@ -10,7 +10,7 @@ export default async function Page() {
   const [{ data: images }, { data: reactions }] = await Promise.all([
     supabase
       .from("guild_images")
-      .select("*, profiles(display_name,avatar_url)")
+      .select("*, profiles(display_name,full_name,email,avatar_url,avatar_path)")
       .is("hidden_at", null)
       .is("deleted_at", null)
       .not("moderation_status", "in", '("hidden","deleted")')

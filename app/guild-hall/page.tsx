@@ -6,6 +6,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { REACTION_TYPES } from "@/lib/images";
 import { formatStreakBadge, fullPhotographerRank } from "@/lib/display";
 import { EARNED_ACHIEVEMENT_STATUSES } from "@/lib/member-stats";
+import { getAvatarDisplay } from "@/lib/avatar";
 
 const faviconUrl =
   "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/site-assets/logos/MWPG_Logo_FAVICON.png";
@@ -46,7 +47,7 @@ function postTime(value: string) {
 }
 
 function authorName(image: any, index: number) {
-  return image?.profiles?.display_name || image?.display_name || "Guild photographer";
+  return image?.profiles?.display_name || image?.profiles?.full_name || image?.display_name || "Guild photographer";
 }
 
 function initials(name: string) {
@@ -81,7 +82,7 @@ export default async function Page() {
 
   if (hasAccess) {
     const [{ data: imgs }, { data: rx }] = await Promise.all([
-      supabase.from("guild_images").select("*, profiles(display_name,avatar_url)").is("hidden_at", null).is("deleted_at", null).not("moderation_status", "in", '("hidden","deleted")').order("created_at", { ascending: false }).limit(12),
+      supabase.from("guild_images").select("*, profiles(display_name,full_name,email,avatar_url,avatar_path)").is("hidden_at", null).is("deleted_at", null).not("moderation_status", "in", '("hidden","deleted")').order("created_at", { ascending: false }).limit(12),
       supabase.from("image_reactions").select("image_id,reaction_type"),
     ]);
     images = imgs || [];
@@ -122,12 +123,13 @@ export default async function Page() {
               ))}
               {images.slice(0, 10).map((image, index) => {
                 const name = authorName(image, index);
+                const avatar = getAvatarDisplay({ avatarPath: image.profiles?.avatar_path, avatarUrl: image.profiles?.avatar_url, displayName: name, email: image.profiles?.email });
                 const count = achievementCount(image, achievementCounts);
                 const rank = rankLabelForCount(count);
                 const top = 34 + (index % 3) * 6;
                 return (
                   <div key={image.id} className={`mw-rank-avatar ${count === 0 ? "mw-rank-avatar-unranked" : ""}`} style={{ left: `${rankPosition(count)}%`, top: `${top}px` }}>
-                    {image.profiles?.avatar_url ? <img src={image.profiles.avatar_url} alt="" /> : <span className="mw-rank-avatar-initials">{initials(name)}</span>}
+                    {avatar.avatarUrl ? <img src={avatar.avatarUrl} alt="" /> : <span className="mw-rank-avatar-initials">{avatar.initials}</span>}
                     <span className="mw-rank-avatar-tooltip">{name} • {rank} • {count}</span>
                   </div>
                 );
@@ -143,12 +145,13 @@ export default async function Page() {
           <div className="mx-auto max-w-[1120px] space-y-8">
             {images.map((image, index) => {
               const name = authorName(image, index);
+              const avatar = getAvatarDisplay({ avatarPath: image.profiles?.avatar_path, avatarUrl: image.profiles?.avatar_url, displayName: name, email: image.profiles?.email });
               const counts = reactionCounts(reactions, image.id);
               const total = Array.from(counts.values()).reduce((sum, count) => sum + count, 0);
               const count = achievementCount(image, achievementCounts);
               const rank = rankLabelForCount(count);
               const streak = null;
-              return <article key={image.id} className="mw-card-soft overflow-hidden"><div className="flex items-center gap-3 p-5"><div className="grid h-12 w-12 place-items-center overflow-hidden rounded-full border border-[#e79f2b]/65 bg-[#e79f2b]/10 font-display text-[#f0bd66]">{image.profiles?.avatar_url ? <img src={image.profiles.avatar_url} alt="" className="h-full w-full object-cover" /> : <span>{initials(name)}</span>}</div><div><div className="flex flex-wrap items-center gap-2"><h3 className="text-lg font-bold text-white">{name}</h3>{streak && <span className="mw-streak-pill">{streak}</span>}</div><p className="text-sm font-semibold text-[#f0bd66]">{fullPhotographerRank(rank)}</p><p className="text-sm text-white/55">{postTime(image.created_at)} · {[image.specific_location_name, image.state_or_province, image.country].filter(Boolean).join(", ") || "Dark sky field report"}</p></div></div><Link href={`/images/${image.id}?from=guild-hall`}><img src={image.image_url} alt={image.title || "Guild image"} className="h-auto w-full object-contain" /></Link><div className="space-y-4 p-5"><h3 className="mw-post-title">{image.title}</h3><p className="mw-body mw-four-line-excerpt">{image.short_story || image.what_went_well || "A fresh field report from under the Milky Way, ready for thoughtful reactions and craft feedback."}</p><Link href={`/images/${image.id}?from=guild-hall`} className="font-display text-sm uppercase tracking-[.08em] text-[#f0bd66]">Continue →</Link><div className="space-y-5 rounded-md border border-white/7 bg-[#06101c]/35 p-4">{reactionGroups.map((group) => <div key={group.title}><p className="mb-3 mw-section-label">{group.title}</p><div className="flex flex-wrap gap-2">{group.types.map((type) => <span key={type} className="mw-reaction-chip"><span className="text-[#f0bd66]">{reactionIcons[type]}</span>{reactionLabels.get(type as any) || type}<span className="opacity-70">{counts.get(type) || 0}</span></span>)}</div></div>)}</div><div className="flex items-center justify-between gap-4 border-t border-white/10 pt-4"><span className="text-sm text-white/55">{total} reactions · 0 comments</span><Link href={`/images/${image.id}?from=guild-hall`} className="font-display text-sm uppercase tracking-[.08em] text-[#f0bd66]">Open &amp; Comment →</Link></div></div></article>;
+              return <article key={image.id} className="mw-card-soft overflow-hidden"><div className="flex items-center gap-3 p-5"><div className="grid h-12 w-12 place-items-center overflow-hidden rounded-full border border-[#e79f2b]/65 bg-[#e79f2b]/10 font-display text-[#f0bd66]">{avatar.avatarUrl ? <img src={avatar.avatarUrl} alt="" className="h-full w-full object-cover" /> : <span>{avatar.initials}</span>}</div><div><div className="flex flex-wrap items-center gap-2"><h3 className="text-lg font-bold text-white">{name}</h3>{streak && <span className="mw-streak-pill">{streak}</span>}</div><p className="text-sm font-semibold text-[#f0bd66]">{fullPhotographerRank(rank)}</p><p className="text-sm text-white/55">{postTime(image.created_at)} · {[image.specific_location_name, image.state_or_province, image.country].filter(Boolean).join(", ") || "Dark sky field report"}</p></div></div><Link href={`/images/${image.id}?from=guild-hall`}><img src={image.image_url} alt={image.title || "Guild image"} className="h-auto w-full object-contain" /></Link><div className="space-y-4 p-5"><h3 className="mw-post-title">{image.title}</h3><p className="mw-body mw-four-line-excerpt">{image.short_story || image.what_went_well || "A fresh field report from under the Milky Way, ready for thoughtful reactions and craft feedback."}</p><Link href={`/images/${image.id}?from=guild-hall`} className="font-display text-sm uppercase tracking-[.08em] text-[#f0bd66]">Continue →</Link><div className="space-y-5 rounded-md border border-white/7 bg-[#06101c]/35 p-4">{reactionGroups.map((group) => <div key={group.title}><p className="mb-3 mw-section-label">{group.title}</p><div className="flex flex-wrap gap-2">{group.types.map((type) => <span key={type} className="mw-reaction-chip"><span className="text-[#f0bd66]">{reactionIcons[type]}</span>{reactionLabels.get(type as any) || type}<span className="opacity-70">{counts.get(type) || 0}</span></span>)}</div></div>)}</div><div className="flex items-center justify-between gap-4 border-t border-white/10 pt-4"><span className="text-sm text-white/55">{total} reactions · 0 comments</span><Link href={`/images/${image.id}?from=guild-hall`} className="font-display text-sm uppercase tracking-[.08em] text-[#f0bd66]">Open &amp; Comment →</Link></div></div></article>;
             })}
             {images.length === 0 && <div className="mw-card-soft p-8 text-center text-white/60">The Hall is ready. Community field reports will appear here after members submit images.</div>}
           </div>

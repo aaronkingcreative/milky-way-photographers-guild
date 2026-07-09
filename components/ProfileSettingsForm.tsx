@@ -1,27 +1,58 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { updateProfileLocation } from "@/app/actions";
-import { createClient } from "@/lib/supabase/client";
-import { ALLOWED_IMAGE_TYPES, avatarPath, MAX_UPLOAD_BYTES, PROFILE_AVATAR_BUCKET } from "@/lib/storage";
+import { GuildAvatar } from "@/components/Avatar";
 import { LocationSelects } from "@/components/images/LocationSelects";
+import { getAvatarDisplay, resolveAvatarUrl } from "@/lib/avatar";
+import { createClient } from "@/lib/supabase/client";
+import { ALLOWED_IMAGE_TYPES, avatarPath, MAX_PROFILE_AVATAR_BYTES, PROFILE_AVATAR_BUCKET } from "@/lib/storage";
 
 export function ProfileSettingsForm({ profile }: { profile: any }) {
   const supabase = useMemo(() => createClient(), []);
-  const [avatar, setAvatar] = useState(profile?.avatar_path || "");
-  const [message, setMessage] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [avatar, setAvatar] = useState(profile?.avatar_path || profile?.avatar_url || "");
+  const [message, setMessage] = useState(profile?.avatar_path || profile?.avatar_url ? "Your avatar is saved and visible across the Guild." : "");
+  const [busy, setBusy] = useState(false);
+  const display = getAvatarDisplay({ avatarPath: avatar, avatarUrl: profile?.avatar_url, displayName: profile?.display_name || profile?.full_name, email: profile?.email });
+
   async function upload(file?: File) {
     if (!file) return;
-    if (!ALLOWED_IMAGE_TYPES.includes(file.type) || file.size > MAX_UPLOAD_BYTES) { setMessage("Upload a JPG, PNG, or WebP image up to 30 MB."); return; }
-    setMessage("Uploading avatar...");
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) { setMessage("Use JPG, PNG, or WebP for your profile image."); return; }
+    if (file.size > MAX_PROFILE_AVATAR_BYTES) { setMessage("Profile images must be 5 MB or smaller."); return; }
+    setBusy(true);
+    setMessage("Uploading avatar to your Guild profile...");
     const { data } = await supabase.auth.getUser();
     const userId = data.user?.id;
-    if (!userId) { setMessage("Sign in again before uploading."); return; }
+    if (!userId) { setBusy(false); setMessage("Sign in again before uploading."); return; }
     const path = avatarPath(userId, file.type);
-    if (!path) { setMessage("Unsupported image type."); return; }
-    const { error } = await supabase.storage.from(PROFILE_AVATAR_BUCKET).upload(path, file, { contentType: file.type, upsert: true });
-    if (error) { setMessage(error.message); return; }
+    if (!path) { setBusy(false); setMessage("Use JPG, PNG, or WebP for your profile image."); return; }
+    const { error: uploadError } = await supabase.storage.from(PROFILE_AVATAR_BUCKET).upload(path, file, { contentType: file.type, upsert: true });
+    if (uploadError) { setBusy(false); setMessage(uploadError.message); return; }
+    const publicUrl = resolveAvatarUrl(path);
+    const { error: profileError } = await supabase.from("profiles").update({ avatar_path: path, avatar_url: publicUrl }).eq("id", userId);
+    if (profileError) { setBusy(false); setMessage(profileError.message); return; }
     setAvatar(path);
-    setMessage("Avatar uploaded. Save your profile to use it across the Guild.");
+    setBusy(false);
+    setMessage("Avatar uploaded and saved. It will appear across the Guild.");
   }
-  return <form action={updateProfileLocation} className="progress-panel space-y-5"><input type="hidden" name="avatar_path" value={avatar}/><div className="progress-section-head"><h2>Profile Settings</h2><p>Your public Guild identity and home sky location</p></div><label className="mw-field-label">Display name<input className="mw-input mt-2" name="display_name" defaultValue={profile?.display_name || ""}/></label><label className="mw-field-label">Profile image<input className="mw-input mt-2" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event)=>upload(event.target.files?.[0])}/></label>{message&&<p className="text-sm text-[#f0bd66]">{message}</p>}<LocationSelects defaults={{ country: profile?.country, state_or_province: profile?.state_or_province || profile?.region, specific_location_name: profile?.specific_location_name || profile?.specific_location }}/><button className="mw-btn-primary rounded-sm">Save Profile</button></form>;
+
+  return <form action={updateProfileLocation} className="profile-settings-shell"><input type="hidden" name="avatar_path" value={avatar}/>
+    <section className="profile-avatar-card">
+      <div className="profile-card-label">Guild portrait</div>
+      <div className="profile-avatar-preview" onClick={() => fileRef.current?.click()} role="button" tabIndex={0}>
+        {display.avatarUrl ? <img src={display.avatarUrl} alt="" /> : <div><GuildAvatar profile={{...profile, avatar_path: null, avatar_url: null}} displayName={profile?.display_name || profile?.full_name} email={profile?.email} className="profile-avatar-fallback" fallbackClassName="" /><span>Upload Avatar Here</span></div>}
+      </div>
+      <p className="profile-avatar-help">JPG, PNG, or WebP. Max 5 MB.</p>
+      <input ref={fileRef} className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event)=>upload(event.target.files?.[0])}/>
+      <button className="profile-avatar-button" type="button" disabled={busy} onClick={() => fileRef.current?.click()}>{busy ? "Saving..." : display.avatarUrl ? "Replace Avatar" : "Choose Image"}</button>
+      {message&&<p className="profile-save-message">{message}</p>}
+    </section>
+    <section className="profile-form-card">
+      <div className="profile-card-label">Public details</div>
+      <label className="mw-field-label">Display name<input className="mw-input mt-2" name="display_name" defaultValue={profile?.display_name || ""}/></label>
+      <LocationSelects defaults={{ country: profile?.country, state_or_province: profile?.state_or_province || profile?.region, specific_location_name: profile?.specific_location_name || profile?.specific_location }}/>
+      <p className="profile-private-note">Specific location is optional.</p>
+      <button className="mw-btn-primary profile-save-button">Save Profile</button>
+    </section>
+  </form>;
 }
