@@ -1,6 +1,6 @@
 import { nextRankForCount, rankForCount } from "@/lib/achievements";
 import { consecutiveMonthStreakFromCoverage } from "@/lib/coverage";
-import { storagePublicUrl, PROFILE_AVATAR_BUCKET } from "@/lib/storage";
+import { resolveAvatarUrl } from "@/lib/avatar";
 
 export const EARNED_ACHIEVEMENT_STATUSES = ["auto_awarded_pending_review", "verified"];
 
@@ -75,7 +75,7 @@ export async function getMemberStats(supabase: SupabaseClient, user: AuthUser): 
     user_id: user.id,
     display_name,
     first_name: firstNameFor(display_name),
-    avatar_url: profile?.avatar_url || (avatar_path ? storagePublicUrl(PROFILE_AVATAR_BUCKET, avatar_path) : null),
+    avatar_url: resolveAvatarUrl(avatar_path || profile?.avatar_url),
     avatar_path,
     earned_honor_count: earned,
     rank: rank.full,

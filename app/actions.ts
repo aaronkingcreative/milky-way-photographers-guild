@@ -83,7 +83,44 @@ export async function adminFinalizeIotw(formData: FormData) {
 export async function addComment(formData: FormData) { const { user } = await requireAccess(); const supabase=await createServerSupabaseClient(); const image_id=value(formData,"image_id"), body=value(formData,"body"); if(!body) return; await supabase.from("image_comments").insert({image_id,user_id:user.id,body}); revalidatePath(`/images/${image_id}`); }
 export async function toggleReaction(formData: FormData) { const { user } = await requireAccess(); const supabase=await createServerSupabaseClient(); const image_id=value(formData,"image_id"), reaction_type=value(formData,"reaction_type"); if(!REACTION_TYPES.some(([t])=>t===reaction_type)) return; const {data}=await supabase.from("image_reactions").select("id").eq("image_id",image_id).eq("user_id",user.id).eq("reaction_type",reaction_type).maybeSingle(); if(data) await supabase.from("image_reactions").delete().eq("id",data.id); else await supabase.from("image_reactions").insert({image_id,user_id:user.id,reaction_type}); revalidatePath(`/images/${image_id}`); revalidatePath("/feed"); }
 export async function toggleWeeklyCandidate(formData: FormData) { const { user } = await requireAccess(); const supabase=await createServerSupabaseClient(); const image_id=value(formData,"image_id"), week=value(formData,"week_starts_on"), next=value(formData,"next")==="true"; if(next){ const { count }=await supabase.from("guild_images").select("id",{count:"exact",head:true}).eq("user_id",user.id).eq("week_starts_on",week).eq("is_weekly_candidate",true).is("deleted_at",null).neq("id",image_id); if((count||0)>0) return; } await supabase.from("guild_images").update({is_weekly_candidate:next}).eq("id",image_id).eq("user_id",user.id); revalidatePath(`/images/${image_id}`); revalidatePath("/feed"); }
-export async function updateProfileLocation(formData: FormData) { const { user }=await requireLogin(); const supabase=await createServerSupabaseClient(); const avatar_path=value(formData,"avatar_path")||null; await supabase.from("profiles").update({display_name:value(formData,"display_name")||null,avatar_path,avatar_url:avatar_path ? storagePublicUrl(PROFILE_AVATAR_BUCKET, avatar_path) : undefined,country:value(formData,"country")||null,region:value(formData,"state_or_province")||null,state_or_province:value(formData,"state_or_province")||null,specific_location:value(formData,"specific_location_name")||null,specific_location_name:value(formData,"specific_location_name")||null}).eq("id",user.id); revalidatePath("/profile"); revalidatePath("/progress"); revalidatePath("/field-desk"); revalidatePath("/guild-hall"); revalidatePath("/feed"); }
+export type ProfileSaveState = { status: "idle" | "saving" | "success" | "error"; profile?: any; message?: string };
+
+export async function updateProfileLocation(_previousState: ProfileSaveState, formData: FormData): Promise<ProfileSaveState> {
+  const { user } = await requireLogin();
+  const supabase = await createServerSupabaseClient();
+  const avatar_path = value(formData, "avatar_path") || null;
+  const profilePayload = {
+    id: user.id,
+    email: user.email || null,
+    display_name: value(formData, "display_name") || null,
+    avatar_path,
+    avatar_url: avatar_path ? storagePublicUrl(PROFILE_AVATAR_BUCKET, avatar_path) : null,
+    country: value(formData, "country") || null,
+    region: value(formData, "state_or_province") || null,
+    state_or_province: value(formData, "state_or_province") || null,
+    specific_location: value(formData, "specific_location_name") || null,
+    specific_location_name: value(formData, "specific_location_name") || null,
+  };
+
+  const { error } = await supabase.from("profiles").upsert(profilePayload, { onConflict: "id" });
+  if (error) {
+    console.error("Profile save failed", error);
+    return { status: "error", message: "We could not save your profile. Try again." };
+  }
+
+  const { data: refetchedProfile, error: refetchError } = await supabase
+    .from("profiles")
+    .select("display_name,full_name,email,avatar_url,avatar_path,country,region,state_or_province,specific_location,specific_location_name,updated_at")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (refetchError || !refetchedProfile || refetchedProfile.avatar_path !== avatar_path) {
+    console.error("Profile refetch failed", refetchError || { expectedAvatarPath: avatar_path, refetchedProfile });
+    return { status: "error", message: "We could not save your profile. Try again." };
+  }
+
+  revalidatePath("/profile"); revalidatePath("/progress"); revalidatePath("/field-desk"); revalidatePath("/guild-hall"); revalidatePath("/feed"); revalidatePath("/gallery");
+  return { status: "success", message: "Profile saved. Your Guild identity is updated.", profile: refetchedProfile };
+}
 export async function adminImageAction(formData: FormData) { const { user }=await requireAdmin(); const supabase=await createServerSupabaseClient(); const image_id=value(formData,"image_id"), action=value(formData,"action"); const reason=value(formData,"moderation_reason")||null; const patch:any={moderation_reason:reason}; if(action==="hide") Object.assign(patch,{hidden_at:new Date().toISOString(),hidden_by:user.id,moderation_status:"hidden",status:"hidden"}); if(action==="unhide") Object.assign(patch,{hidden_at:null,hidden_by:null,moderation_status:"visible",status:"published"}); if(action==="delete") Object.assign(patch,{deleted_at:new Date().toISOString(),deleted_by:user.id,moderation_status:"deleted",status:"removed"}); if(action==="blur") Object.assign(patch,{moderation_blur_required:true,moderation_status:"blurred"}); if(action==="unblur") Object.assign(patch,{moderation_blur_required:false,moderation_status:"visible"}); if(action==="review") Object.assign(patch,{moderation_reviewed_by:user.id,moderation_reviewed_at:new Date().toISOString()}); await supabase.from("guild_images").update(patch).eq("id",image_id); revalidatePath("/admin/images"); }
 
 export async function adminAchievementClaimAction(formData: FormData) { const { user }=await requireAdmin(); const supabase=await createServerSupabaseClient(); const claim_id=value(formData,"claim_id"), action=value(formData,"action"), review_notes=value(formData,"review_notes")||null; if(!["verified","rejected","revoked"].includes(action)) return; const { data: claim }=await supabase.from("field_report_achievement_claims").select("user_id,achievement_id").eq("id",claim_id).maybeSingle(); if(!claim) return; await supabase.from("field_report_achievement_claims").update({status:action,reviewed_at:new Date().toISOString(),reviewed_by:user.id,review_notes}).eq("id",claim_id); await supabase.from("user_achievements").update({status:action,awarded_by:user.id,notes:review_notes}).eq("user_id",claim.user_id).eq("achievement_id",claim.achievement_id); revalidatePath("/admin/achievements"); revalidatePath("/field-desk"); revalidatePath("/guild-hall"); revalidatePath("/progress"); }
