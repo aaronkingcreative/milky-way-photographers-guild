@@ -3,13 +3,14 @@ import Link from "next/link";
 import { adminAchievementClaimAction } from "@/app/actions";
 import { requireAdmin } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getAvatarDisplay } from "@/lib/avatar";
 
 export default async function Page() {
   await requireAdmin();
   const supabase = await createServerSupabaseClient();
   const { data: claims } = await supabase
     .from("field_report_achievement_claims")
-    .select("id,status,claimed_at,review_notes,user_id,achievement_id,achievement_definitions(name,glyph),profiles(display_name,avatar_url),field_reports(id,title,capture_date,gear,story,went_well,could_have_gone_better,guild_image_id,guild_images(image_url,image_original_path,country,state_or_province,specific_location_name),user_field_coverage(capture_year,capture_month,capture_season))")
+    .select("id,status,claimed_at,review_notes,user_id,achievement_id,achievement_definitions(name,glyph),profiles(display_name,full_name,email,avatar_url,avatar_path),field_reports(id,title,capture_date,gear,story,went_well,could_have_gone_better,guild_image_id,guild_images(image_url,image_original_path,country,state_or_province,specific_location_name),user_field_coverage(capture_year,capture_month,capture_season))")
     .order("claimed_at", { ascending: false })
     .limit(100);
   return <section className="mx-auto max-w-7xl px-5 py-14">
@@ -26,7 +27,7 @@ export default async function Page() {
           <div className="grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)_280px]">
             <div>{image?.image_url && <Image src={image.image_url} alt={report?.title || "Field report image"} width={440} height={280} className="h-44 w-full rounded object-cover" />}</div>
             <div>
-              <div className="flex items-center gap-3"><img src={claim.profiles?.avatar_url || "/launch/mwpg/MWPG_Logo_FAVICON.png"} alt="" className="h-10 w-10 rounded-full object-cover" /><div><p className="font-bold text-white">{claim.profiles?.display_name || "Guild Member"}</p><p className="text-sm text-white/50">{claim.status}</p></div></div>
+              <div className="flex items-center gap-3">{(() => { const avatar = getAvatarDisplay({ avatarPath: claim.profiles?.avatar_path, avatarUrl: claim.profiles?.avatar_url, displayName: claim.profiles?.display_name || claim.profiles?.full_name, email: claim.profiles?.email }); return <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-full border border-[#e79f2b]/65 bg-[#e79f2b]/10 font-display text-[#f0bd66]">{avatar.avatarUrl ? <img src={avatar.avatarUrl} alt="" className="h-full w-full object-cover" /> : avatar.initials}</span>; })()}<div><p className="font-bold text-white">{claim.profiles?.display_name || claim.profiles?.full_name || "Guild Member"}</p><p className="text-sm text-white/50">{claim.status}</p></div></div>
               <h2 className="mt-4 font-display text-3xl uppercase text-white">{report?.title}</h2>
               <p className="mt-1 text-sm text-white/58">Captured {report?.capture_date} · {image?.country}, {image?.state_or_province} {image?.specific_location_name ? `· ${image.specific_location_name}` : ""}</p>
               <p className="mt-4 font-display uppercase tracking-[.12em] text-[#f0bd66]">{claim.achievement_definitions?.glyph} {claim.achievement_definitions?.name}</p>

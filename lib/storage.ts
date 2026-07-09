@@ -3,6 +3,7 @@ export const FIELD_REPORT_IMAGE_BUCKET = "field-report-images";
 
 export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 export const MAX_UPLOAD_BYTES = 30 * 1024 * 1024;
+export const MAX_PROFILE_AVATAR_BYTES = 5 * 1024 * 1024;
 
 export function extensionForMimeType(type: string) {
   if (type === "image/jpeg") return "jpg";
