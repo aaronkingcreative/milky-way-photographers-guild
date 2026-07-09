@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { requireLogin } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { AchievementDefinition, UserAchievement, seededAchievementDefinitions } from "@/lib/achievements";
+import { AchievementDefinition, AchievementLibraryCategory, UserAchievement, achievementLibraryCategoryDetails, seededAchievementDefinitions, trackingAchievementDefinitions } from "@/lib/achievements";
 import { getMemberStats, initialsForName, EARNED_ACHIEVEMENT_STATUSES } from "@/lib/member-stats";
 
 const favicon = "/launch/mwpg/MWPG_Logo_FAVICON.png";
@@ -15,11 +15,11 @@ const starPositions = [
 ];
 const constellationLinks = [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],[9,10],[10,11],[12,13],[13,14],[14,15],[15,16],[17,21],[17,22],[18,19],[19,20],[24,25],[25,26],[26,27],[27,24],[28,29],[29,30],[31,32],[32,33],[34,35],[35,36]];
 
-type DbAchievement = { id: string; name: string; category: AchievementDefinition["category"]; reward_type: AchievementDefinition["rewardType"]; glyph: string; description: string; requirement: string; constellation: string | null; sort_order: number; is_active: boolean; metadata: Record<string, unknown> | null };
-type DbUserAchievement = { user_id: string; achievement_id: string; earned_at: string | null; source_submission_id: string | null; awarded_by: string | null; notes: string | null; metadata: Record<string, unknown> | null };
+type DbAchievement = { id: string; name: string; category: AchievementDefinition["category"]; reward_type: AchievementDefinition["rewardType"]; glyph: string; description: string; requirement: string; constellation: string | null; sort_order: number; is_active: boolean; metadata: Record<string, unknown> | null; is_manual_claimable?: boolean | null; is_automatic?: boolean | null; counts_toward_rank?: boolean | null; allow_repeat?: boolean | null };
+type DbUserAchievement = { user_id: string; achievement_id: string; earned_at: string | null; source_submission_id: string | null; awarded_by: string | null; notes: string | null; metadata: Record<string, unknown> | null; status?: string | null };
 
 function mapDefinition(row: DbAchievement): AchievementDefinition {
-  return { id: row.id, name: row.name, category: row.category, rewardType: row.reward_type, glyph: row.glyph, description: row.description, requirement: row.requirement, constellation: row.constellation, sortOrder: row.sort_order, isActive: row.is_active, metadata: row.metadata ?? undefined };
+  return { id: row.id, name: row.name, category: row.category, rewardType: row.reward_type, glyph: row.glyph, description: row.description, requirement: row.requirement, constellation: row.constellation, sortOrder: row.sort_order, isManualClaimable: row.is_manual_claimable ?? undefined, isAutomatic: row.is_automatic ?? undefined, countsTowardRank: row.counts_toward_rank ?? undefined, allowRepeat: row.allow_repeat ?? undefined, isActive: row.is_active, metadata: row.metadata ?? undefined };
 }
 
 function earnedDate(value: string | null) {
@@ -31,11 +31,11 @@ export default async function Page() {
   const { user } = await requireLogin();
   const supabase = await createServerSupabaseClient();
   const stats = await getMemberStats(supabase, user);
-  const { data: definitionRows } = await supabase.from("achievement_definitions").select("id,name,category,reward_type,glyph,description,requirement,constellation,sort_order,is_active,metadata").eq("is_active", true).order("sort_order");
+  const { data: definitionRows } = await supabase.from("achievement_definitions").select("id,name,category,reward_type,glyph,description,requirement,constellation,sort_order,is_active,metadata,is_manual_claimable,is_automatic,counts_toward_rank,allow_repeat").eq("is_active", true).order("sort_order");
   const { data: earnedRows } = await supabase.from("user_achievements").select("user_id,achievement_id,earned_at,source_submission_id,awarded_by,notes,metadata,status").eq("user_id", user.id).in("status", EARNED_ACHIEVEMENT_STATUSES);
 
   const definitions = ((definitionRows as DbAchievement[] | null)?.map(mapDefinition) ?? seededAchievementDefinitions).filter((item) => item.isActive).sort((a, b) => a.sortOrder - b.sortOrder);
-  const earnedRecords: UserAchievement[] = ((earnedRows as DbUserAchievement[] | null) ?? []).map((row) => ({ userId: row.user_id, achievementId: row.achievement_id, earnedAt: row.earned_at, sourceSubmissionId: row.source_submission_id, awardedBy: row.awarded_by, notes: row.notes, metadata: row.metadata ?? undefined }));
+  const earnedRecords: UserAchievement[] = ((earnedRows as DbUserAchievement[] | null) ?? []).map((row) => ({ userId: row.user_id, achievementId: row.achievement_id, earnedAt: row.earned_at, sourceSubmissionId: row.source_submission_id, awardedBy: row.awarded_by, notes: row.notes, metadata: row.metadata ?? undefined, status: row.status }));
   const earnedById = new Map(earnedRecords.map((record) => [record.achievementId, record]));
   const earnedCount = stats.earned_honor_count;
   const rank = { short: stats.rank_short, full: stats.rank, min: 0 };
@@ -50,6 +50,25 @@ export default async function Page() {
   const monthly = definitions.filter((item) => item.category === "monthly");
   const yearAchievements = definitions.filter((item) => item.category === "special" && earnedById.has(item.id));
   const stars = definitions.map((definition, index) => ({ definition, pos: starPositions[index % starPositions.length], earned: earnedById.has(definition.id), record: earnedById.get(definition.id) }));
+
+  const categoryOrder: AchievementLibraryCategory[] = ["monthly", "seasonal", "foreground", "technique", "special", "rank", "tracking"];
+  const libraryDefinitions = definitions.filter((item) => !item.id.startsWith("year_"));
+  const libraryGroups = categoryOrder.map((category) => ({
+    category,
+    details: achievementLibraryCategoryDetails[category],
+    items: category === "tracking" ? trackingAchievementDefinitions : libraryDefinitions.filter((item) => item.category === category),
+  })).filter((group) => group.items.length > 0);
+  const rewardLabel = (rewardType?: AchievementDefinition["rewardType"]) => rewardType === "sticker_and_square_pin" ? "Sticker and square pin" : rewardType === "square_pin" ? "Square pin" : rewardType === "sticker" ? "Sticker" : "None";
+  const typeLabel = (item: AchievementDefinition | typeof trackingAchievementDefinitions[number]) => item.category === "tracking" ? item.type : item.category === "rank" ? "Rank milestone" : item.category === "special" ? "Automatic special" : "Manual Field Honor";
+  const countsLabel = (item: AchievementDefinition | typeof trackingAchievementDefinitions[number]) => item.category === "tracking" ? "Tracking only" : item.category === "rank" ? "Milestone only" : (item as AchievementDefinition).countsTowardRank === false ? "No" : "Yes";
+  const statusFor = (item: AchievementDefinition | typeof trackingAchievementDefinitions[number]) => {
+    if (item.category === "tracking") return "Automatic tracking";
+    const record = earnedById.get(item.id);
+    if (record?.status === "verified") return "Verified";
+    if (record?.status === "auto_awarded_pending_review") return "Pending review";
+    if (record) return "Earned";
+    return (item as AchievementDefinition).isManualClaimable === false ? "Locked" : "Available";
+  };
 
   return <main className="mw-page-wide progress-page">
     <div className="progress-kicker"><Image src={favicon} alt="" width={20} height={20} /><span>Guild Progress</span></div>
@@ -71,5 +90,38 @@ export default async function Page() {
       {stars.map(({ definition, pos, earned, record }) => <button key={definition.id} type="button" className={`progress-star ${earned ? "earned" : "locked"}`} style={{ left: `${pos[0]}%`, top: `${pos[1]}%` }}><span className="progress-star-shape"><span>{definition.glyph}</span></span><span className="progress-tooltip"><strong>{definition.name}</strong><em>{definition.requirement}</em><b>{earned ? (record?.earnedAt ? `✓ Earned ${earnedDate(record.earnedAt)}` : "✓ Earned") : "Locked"}</b></span></button>)}
     </section>
     <div className="progress-legend"><span><i className="earned" />Earned honor</span><span><i />Locked, not yet earned</span><span><i className="line" />Gold line means complete constellation</span></div>
+
+    <section className="progress-achievement-library" aria-labelledby="achievement-library-title">
+      <div className="progress-library-heading">
+        <p className="progress-panel-label">Achievement Library</p>
+        <h2 id="achievement-library-title">Every Field Honor, streak tracker, and rank milestone in the Guild.</h2>
+      </div>
+      <div className="progress-honor-explainer">
+        <h3>How Field Honors Work</h3>
+        <p>Pick one Field Honor when you submit an image. Your capture date also fills your calendar coverage for month, season, year, and streak tracking. Coverage helps track your history, but it does not count as a Field Honor unless you choose that honor for the image.</p>
+      </div>
+      <div className="progress-library-notes">
+        <span>One submitted image can claim one rank-counting Field Honor.</span>
+        <span>Perfect Year is automatic when all 12 months have coverage in the same calendar year.</span>
+        <span>Raw coverage and streaks are tracking only.</span>
+      </div>
+      {libraryGroups.map((group) => <section key={group.category} className="progress-library-group">
+        <div className="progress-library-group-head"><div><h3>{group.details.label}</h3><p>{group.details.summary}</p></div><small>{group.details.why}</small></div>
+        <div className="progress-library-table">
+          <div className="progress-library-row progress-library-header"><span>Honor</span><span>Type</span><span>How it is earned</span><span>Counts to rank</span><span>Reward</span><span>Your status</span></div>
+          {group.items.map((item) => {
+            const status = statusFor(item);
+            return <div key={item.id} className="progress-library-row">
+              <div className="progress-library-honor"><i>{item.glyph}</i><strong>{item.name}</strong></div>
+              <div data-label="Type">{typeLabel(item)}</div>
+              <div data-label="How it is earned">{item.requirement}</div>
+              <div data-label="Counts to rank"><span className={countsLabel(item) === "Yes" ? "progress-rank-yes" : "progress-rank-no"}>{countsLabel(item)}</span></div>
+              <div data-label="Reward">{"rewardType" in item ? rewardLabel(item.rewardType) : "None"}</div>
+              <div data-label="Your status"><span className={`progress-status-pill ${status.toLowerCase().replace(/\s+/g, "-")}`}>{status}</span></div>
+            </div>;
+          })}
+        </div>
+      </section>)}
+    </section>
   </main>;
 }
