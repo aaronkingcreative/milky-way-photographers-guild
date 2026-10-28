@@ -73,13 +73,17 @@ export async function enterIotwContender(formData: FormData) {
   revalidatePath(`/images/${guild_image_id}`); revalidatePath("/feed");
 }
 
-export async function submitIotwVote(formData: FormData) {
+export async function submitIotwVote(_previousState: any, formData: FormData) {
   const { user } = await requireAccess(); const supabase = await createServerSupabaseClient(); const ballot_id=value(formData,"ballot_id"), first=value(formData,"first"), second=value(formData,"second")||null, third=value(formData,"third")||null;
   const picks=[first,second,third].filter(Boolean); if(!first || new Set(picks).size !== picks.length) return { error:"Choose each image only once." };
   const { data: ballot } = await supabase.from("iotw_ballots").select("id,status,voting_opens_at,voting_closes_at").eq("id",ballot_id).maybeSingle(); const now=new Date().toISOString(); if(!ballot || ballot.status!=="voting_open" || now<ballot.voting_opens_at || now>=ballot.voting_closes_at) return { error:"Voting is closed for this ballot." };
-  const { count } = await supabase.from("iotw_ballot_entries").select("id",{count:"exact",head:true}).eq("ballot_id",ballot_id).in("field_report_id",picks); if((count||0)!==picks.length) return { error:"Choose images from this ballot." };
-  await supabase.from("iotw_votes").upsert({ ballot_id, voter_user_id:user.id, first_place_field_report_id:first, second_place_field_report_id:second, third_place_field_report_id:third, submitted_at:new Date().toISOString() }, { onConflict:"ballot_id,voter_user_id" });
-  revalidatePath("/"); revalidatePath("/feed"); return { ok:true };
+  const { data: ballotEntries } = await supabase.from("iotw_ballot_entries").select("field_report_id,user_id").eq("ballot_id",ballot_id);
+  const eligible = new Set((ballotEntries||[]).filter((entry:any)=>entry.user_id!==user.id).map((entry:any)=>entry.field_report_id));
+  if (picks.some((id)=>!eligible.has(id as string))) return { error:"Choose images from this ballot. You cannot vote for your own image." };
+  if (picks.length < Math.min(3, eligible.size)) return { error:`Rank your Top ${Math.min(3, eligible.size)} to lock in your vote.` };
+  const { error: voteError } = await supabase.from("iotw_votes").upsert({ ballot_id, voter_user_id:user.id, first_place_field_report_id:first, second_place_field_report_id:second, third_place_field_report_id:third, submitted_at:new Date().toISOString() }, { onConflict:"ballot_id,voter_user_id" });
+  if (voteError) { console.error("IOTW vote failed", voteError); return { error:"We could not save your vote. Please try again." }; }
+  revalidatePath("/", "layout"); revalidatePath("/feed"); return { ok:true };
 }
 
 export async function adminFinalizeIotw(formData: FormData) {

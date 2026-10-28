@@ -18,6 +18,13 @@ const navItems = [
   ["Progress", "/progress"],
 ];
 
+// The vote gate never covers sign-in pages, the public landing pages or admin tools.
+const VOTE_GATE_EXEMPT = ["/login", "/signup", "/auth", "/update-password", "/launch", "/admin"];
+function voteGateApplies(pathname: string) {
+  if (pathname === "/") return false;
+  return !VOTE_GATE_EXEMPT.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+}
+
 function isActive(pathname: string, href: string) {
   if (href === "/feed") return pathname === "/feed" || pathname === "/gallery" || pathname.startsWith("/images/");
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -71,7 +78,7 @@ export function HeaderClient({
         {user ? (
           <>
             <div className="mw-header-actions">
-              {iotw ? <IotwVotingModal ballot={iotw.ballot} entries={iotw.entries} existingVote={iotw.vote} /> : null}
+              {iotw ? <IotwVotingModal ballot={iotw.ballot} entries={iotw.entries} existingVote={iotw.vote} required={Boolean(iotw.mustVote) && voteGateApplies(pathname)} /> : null}
               <Link href="/submit" className="mw-submit-image-button">Submit Image</Link>
               {isAdmin && <Link href="/admin" className="hidden mw-meta text-white/45 hover:text-[#f0bd66] md:inline">Admin</Link>}
               <div className="mw-account-wrap">

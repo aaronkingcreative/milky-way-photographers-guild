@@ -4,12 +4,12 @@ import { HeaderClient } from "./HeaderClient";
 import { getIotwPeriod } from "@/lib/iotw";
 
 export async function Header() {
-  const { user, isAdmin } = await getSessionState();
+  const { user, isAdmin, hasAccess } = await getSessionState();
   const { createServerSupabaseClient } = await import("@/lib/supabase/server");
   const supabase = await createServerSupabaseClient();
   const stats = user ? await getMemberStats(supabase, user) : null;
   let iotw:any = null;
-  if (user) {
+  if (user && (hasAccess || isAdmin)) {
     const period = getIotwPeriod();
     const { data: ballot } = await supabase.from("iotw_ballots").select("*").eq("period_start", period.period_start).eq("status", "voting_open").maybeSingle();
     if (ballot) {
@@ -18,7 +18,9 @@ export async function Header() {
         supabase.from("iotw_votes").select("first_place_field_report_id,second_place_field_report_id,third_place_field_report_id").eq("ballot_id", ballot.id).eq("voter_user_id", user.id).maybeSingle(),
       ]);
       const entries = (rows || []).map((r:any) => ({ field_report_id:r.field_report_id, user_id:r.user_id, title:r.field_reports?.title || "Untitled", image_url:r.field_reports?.guild_images?.image_url || null, photographer_name:r.field_reports?.profiles?.display_name || r.field_reports?.profiles?.full_name || "Guild photographer", capture_date:r.field_reports?.capture_date, location:[r.field_reports?.region,r.field_reports?.country].filter(Boolean).join(", ") }));
-      if (entries.length) iotw = { ballot, entries, vote };
+      // Members never vote for their own image. If only their own images are in, there is nothing to vote on.
+      const eligible = entries.filter((entry:any) => entry.user_id !== user.id);
+      if (eligible.length) iotw = { ballot, entries: eligible, vote, mustVote: !vote };
     }
   }
   const streakLabel = stats?.year_streak ? `${stats.year_streak} Year Streak` : undefined;
