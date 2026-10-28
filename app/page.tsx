@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isBeforeGuildLaunch } from "@/lib/launch";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 const logoUrl =
   "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/site-assets/logos/MWPG_Logo.png";
@@ -15,10 +16,15 @@ const whatsComing = [
   "Learn from each other's shared tips & tricks",
 ];
 
-export default function Home() {
+export default async function Home() {
   if (isBeforeGuildLaunch()) {
     redirect("/launch");
   }
+
+  // Signed-in members go straight to the Guild Hall. The landing page is for visitors.
+  const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) redirect("/guild-hall");
 
   return (
     <div className="overflow-hidden">
@@ -30,13 +36,13 @@ export default function Home() {
               Milky Way Photographers Guild
             </p>
             <h1 className="mt-6 max-w-4xl text-5xl font-black leading-[.95] tracking-tight text-white md:text-7xl">
-              The Guild is being rebuilt.
+              The Guild is back.
             </h1>
             <p className="mt-6 max-w-3xl text-2xl leading-9 text-[#f4bd61]">
-              The private image-first, ad-free community for Milky Way photographers is returning.
+              The private image-first, ad-free community for Milky Way photographers. Free to join right now.
             </p>
             <p className="mt-7 max-w-3xl text-lg leading-8 text-[#b8c4d4]">
-              I&apos;m rebuilding the Milky Way Photographers Guild into a better home for sharing your
+              I rebuilt the Milky Way Photographers Guild into a better home for sharing your
               night-sky images, voting on each other&apos;s images to find the Image of the Week,
               celebrating weekly winners with a Monday Moment of Envy, while still keeping the
               original benefits of getting useful feedback and improving your Milky Way photography
@@ -46,11 +52,14 @@ export default function Home() {
               Aaron King of Photog Adventures.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <a className="btn btn-primary" href="https://www.photogadventures.com">
+              <Link className="btn btn-primary" href="/signup">
+                Join the Guild free
+              </Link>
+              <a className="btn btn-secondary" href="https://www.photogadventures.com">
                 Visit Photog Adventures
               </a>
               <a
-                className="btn btn-secondary"
+                className="btn btn-ghost"
                 href="https://onlinecourses.photogadventures.com"
               >
                 View Online Courses
@@ -78,7 +87,7 @@ export default function Home() {
       <section className="mx-auto max-w-7xl px-5 py-16 sm:py-20">
         <div className="max-w-3xl">
           <p className="text-sm font-bold uppercase tracking-[.32em] text-[#f4bd61]">
-            What&apos;s coming
+            Inside the Guild
           </p>
           <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">
             Share your images, pass off achievements and earn Master Milky Way Photographer.
@@ -101,10 +110,10 @@ export default function Home() {
       <section className="px-5 pb-20">
         <div className="starfield card mx-auto max-w-5xl rounded-[2rem] p-8 text-center sm:p-12">
           <p className="text-sm font-bold uppercase tracking-[.32em] text-[#f4bd61]">
-            For now
+            More from Aaron
           </p>
           <p className="mx-auto mt-5 max-w-3xl text-xl leading-9 text-[#dbe5f1]">
-            While the Guild is being rebuilt, you can still find all my photography content &amp;
+            You can also find all my photography content &amp;
             resources through the Photog Adventures YouTube &amp; Podcast.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">

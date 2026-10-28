@@ -62,7 +62,7 @@ export function HeaderClient({
     <header className="mw-app-header">
       <nav className="mw-header-nav mx-auto max-w-[1680px] px-4 lg:px-8">
         <div className="mw-header-left-group">
-          <Link href={user ? "/field-desk" : "/"} className="mw-header-logo-link" aria-label="Milky Way Photographers Guild home">
+          <Link href={user ? "/guild-hall" : "/"} className="mw-header-logo-link" aria-label="Milky Way Photographers Guild home">
             <Image src={logoUrl} alt="Milky Way Photographers Guild" width={360} height={180} priority className="mw-header-logo h-auto" />
           </Link>
           {user && (
@@ -110,7 +110,7 @@ export function HeaderClient({
             </div>
           </>
         ) : (
-          <div className="ml-auto flex items-center gap-3"><span className="rounded-full border border-[#e79f2b]/40 px-3 py-1 font-display text-xs uppercase tracking-[.18em] text-[#f0bd66]">Coming soon</span><Link href="/login" className="mw-btn-secondary px-4 py-2 text-xs">Sign in</Link></div>
+          <div className="ml-auto flex items-center gap-3"><Link href="/login" className="mw-btn-secondary px-4 py-2 text-xs">Sign in</Link><Link href="/signup" className="mw-btn-primary px-4 py-2 text-xs">Join free</Link></div>
         )}
       </nav>
     </header>
