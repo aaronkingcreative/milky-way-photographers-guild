@@ -45,7 +45,7 @@ export default async function Page() {
       <div className="mw-submit-notice mb-7">
         <span aria-hidden="true" className="mw-submit-notice-icon">✪</span>
         <p>
-          <strong>Submit as many field reports as you want.</strong> But only ONE IMAGE may be entered for Image of the Week each week. Choose your very best!
+          <strong>You can file up to 3 field reports each week.</strong> Only ONE IMAGE may be entered for Image of the Week each week. Choose your very best!
         </p>
       </div>
       <SubmitImageForm remaining={999} hasCandidate={(candidateCount || 0) > 0} achievements={(achievements || []).filter((item: any) => item.is_manual_claimable || item.category === "special")} earnedAchievementIds={(earnedAchievements || []).map((item: any) => item.achievement_id)} currentHonorCount={new Set((earnedAchievements || []).map((item: any) => item.achievement_id)).size} />

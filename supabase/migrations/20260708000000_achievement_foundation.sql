@@ -38,11 +38,11 @@ create trigger user_achievements_set_updated_at before update on public.user_ach
 alter table public.achievement_definitions enable row level security;
 alter table public.user_achievements enable row level security;
 
-create policy "Active achievement definitions are readable" on public.achievement_definitions for select using (is_active or public.is_admin());
-create policy "Admins can manage achievement definitions" on public.achievement_definitions for all using (public.is_admin()) with check (public.is_admin());
-create policy "Users can read own achievements" on public.user_achievements for select using (user_id = auth.uid());
-create policy "Admins can read all achievements" on public.user_achievements for select using (public.is_admin());
-create policy "Admins can manage user achievements" on public.user_achievements for all using (public.is_admin()) with check (public.is_admin());
+drop policy if exists "Active achievement definitions are readable" on public.achievement_definitions; create policy "Active achievement definitions are readable" on public.achievement_definitions for select using (is_active or public.is_admin());
+drop policy if exists "Admins can manage achievement definitions" on public.achievement_definitions; create policy "Admins can manage achievement definitions" on public.achievement_definitions for all using (public.is_admin()) with check (public.is_admin());
+drop policy if exists "Users can read own achievements" on public.user_achievements; create policy "Users can read own achievements" on public.user_achievements for select using (user_id = auth.uid());
+drop policy if exists "Admins can read all achievements" on public.user_achievements; create policy "Admins can read all achievements" on public.user_achievements for select using (public.is_admin());
+drop policy if exists "Admins can manage user achievements" on public.user_achievements; create policy "Admins can manage user achievements" on public.user_achievements for all using (public.is_admin()) with check (public.is_admin());
 
 grant select on public.achievement_definitions to authenticated;
 grant select on public.user_achievements to authenticated;
