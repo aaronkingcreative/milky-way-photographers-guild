@@ -7,7 +7,7 @@ export default async function Page() {
   await requireAdmin();
   const supabase = await createServerSupabaseClient();
   const { data: ballots } = await supabase.from("iotw_ballots").select("*").order("period_start", { ascending: false }).limit(8);
-  const ballot = ballots?.[0];
+  const ballot = ballots?.find((b: any) => b.status !== "upcoming") || ballots?.[0];
   let results: any[] = [];
   let votes: any[] = [];
   if (ballot) {

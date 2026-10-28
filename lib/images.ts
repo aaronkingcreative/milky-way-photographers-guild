@@ -1,7 +1,8 @@
 export const REACTION_TYPES = [
   ['like','Like'],['love','Love'],['wow','Wow'],['envy','Envy'],['beautiful_sky','Beautiful sky'],['great_foreground','Great foreground'],['strong_composition','Strong composition'],['inspiring_adventure','Inspiring adventure'],['helpful_story','Helpful story']
 ] as const;
-export function getWeekStart(date = new Date()) { const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())); d.setUTCDate(d.getUTCDate() - d.getUTCDay()); return d.toISOString().slice(0,10); }
+/** Sunday (YYYY-MM-DD) of the current Guild week. Weeks run Sunday to Saturday in America/Denver. */
+export function getWeekStart(date = new Date()) { const p = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: "America/Denver", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(date).filter((x) => x.type !== "literal").map((x) => [x.type, x.value])); const d = new Date(Date.UTC(+p.year, +p.month - 1, +p.day)); d.setUTCDate(d.getUTCDate() - d.getUTCDay()); return d.toISOString().slice(0,10); }
 export const SUBMISSION_LIMIT = 3;
 export const COUNTRIES = [
  {name:'United States', regions:['Alabama','Alaska','Arizona','Arkansas','California','Colorado','Florida','Georgia','Idaho','Maine','Michigan','Montana','Nevada','New Mexico','New York','North Carolina','Oregon','Pennsylvania','Texas','Utah','Washington','Wyoming']},

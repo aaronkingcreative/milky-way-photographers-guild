@@ -70,26 +70,53 @@ create index if not exists field_report_claims_user_idx on public.field_report_a
 alter table public.field_reports enable row level security;
 alter table public.field_report_achievement_claims enable row level security;
 
-create policy "Members read published field reports or own" on public.field_reports for select using (public.is_admin() or user_id = auth.uid() or (public.can_view_guild() and status = 'published'));
-create policy "Members insert own field reports" on public.field_reports for insert with check (user_id = auth.uid() and public.can_submit_images());
-create policy "Members update own field reports" on public.field_reports for update using (user_id = auth.uid()) with check (user_id = auth.uid());
-create policy "Admins manage field reports" on public.field_reports for all using (public.is_admin()) with check (public.is_admin());
+drop policy if exists "Members read published field reports or own" on public.field_reports; create policy "Members read published field reports or own" on public.field_reports for select using (public.is_admin() or user_id = auth.uid() or (public.can_view_guild() and status = 'published'));
+drop policy if exists "Members insert own field reports" on public.field_reports; create policy "Members insert own field reports" on public.field_reports for insert with check (user_id = auth.uid() and public.can_submit_images());
+drop policy if exists "Members update own field reports" on public.field_reports; create policy "Members update own field reports" on public.field_reports for update using (user_id = auth.uid()) with check (user_id = auth.uid());
+drop policy if exists "Admins manage field reports" on public.field_reports; create policy "Admins manage field reports" on public.field_reports for all using (public.is_admin()) with check (public.is_admin());
 
-create policy "Members read own achievement claims" on public.field_report_achievement_claims for select using (user_id = auth.uid() or public.is_admin());
-create policy "Members insert own achievement claims" on public.field_report_achievement_claims for insert with check (user_id = auth.uid());
-create policy "Admins manage achievement claims" on public.field_report_achievement_claims for all using (public.is_admin()) with check (public.is_admin());
+drop policy if exists "Members read own achievement claims" on public.field_report_achievement_claims; create policy "Members read own achievement claims" on public.field_report_achievement_claims for select using (user_id = auth.uid() or public.is_admin());
+drop policy if exists "Members insert own achievement claims" on public.field_report_achievement_claims; create policy "Members insert own achievement claims" on public.field_report_achievement_claims for insert with check (user_id = auth.uid());
+drop policy if exists "Admins manage achievement claims" on public.field_report_achievement_claims; create policy "Admins manage achievement claims" on public.field_report_achievement_claims for all using (public.is_admin()) with check (public.is_admin());
 
-create policy "Users upload own avatars" on storage.objects for insert to authenticated with check (bucket_id = 'profile-avatars' and (storage.foldername(name))[1] = 'users' and (storage.foldername(name))[2] = auth.uid()::text);
-create policy "Users update own avatars" on storage.objects for update to authenticated using (bucket_id = 'profile-avatars' and (storage.foldername(name))[1] = 'users' and (storage.foldername(name))[2] = auth.uid()::text) with check (bucket_id = 'profile-avatars' and (storage.foldername(name))[1] = 'users' and (storage.foldername(name))[2] = auth.uid()::text);
-create policy "Public read avatars" on storage.objects for select using (bucket_id = 'profile-avatars');
-create policy "Users upload own field report images" on storage.objects for insert to authenticated with check (bucket_id = 'field-report-images' and (storage.foldername(name))[1] = 'users' and (storage.foldername(name))[2] = auth.uid()::text);
-create policy "Users update own field report images" on storage.objects for update to authenticated using (bucket_id = 'field-report-images' and (storage.foldername(name))[1] = 'users' and (storage.foldername(name))[2] = auth.uid()::text) with check (bucket_id = 'field-report-images' and (storage.foldername(name))[1] = 'users' and (storage.foldername(name))[2] = auth.uid()::text);
-create policy "Public read field report images" on storage.objects for select using (bucket_id = 'field-report-images');
+-- Storage policies. Live already has equivalent upload, update, delete and read policies for
+-- profile-avatars and field-report-images (created by hand under different names), so each
+-- policy below is only created when no policy for that bucket and command exists yet.
+do $$ begin
+  if not exists (select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and cmd = 'INSERT' and (coalesce(qual,'') || coalesce(with_check,'')) like '%profile-avatars%') then
+    execute 'drop policy if exists "Users upload own avatars" on storage.objects; create policy "Users upload own avatars" on storage.objects for insert to authenticated with check (bucket_id = ''profile-avatars'' and (storage.foldername(name))[1] = ''users'' and (storage.foldername(name))[2] = auth.uid()::text)';
+  end if;
+end $$;
+do $$ begin
+  if not exists (select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and cmd = 'UPDATE' and (coalesce(qual,'') || coalesce(with_check,'')) like '%profile-avatars%') then
+    execute 'drop policy if exists "Users update own avatars" on storage.objects; create policy "Users update own avatars" on storage.objects for update to authenticated using (bucket_id = ''profile-avatars'' and (storage.foldername(name))[1] = ''users'' and (storage.foldername(name))[2] = auth.uid()::text) with check (bucket_id = ''profile-avatars'' and (storage.foldername(name))[1] = ''users'' and (storage.foldername(name))[2] = auth.uid()::text)';
+  end if;
+end $$;
+do $$ begin
+  if not exists (select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and cmd = 'SELECT' and (coalesce(qual,'') || coalesce(with_check,'')) like '%profile-avatars%') then
+    execute 'drop policy if exists "Public read avatars" on storage.objects; create policy "Public read avatars" on storage.objects for select using (bucket_id = ''profile-avatars'')';
+  end if;
+end $$;
+do $$ begin
+  if not exists (select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and cmd = 'INSERT' and (coalesce(qual,'') || coalesce(with_check,'')) like '%field-report-images%') then
+    execute 'drop policy if exists "Users upload own field report images" on storage.objects; create policy "Users upload own field report images" on storage.objects for insert to authenticated with check (bucket_id = ''field-report-images'' and (storage.foldername(name))[1] = ''users'' and (storage.foldername(name))[2] = auth.uid()::text)';
+  end if;
+end $$;
+do $$ begin
+  if not exists (select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and cmd = 'UPDATE' and (coalesce(qual,'') || coalesce(with_check,'')) like '%field-report-images%') then
+    execute 'drop policy if exists "Users update own field report images" on storage.objects; create policy "Users update own field report images" on storage.objects for update to authenticated using (bucket_id = ''field-report-images'' and (storage.foldername(name))[1] = ''users'' and (storage.foldername(name))[2] = auth.uid()::text) with check (bucket_id = ''field-report-images'' and (storage.foldername(name))[1] = ''users'' and (storage.foldername(name))[2] = auth.uid()::text)';
+  end if;
+end $$;
+do $$ begin
+  if not exists (select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and cmd = 'SELECT' and (coalesce(qual,'') || coalesce(with_check,'')) like '%field-report-images%') then
+    execute 'drop policy if exists "Public read field report images" on storage.objects; create policy "Public read field report images" on storage.objects for select using (bucket_id = ''field-report-images'')';
+  end if;
+end $$;
 
 grant select, insert, update on public.field_reports to authenticated;
 grant select, insert on public.field_report_achievement_claims to authenticated;
 grant update (full_name, display_name, avatar_url, avatar_path, country, region, state_or_province, specific_location, specific_location_name) on public.profiles to authenticated;
 grant insert, update (earned_at, source_submission_id, source_field_report_id, awarded_by, notes, metadata, status) on public.user_achievements to authenticated;
 
-create policy "Users can insert own pending achievements" on public.user_achievements for insert with check (user_id = auth.uid() and status = 'auto_awarded_pending_review');
-create policy "Users can update own pending achievements" on public.user_achievements for update using (user_id = auth.uid() and status = 'auto_awarded_pending_review') with check (user_id = auth.uid() and status = 'auto_awarded_pending_review');
+drop policy if exists "Users can insert own pending achievements" on public.user_achievements; create policy "Users can insert own pending achievements" on public.user_achievements for insert with check (user_id = auth.uid() and status = 'auto_awarded_pending_review');
+drop policy if exists "Users can update own pending achievements" on public.user_achievements; create policy "Users can update own pending achievements" on public.user_achievements for update using (user_id = auth.uid() and status = 'auto_awarded_pending_review') with check (user_id = auth.uid() and status = 'auto_awarded_pending_review');

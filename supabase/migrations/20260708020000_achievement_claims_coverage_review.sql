@@ -3,9 +3,10 @@ alter table public.achievement_definitions add column if not exists is_automatic
 alter table public.achievement_definitions add column if not exists counts_toward_rank boolean not null default true;
 alter table public.achievement_definitions add column if not exists allow_repeat boolean not null default false;
 alter table public.achievement_definitions drop constraint if exists achievement_definitions_category_check;
-alter table public.achievement_definitions add constraint achievement_definitions_category_check check (category in ('monthly','seasonal','foreground','technique','special','rank'));
 
 update public.achievement_definitions set category = 'special', is_manual_claimable = false, is_automatic = true, counts_toward_rank = true, reward_type = 'sticker_and_square_pin' where id = 'year_2018';
+-- Add the new category check only after year_2018 has moved from 'year' to 'special'.
+alter table public.achievement_definitions add constraint achievement_definitions_category_check check (category in ('monthly','seasonal','foreground','technique','special','rank'));
 insert into public.achievement_definitions (id, name, category, reward_type, glyph, description, requirement, constellation, sort_order, is_active, metadata, is_manual_claimable, is_automatic, counts_toward_rank, allow_repeat) values
 ('special_perfect_year','Perfect Year','special','sticker_and_square_pin','✦','A field report from every month in one calendar year.','Submit at least one Milky Way field report from every month in the same calendar year.','special',360,true,'{}'::jsonb,false,true,true,true)
 on conflict (id) do update set category=excluded.category, reward_type=excluded.reward_type, description=excluded.description, requirement=excluded.requirement, is_manual_claimable=false, is_automatic=true, counts_toward_rank=true, allow_repeat=true, is_active=true;
@@ -32,12 +33,12 @@ create unique index if not exists field_report_achievement_claims_one_manual_per
 create index if not exists field_report_claims_status_idx on public.field_report_achievement_claims(status, claimed_at desc);
 
 alter table public.user_field_coverage enable row level security;
-create policy "Members read own coverage and admins read all" on public.user_field_coverage for select using (user_id = auth.uid() or public.is_admin());
-create policy "Members insert own coverage" on public.user_field_coverage for insert with check (user_id = auth.uid() and exists (select 1 from public.field_reports fr where fr.id = field_report_id and fr.user_id = auth.uid()));
-create policy "Admins manage coverage" on public.user_field_coverage for all using (public.is_admin()) with check (public.is_admin());
+drop policy if exists "Members read own coverage and admins read all" on public.user_field_coverage; create policy "Members read own coverage and admins read all" on public.user_field_coverage for select using (user_id = auth.uid() or public.is_admin());
+drop policy if exists "Members insert own coverage" on public.user_field_coverage; create policy "Members insert own coverage" on public.user_field_coverage for insert with check (user_id = auth.uid() and exists (select 1 from public.field_reports fr where fr.id = field_report_id and fr.user_id = auth.uid()));
+drop policy if exists "Admins manage coverage" on public.user_field_coverage; create policy "Admins manage coverage" on public.user_field_coverage for all using (public.is_admin()) with check (public.is_admin());
 
 drop policy if exists "Members insert own achievement claims" on public.field_report_achievement_claims;
-create policy "Members insert one own manual achievement claim" on public.field_report_achievement_claims for insert with check (user_id = auth.uid() and status = 'auto_awarded_pending_review' and exists (select 1 from public.field_reports fr where fr.id = field_report_id and fr.user_id = auth.uid()) and exists (select 1 from public.achievement_definitions ad where ad.id = achievement_id and ad.is_active and ad.is_manual_claimable));
+drop policy if exists "Members insert one own manual achievement claim" on public.field_report_achievement_claims; create policy "Members insert one own manual achievement claim" on public.field_report_achievement_claims for insert with check (user_id = auth.uid() and status = 'auto_awarded_pending_review' and exists (select 1 from public.field_reports fr where fr.id = field_report_id and fr.user_id = auth.uid()) and exists (select 1 from public.achievement_definitions ad where ad.id = achievement_id and ad.is_active and ad.is_manual_claimable));
 
 grant select, insert on public.user_field_coverage to authenticated;
 grant update (status, reviewed_at, reviewed_by, review_notes) on public.field_report_achievement_claims to authenticated;
