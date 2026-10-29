@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { updateProfileLocation, type ProfileSaveState } from "@/app/actions";
 import { GuildAvatar } from "@/components/Avatar";
 import { LocationSelects } from "@/components/images/LocationSelects";
-import { getAvatarDisplay } from "@/lib/avatar";
+import { getAvatarDisplay, isPublicName } from "@/lib/avatar";
 import { createClient } from "@/lib/supabase/client";
 import { ALLOWED_IMAGE_TYPES, avatarPath, MAX_PROFILE_AVATAR_BYTES, PROFILE_AVATAR_BUCKET } from "@/lib/storage";
 
@@ -76,7 +76,7 @@ export function ProfileSettingsForm({ profile }: { profile: any }) {
     </section>
     <section className="profile-form-card">
       <div className="profile-card-label">Public details</div>
-      <label className="mw-field-label">Display name<input className="mw-input mt-2" name="display_name" defaultValue={currentProfile?.display_name || ""}/></label>
+      <label className="mw-field-label">Display name<input className="mw-input mt-2" name="display_name" maxLength={80} autoComplete="name" placeholder="The name members see on your work" defaultValue={currentProfile?.display_name || (isPublicName(currentProfile?.full_name) ? currentProfile.full_name : "")}/></label>
       <LocationSelects defaults={{ country: currentProfile?.country, state_or_province: currentProfile?.state_or_province || currentProfile?.region, specific_location_name: currentProfile?.specific_location_name || currentProfile?.specific_location }} />
       <p className="profile-private-note">Specific location is optional.</p>
       <button className="mw-btn-primary profile-save-button" disabled={saving || uploading}>{saving ? "Saving..." : saveState.status === "success" && !dirty ? "Saved" : "Save Profile"}</button>

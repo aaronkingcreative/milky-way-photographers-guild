@@ -1,12 +1,12 @@
-import { displayNameFromProfile, getAvatarDisplay } from "@/lib/avatar";
+import { getAvatarDisplay, MEMBER_NAME_FALLBACK, publicMemberName } from "@/lib/avatar";
 import { EARNED_ACHIEVEMENT_STATUSES } from "@/lib/member-stats";
 
 type SupabaseClient = any;
 export type MemberLite = { id: string; name: string; avatarUrl: string | null; initials: string };
 
 export function memberFromProfile(id: string, profile: any, fallbackName?: string | null): MemberLite {
-  const name = String(profile?.display_name || "").trim() || String(profile?.full_name || "").trim() || fallbackName || displayNameFromProfile(profile);
-  const avatar = getAvatarDisplay({ avatarPath: profile?.avatar_path, avatarUrl: profile?.avatar_url, displayName: name, email: profile?.email });
+  const name = publicMemberName(profile?.display_name, profile?.full_name, fallbackName);
+  const avatar = getAvatarDisplay({ avatarPath: profile?.avatar_path, avatarUrl: profile?.avatar_url, displayName: name });
   return { id, name: avatar.displayName, avatarUrl: avatar.avatarUrl, initials: avatar.initials };
 }
 
@@ -16,7 +16,7 @@ export async function fetchMembers(supabase: SupabaseClient, ids: string[]): Pro
   if (!unique.length) return map;
   const { data } = await supabase.from("member_profiles").select("id,display_name,full_name,avatar_url,avatar_path").in("id", unique);
   (data || []).forEach((p: any) => map.set(p.id, memberFromProfile(p.id, p)));
-  unique.forEach((id) => { if (!map.has(id)) map.set(id, { id, name: "Guild Member", avatarUrl: null, initials: "GM" }); });
+  unique.forEach((id) => { if (!map.has(id)) map.set(id, { id, name: MEMBER_NAME_FALLBACK, avatarUrl: null, initials: "GM" }); });
   return map;
 }
 

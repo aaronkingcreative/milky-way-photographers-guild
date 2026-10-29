@@ -7,6 +7,7 @@ import { useState } from "react";
 import { signOut } from "@/app/actions";
 import { formatStreakBadge, titleCaseLabel } from "@/lib/display";
 import { IotwVotingModal } from "@/components/iotw/IotwVotingModal";
+import { ProfileNudge } from "@/components/ProfileNudge";
 
 const logoUrl =
   "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/site-assets/logos/MWPG_Logo.png";
@@ -38,6 +39,10 @@ export function HeaderClient({
   streakLabel,
   avatarUrl,
   iotw,
+  needsProfile = false,
+  missingName = false,
+  missingPhoto = false,
+  userId = null,
 }: {
   user: boolean;
   isAdmin: boolean;
@@ -46,6 +51,10 @@ export function HeaderClient({
   streakLabel?: string | null;
   avatarUrl?: string | null;
   iotw?: any;
+  needsProfile?: boolean;
+  missingName?: boolean;
+  missingPhoto?: boolean;
+  userId?: string | null;
 }) {
   const pathname = usePathname();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
@@ -58,6 +67,9 @@ export function HeaderClient({
     .join("") || "GM";
   const displayRank = titleCaseLabel(rankLabel);
   const displayStreak = formatStreakBadge(streakLabel);
+  // The profile prompt waits until the mandatory Image of the Week vote is done, and stays off the profile page itself.
+  const voteGateBlocking = Boolean(iotw?.mustVote) && voteGateApplies(pathname);
+  const showProfileNudge = user && needsProfile && Boolean(userId) && !voteGateBlocking && voteGateApplies(pathname) && !pathname.startsWith("/profile");
 
   return (
     <header className="mw-app-header">
@@ -119,6 +131,7 @@ export function HeaderClient({
           <div className="mw-header-actions"><Link href="/login" className="mw-btn-secondary px-4 py-2 text-xs">Sign in</Link><Link href="/signup" className="mw-btn-primary px-4 py-2 text-xs">Join free</Link></div>
         )}
       </nav>
+      {showProfileNudge && userId ? <ProfileNudge userId={userId} missingName={missingName} missingPhoto={missingPhoto} /> : null}
     </header>
   );
 }

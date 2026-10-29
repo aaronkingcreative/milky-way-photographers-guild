@@ -35,7 +35,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         : await supabase.auth.signUp({
             email: trimmedEmail,
             password,
-            options: { data: { full_name: name }, emailRedirectTo: getAuthCallbackUrl() },
+            options: { data: { full_name: name.trim() }, emailRedirectTo: getAuthCallbackUrl() },
           });
 
     setIsSubmitting(false);
@@ -96,8 +96,9 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       <h2 className="mw-auth-card-title">{mode === "login" ? "Sign in" : "Create your account"}</h2>
       {mode === "signup" && (
         <label className="mt-6 block text-sm">
-          Full name
-          <input className="input mt-2" value={name} onChange={(e) => setName(e.target.value)} />
+          Your name
+          <input required minLength={2} maxLength={80} autoComplete="name" className="input mt-2" value={name} onChange={(e) => setName(e.target.value)} />
+          <span className="mt-1 block text-xs text-[#b8c4d4]">Shown beside your field reports. You can change it later.</span>
         </label>
       )}
       <label className="mt-6 block text-sm">

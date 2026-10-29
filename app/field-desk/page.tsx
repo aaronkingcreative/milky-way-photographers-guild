@@ -7,6 +7,7 @@ import { requireLogin } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getMemberStats } from "@/lib/member-stats";
 import { fetchWinningImageIds } from "@/lib/ranks";
+import { publicMemberName } from "@/lib/avatar";
 
 const ranks = ["Beginner", "Amateur", "Novice", "Veteran", "Master"];
 const honors = [
@@ -19,7 +20,7 @@ const honors = [
 ] as const;
 
 function nameFor(image: any) {
-  return image?.display_name || image?.photographer_name || "Guild photographer";
+  return publicMemberName(image?.profiles?.display_name, image?.profiles?.full_name, image?.display_name, image?.photographer_name);
 }
 
 function reportMeta(image: any, reactions: any[]) {
