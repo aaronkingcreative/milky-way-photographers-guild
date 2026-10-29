@@ -6,24 +6,37 @@ export type AvatarDisplay = {
   displayName: string;
 };
 
-function titleCase(value: string) {
-  return value.replace(/[._-]+/g, " ").split(/\s+/).filter(Boolean).map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
+export const MEMBER_NAME_FALLBACK = "Guild Member";
+
+/**
+ * A name is shown publicly only when it looks like a real name a member typed.
+ * Rejects blanks, "null" or "undefined", lone letters, anything with an @ (never show an email),
+ * and long single-token random strings left by bot signups.
+ */
+export function isPublicName(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  const name = value.trim();
+  if (name.length < 2 || name.length > 80) return false;
+  if (/^(null|undefined|none|n\/a)$/i.test(name)) return false;
+  if (name.includes("@")) return false;
+  if (!/[\p{L}]{2,}/u.test(name)) return false;
+  if (!/\s/.test(name) && name.length >= 12 && (name.slice(1).match(/[A-Z]/g) || []).length >= 3) return false;
+  return true;
 }
 
-export function displayNameFromProfile(profile: any, metadata?: Record<string, any> | null, email?: string | null) {
-  const profileName = String(profile?.display_name || "").trim();
-  if (profileName) return profileName;
-  const metaName = String(metadata?.full_name || metadata?.name || "").trim();
-  if (metaName) return metaName;
-  const profileFullName = String(profile?.full_name || "").trim();
-  if (profileFullName) return profileFullName;
-  const sourceEmail = String(email || profile?.email || "").trim();
-  if (sourceEmail.includes("@")) return titleCase(sourceEmail.split("@")[0]);
-  return "Guild Member";
+/** First usable name from the candidates, otherwise "Guild Member". Never derived from an email. */
+export function publicMemberName(...candidates: unknown[]) {
+  for (const candidate of candidates) if (isPublicName(candidate)) return candidate.trim();
+  return MEMBER_NAME_FALLBACK;
 }
 
-export function initialsForDisplay(displayName?: string | null, email?: string | null) {
-  const name = String(displayName || "").trim() || displayNameFromProfile(null, null, email);
+/** Profile display name, then the name given at signup, then the profile full name. Never an email. */
+export function displayNameFromProfile(profile: any, metadata?: Record<string, any> | null, _email?: string | null) {
+  return publicMemberName(profile?.display_name, metadata?.full_name, metadata?.name, profile?.full_name);
+}
+
+export function initialsForDisplay(displayName?: string | null, _email?: string | null) {
+  const name = publicMemberName(displayName);
   return name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "GM";
 }
 
@@ -36,7 +49,7 @@ export function resolveAvatarUrl(avatarPathOrUrl?: string | null, metadataAvatar
 }
 
 export function getAvatarDisplay(input: { avatarPath?: string | null; avatarUrl?: string | null; displayName?: string | null; email?: string | null; metadata?: Record<string, any> | null }): AvatarDisplay {
-  const displayName = input.displayName || displayNameFromProfile({ display_name: input.displayName, email: input.email }, input.metadata, input.email);
+  const displayName = publicMemberName(input.displayName, input.metadata?.full_name, input.metadata?.name);
   return {
     avatarUrl: resolveAvatarUrl(input.avatarPath || input.avatarUrl, input.metadata?.avatar_url),
     initials: initialsForDisplay(displayName, input.email),

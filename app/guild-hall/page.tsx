@@ -5,7 +5,7 @@ import { requireLogin } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { formatStreakBadge, fullPhotographerRank } from "@/lib/display";
 import { EARNED_ACHIEVEMENT_STATUSES } from "@/lib/member-stats";
-import { getAvatarDisplay } from "@/lib/avatar";
+import { getAvatarDisplay, MEMBER_NAME_FALLBACK, publicMemberName } from "@/lib/avatar";
 import { ReactionBar } from "@/components/images/ReactionBar";
 import { fetchMembers } from "@/lib/members";
 import { RANKS, fetchHonorCounts, rankLabelForCount } from "@/lib/ranks";
@@ -29,7 +29,7 @@ function postTime(value: string) {
 }
 
 function authorName(image: any, index: number) {
-  return image?.profiles?.display_name || image?.profiles?.full_name || image?.display_name || "Guild photographer";
+  return publicMemberName(image?.profiles?.display_name, image?.profiles?.full_name, image?.display_name);
 }
 
 function initials(name: string) {
@@ -81,7 +81,7 @@ export default async function Page() {
     const climberIds = [...new Set([...(posters || []).map((row: any) => row.user_id), ...allCounts.keys()].filter(Boolean))] as string[];
     const climbers = await fetchMembers(supabase, climberIds);
     climberIds
-      .map((id) => ({ ...(climbers.get(id) || { id, name: "Guild photographer", avatarUrl: null, initials: "G" }), count: allCounts.get(id) || 0 }))
+      .map((id) => ({ ...(climbers.get(id) || { id, name: MEMBER_NAME_FALLBACK, avatarUrl: null, initials: "GM" }), count: allCounts.get(id) || 0 }))
       .sort((x, y) => Number(Boolean(y.avatarUrl)) - Number(Boolean(x.avatarUrl)) || y.count - x.count)
       .forEach((member) => {
         const label = rankLabelForCount(member.count);
@@ -132,7 +132,7 @@ export default async function Page() {
           <div className="max-w-[1120px] space-y-8">
             {images.map((image, index) => {
               const name = authorName(image, index);
-              const avatar = getAvatarDisplay({ avatarPath: image.profiles?.avatar_path, avatarUrl: image.profiles?.avatar_url, displayName: name, email: image.profiles?.email });
+              const avatar = getAvatarDisplay({ avatarPath: image.profiles?.avatar_path, avatarUrl: image.profiles?.avatar_url, displayName: name });
               const total = reactions.filter((r) => r.image_id === image.id).length;
               const count = achievementCount(image, achievementCounts);
               const rank = rankLabelForCount(count);

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { getAvatarDisplay } from "@/lib/avatar";
+import { getAvatarDisplay, publicMemberName } from "@/lib/avatar";
 
 const glyphs: Record<string, string> = { love: "♥", wow: "✦", helpful: "◎", composition: "◫", processing: "✧", story: "☄" };
 
@@ -30,8 +30,8 @@ export function ImageCard({ image, reactions }: { image: any; reactions?: any[] 
   const mine = reactions?.filter((r) => r.image_id === image.id) || [];
   const total = mine.length;
   const top = [...new Set(mine.map((r) => r.reaction_type))].slice(0, 3);
-  const name = image.profiles?.display_name || image.profiles?.full_name || image.display_name || image.photographer_name || "Guild photographer";
-  const avatar = getAvatarDisplay({ avatarPath: image.profiles?.avatar_path, avatarUrl: image.profiles?.avatar_url, displayName: name, email: image.profiles?.email });
+  const name = publicMemberName(image.profiles?.display_name, image.profiles?.full_name, image.display_name, image.photographer_name);
+  const avatar = getAvatarDisplay({ avatarPath: image.profiles?.avatar_path, avatarUrl: image.profiles?.avatar_url, displayName: name });
   const src = image.image_url;
   const ratio = aspectFor(image);
   const date = image.capture_date ? new Date(image.capture_date).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "";

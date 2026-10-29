@@ -2,6 +2,7 @@ import { WinnerPlaceholder } from "@/components/Cards";
 import { requireAccess } from "@/lib/guards";
 import { formatMountainDeadline } from "@/lib/iotw";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { publicMemberName } from "@/lib/avatar";
 
 type Pick = { id: string; title: string; image_url: string | null; photographer: string; location: string };
 
@@ -27,7 +28,7 @@ export default async function Page() {
   const picks = new Map<string, Pick>();
   if (ids.length) {
     const { data: reports } = await supabase.from("field_reports").select("id,title,country,region,guild_images(image_url),profiles:member_profiles(display_name,full_name)").in("id", ids);
-    (reports || []).forEach((r: any) => picks.set(r.id, { id: r.id, title: r.title || "Untitled", image_url: r.guild_images?.image_url || null, photographer: r.profiles?.display_name || r.profiles?.full_name || "Guild photographer", location: [r.region, r.country].filter(Boolean).join(", ") }));
+    (reports || []).forEach((r: any) => picks.set(r.id, { id: r.id, title: r.title || "Untitled", image_url: r.guild_images?.image_url || null, photographer: publicMemberName(r.profiles?.display_name, r.profiles?.full_name), location: [r.region, r.country].filter(Boolean).join(", ") }));
   }
   const get = (id?: string | null) => (id ? picks.get(id) || null : null);
   return (

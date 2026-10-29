@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getAvatarDisplay } from "@/lib/avatar";
+import { getAvatarDisplay, publicMemberName } from "@/lib/avatar";
 import { toggleWeeklyCandidate } from "@/app/actions";
 import { formatStreakBadge, fullPhotographerRank } from "@/lib/display";
 import { ReactionBar } from "./ReactionBar";
@@ -13,8 +13,8 @@ const loc = (image: any) => ({ primary: [image.specific_location_name, image.sta
 
 export function ImageDetail({ image, authorStats, reactions, comments, canEditCandidate, from, currentUserId, currentAuthor, honors, edited }: { edited?: boolean; image: any; authorStats?: any; reactions: any[]; comments: CommentView[]; canEditCandidate: boolean; from?: string; currentUserId: string; currentAuthor: CommentAuthor; honors: HonorView[] }) {
   const location = loc(image);
-  const name = authorStats?.display_name || image.profiles?.display_name || image.display_name || image.photographer_name || "Guild photographer";
-  const avatar = getAvatarDisplay({ avatarPath: authorStats?.avatar_path || image.profiles?.avatar_path, avatarUrl: authorStats?.avatar_url || image.profiles?.avatar_url, displayName: name, email: image.profiles?.email });
+  const name = publicMemberName(authorStats?.display_name, image.profiles?.display_name, image.profiles?.full_name, image.display_name, image.photographer_name);
+  const avatar = getAvatarDisplay({ avatarPath: authorStats?.avatar_path || image.profiles?.avatar_path, avatarUrl: authorStats?.avatar_url || image.profiles?.avatar_url, displayName: name });
   const rank = fullPhotographerRank(authorStats?.rank_short);
   const streak = authorStats?.year_streak ? formatStreakBadge(`${authorStats.year_streak} Year Streak`) : null;
   const back = from === "guild-hall" ? { href: "/guild-hall", label: "← Back to the Guild Hall" } : { href: "/feed", label: "← Back to the Gallery" };

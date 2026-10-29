@@ -1,6 +1,6 @@
 import { nextRankForCount, rankForCount } from "@/lib/achievements";
 import { consecutiveMonthStreakFromCoverage } from "@/lib/coverage";
-import { resolveAvatarUrl } from "@/lib/avatar";
+import { isPublicName, publicMemberName, resolveAvatarUrl } from "@/lib/avatar";
 
 export const EARNED_ACHIEVEMENT_STATUSES = ["auto_awarded_pending_review", "verified"];
 
@@ -30,25 +30,14 @@ export type MemberStats = {
   state_or_province: string | null;
   specific_location: string | null;
   specific_location_name: string | null;
+  /** True when the member has chosen a display name and a profile photo. Drives the gentle profile prompt. */
+  has_display_name: boolean;
+  has_avatar: boolean;
 };
-
-function titleCaseFallback(value: string) {
-  return value
-    .replace(/[._-]+/g, " ")
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-    .join(" ");
-}
 
 export function displayNameFromSources(profile: any, user?: AuthUser | null) {
   const metadata = user?.user_metadata || {};
-  const profileName = String(profile?.display_name || "").trim();
-  if (profileName) return profileName;
-  const metadataName = String(metadata.full_name || metadata.name || metadata.display_name || "").trim();
-  if (metadataName) return metadataName;
-  const emailLocal = String(user?.email || profile?.email || "").split("@")[0];
-  return emailLocal ? titleCaseFallback(emailLocal) : "Guild Member";
+  return publicMemberName(profile?.display_name, metadata.full_name, metadata.name, metadata.display_name, profile?.full_name);
 }
 
 export function initialsForName(name: string) {
@@ -96,5 +85,7 @@ export async function getMemberStats(supabase: SupabaseClient, user: AuthUser): 
     state_or_province: profile?.state_or_province || null,
     specific_location: profile?.specific_location || null,
     specific_location_name: profile?.specific_location_name || null,
+    has_display_name: isPublicName(profile?.display_name),
+    has_avatar: Boolean(avatar_path || profile?.avatar_url),
   };
 }
