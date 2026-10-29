@@ -26,7 +26,7 @@ export default async function Page() {
   const ids = ballot ? [ballot.winner_field_report_id, ballot.second_place_field_report_id, ballot.third_place_field_report_id, ballot.photog_phavorite_field_report_id].filter(Boolean) : [];
   const picks = new Map<string, Pick>();
   if (ids.length) {
-    const { data: reports } = await supabase.from("field_reports").select("id,title,country,region,guild_images(image_url),profiles(display_name,full_name)").in("id", ids);
+    const { data: reports } = await supabase.from("field_reports").select("id,title,country,region,guild_images(image_url),profiles:member_profiles(display_name,full_name)").in("id", ids);
     (reports || []).forEach((r: any) => picks.set(r.id, { id: r.id, title: r.title || "Untitled", image_url: r.guild_images?.image_url || null, photographer: r.profiles?.display_name || r.profiles?.full_name || "Guild photographer", location: [r.region, r.country].filter(Boolean).join(", ") }));
   }
   const get = (id?: string | null) => (id ? picks.get(id) || null : null);

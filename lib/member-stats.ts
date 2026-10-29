@@ -59,9 +59,16 @@ function firstNameFor(displayName: string) {
   return displayName.split(/\s+/).filter(Boolean)[0] || displayName;
 }
 
+/** Own row (or any row for admins) from profiles; otherwise the public member_profiles view, which has no email or exact location. */
+async function loadProfile(supabase: SupabaseClient, id: string) {
+  const own = await supabase.from("profiles").select("display_name,full_name,email,avatar_url,avatar_path,country,region,state_or_province,specific_location,specific_location_name").eq("id", id).maybeSingle();
+  if (own.data) return own;
+  return supabase.from("member_profiles").select("display_name,full_name,avatar_url,avatar_path,country,region,state_or_province").eq("id", id).maybeSingle();
+}
+
 export async function getMemberStats(supabase: SupabaseClient, user: AuthUser): Promise<MemberStats> {
   const [{ data: profile }, { data: achievements }, { data: coverage }] = await Promise.all([
-    supabase.from("profiles").select("display_name,full_name,email,avatar_url,avatar_path,country,region,state_or_province,specific_location,specific_location_name").eq("id", user.id).maybeSingle(),
+    loadProfile(supabase, user.id),
     supabase.from("user_achievements").select("achievement_id,status,achievement_definitions(counts_toward_rank)").eq("user_id", user.id).in("status", EARNED_ACHIEVEMENT_STATUSES),
     supabase.from("user_field_coverage").select("capture_year,capture_month").eq("user_id", user.id),
   ]);
