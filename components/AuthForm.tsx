@@ -5,18 +5,20 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getAuthCallbackUrl } from "@/lib/site-url";
+import { signUpMember } from "@/app/signup/actions";
 
 const errorMessages: Record<string, string> = {
   auth_callback_failed: "We could not finish signing you in. Please request a new email link and try again.",
   auth_callback_missing_code: "The sign-in link was missing a required code. Please request a new email link.",
 };
 
-export function AuthForm({ mode }: { mode: "login" | "signup" }) {
+export function AuthForm({ mode, formToken }: { mode: "login" | "signup"; formToken?: string }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [msg, setMsg] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [honeypot, setHoneypot] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
   const authError = searchParams.get("error");
@@ -27,27 +29,28 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     setMsg("");
     setIsSubmitting(true);
 
-    const supabase = createClient();
     const trimmedEmail = email.trim();
-    const res =
-      mode === "login"
-        ? await supabase.auth.signInWithPassword({ email: trimmedEmail, password })
-        : await supabase.auth.signUp({
-            email: trimmedEmail,
-            password,
-            options: { data: { full_name: name.trim() }, emailRedirectTo: getAuthCallbackUrl() },
-          });
 
-    setIsSubmitting(false);
-
-    if (res.error) {
-      setMsg(res.error.message);
-      return;
-    }
-
-    if (mode === "signup" && res.data.user && !res.data.session) {
-      setMsg("Check your email to confirm your account, then sign in.");
-      return;
+    if (mode === "signup") {
+      const formData = new FormData();
+      formData.set("name", name.trim());
+      formData.set("email", trimmedEmail);
+      formData.set("password", password);
+      formData.set("mw_extra", honeypot);
+      formData.set("form_token", formToken || "");
+      const result = await signUpMember(formData);
+      setIsSubmitting(false);
+      if (!result.ok || result.message !== "signed_in") {
+        setMsg(result.message);
+        return;
+      }
+    } else {
+      const res = await createClient().auth.signInWithPassword({ email: trimmedEmail, password });
+      setIsSubmitting(false);
+      if (res.error) {
+        setMsg(res.error.message);
+        return;
+      }
     }
 
     router.push("/guild-hall");
@@ -66,11 +69,11 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     setIsSubmitting(true);
     const { error } = await createClient().auth.signInWithOtp({
       email: trimmedEmail,
-      options: { emailRedirectTo: getAuthCallbackUrl() },
+      options: { emailRedirectTo: getAuthCallbackUrl(), shouldCreateUser: false },
     });
     setIsSubmitting(false);
 
-    setMsg(error ? error.message : "Check your email for your magic sign-in link.");
+    setMsg(error && !/signups? not allowed|user not found/i.test(error.message) ? error.message : "If that email has a Guild account, a magic sign-in link is on its way.");
   }
 
   async function sendPasswordReset() {
@@ -109,6 +112,14 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         Password
         <input type="password" required minLength={6} className="input mt-2" value={password} onChange={(e) => setPassword(e.target.value)} />
       </label>
+      {mode === "signup" && (
+        <div aria-hidden="true" style={{ position: "absolute", left: "-10000px", top: "auto", width: 1, height: 1, overflow: "hidden" }}>
+          <label>
+            Leave this field empty
+            <input type="text" name="mw_extra" tabIndex={-1} autoComplete="off" value={honeypot} onChange={(e) => setHoneypot(e.target.value)} />
+          </label>
+        </div>
+      )}
       {displayMessage && <p className="mt-4 text-[#f4bd61]">{displayMessage}</p>}
       <button className="btn btn-primary mt-6 w-full" disabled={isSubmitting}>
         {isSubmitting ? "Please wait..." : mode === "login" ? "Sign in" : "Create account"}
