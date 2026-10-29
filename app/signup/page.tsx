@@ -3,6 +3,9 @@ import { redirect } from "next/navigation";
 import { AuthForm } from "@/components/AuthForm";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { issueFormToken } from "@/lib/signup-guard";
+
+export const dynamic = "force-dynamic";
 
 export default async function Page() {
   const supabase = await createServerSupabaseClient();
@@ -11,7 +14,7 @@ export default async function Page() {
   return (
     <AuthShell eyebrow="Join the Guild" title="Shoot the night with people who get it" intro="Share field reports, earn honors, and climb the Ascent.">
       <Suspense>
-        <AuthForm mode="signup" />
+        <AuthForm mode="signup" formToken={issueFormToken()} />
       </Suspense>
     </AuthShell>
   );
