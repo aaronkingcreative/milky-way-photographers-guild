@@ -92,8 +92,8 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   }
 
   return (
-    <form onSubmit={submit} className="card mx-auto max-w-md rounded-3xl p-8">
-      <h1 className="text-3xl font-bold">{mode === "login" ? "Sign in" : "Join the Guild"}</h1>
+    <form onSubmit={submit} className="mw-auth-card">
+      <h2 className="mw-auth-card-title">{mode === "login" ? "Sign in" : "Create your account"}</h2>
       {mode === "signup" && (
         <label className="mt-6 block text-sm">
           Full name

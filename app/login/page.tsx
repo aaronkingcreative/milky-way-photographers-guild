@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { AuthForm } from "@/components/AuthForm";
+import { AuthShell } from "@/components/auth/AuthShell";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export default async function Page() {
@@ -8,10 +9,10 @@ export default async function Page() {
   const { data: { user } } = await supabase.auth.getUser();
   if (user) redirect("/guild-hall");
   return (
-    <section className="px-5 py-20">
+    <AuthShell eyebrow="Welcome back" title="The sky is waiting" intro="Sign in to see what the Guild shot this week.">
       <Suspense>
         <AuthForm mode="login" />
       </Suspense>
-    </section>
+    </AuthShell>
   );
 }

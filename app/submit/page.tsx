@@ -31,7 +31,7 @@ export default async function Page() {
   ]);
 
   return (
-    <section className="mx-auto max-w-[1120px] px-5 py-[38px] pb-[90px] lg:px-10">
+    <section className="mx-auto max-w-[760px] px-5 py-[38px] pb-[90px]">
       <div className="mb-7">
         <div className="mw-prototype-eyebrow mb-2">
           <Image src="/launch/mwpg/MWPG_Logo_FAVICON.png" alt="" width={20} height={20} />
@@ -39,13 +39,13 @@ export default async function Page() {
         </div>
         <h1 className="mw-submit-title">Share a night under the Milky Way</h1>
         <p className="mw-submit-intro">
-          Tell the Guild where you went, how you captured it, what worked, and what you would refine next time.
+          Where you went, how you shot it, and what you would refine next time.
         </p>
       </div>
       <div className="mw-submit-notice mb-7">
         <span aria-hidden="true" className="mw-submit-notice-icon">✪</span>
         <p>
-          <strong>You can file up to 3 field reports each week.</strong> Only ONE IMAGE may be entered for Image of the Week each week. Choose your very best!
+          Up to 3 field reports a week. One of them can enter Image of the Week.
         </p>
       </div>
       <SubmitImageForm remaining={999} hasCandidate={(candidateCount || 0) > 0} achievements={(achievements || []).filter((item: any) => item.is_manual_claimable || item.category === "special")} earnedAchievementIds={(earnedAchievements || []).map((item: any) => item.achievement_id)} currentHonorCount={new Set((earnedAchievements || []).map((item: any) => item.achievement_id)).size} />

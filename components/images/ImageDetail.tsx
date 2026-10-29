@@ -20,17 +20,17 @@ export function ImageDetail({ image, authorStats, reactions, comments, canEditCa
   const back = from === "guild-hall" ? { href: "/guild-hall", label: "← Back to the Guild Hall" } : { href: "/feed", label: "← Back to the Gallery" };
   const memberHref = `/members/${image.user_id}`;
   return (
-    <article className="mw-page-wide py-6">
-      <Link href={back.href} className="mw-nav-text text-sm text-[#f0bd66]">{back.label}</Link>
-      <div className="mt-5 overflow-hidden rounded-lg border border-white/10 bg-[#06101c]">
-        <div className="relative grid min-h-[50vh] place-items-center bg-[#06101c]">
-          <ImageLightbox src={image.image_url} alt={image.title} className={`max-h-[74vh] w-full object-contain ${image.moderation_blur_required ? "blur-2xl" : ""}`} />
+    <article className="pb-6">
+      <div className="mw-detail-topbar"><Link href={back.href} className="mw-nav-text text-sm text-[#f0bd66]">{back.label}</Link></div>
+      <div className={`mw-detail-stage ${Number(image.image_width) > 0 && Number(image.image_height) > 0 && Number(image.image_width) < Number(image.image_height) ? "is-portrait" : "is-landscape"}`}>
+        <div className="relative grid min-h-[40vh] place-items-center">
+          <ImageLightbox src={image.image_url} alt={image.title} className={`mw-detail-image ${image.moderation_blur_required ? "blur-2xl" : ""}`} />
           {image.moderation_blur_required && <div className="absolute inset-0 grid place-items-center bg-black/45 text-center font-display text-xl uppercase tracking-widest">Blurred pending moderation review</div>}
           {edited && <p role="status" className="mw-comment-notice absolute right-4 top-4 z-[3]">✓ Your changes are saved.</p>}
-          {image.is_weekly_candidate && <span className="absolute left-4 top-4 rounded-sm border border-[#e79f2b]/70 bg-[#091625] px-4 py-2 font-display text-xs uppercase tracking-[.16em] text-[#f0bd66]">Image of the Week Contender</span>}
+          {image.is_weekly_candidate && <span className="absolute left-4 top-4 rounded-sm border border-[#e79f2b]/70 bg-[#091625] px-4 py-2 font-display text-xs uppercase tracking-[.16em] text-[#f0bd66]">IOTW Contender</span>}
         </div>
       </div>
-      <div className="mt-8 mw-detail-grid">
+      <div className="mw-page-wide mw-detail-grid mw-detail-body">
         <main className="space-y-6">
           <section>
             <h1 className="mw-post-title">{image.title}</h1>

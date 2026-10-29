@@ -49,6 +49,7 @@ export function HeaderClient({
 }) {
   const pathname = usePathname();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const initials = name
     .split(/\s+/)
     .filter(Boolean)
@@ -60,21 +61,26 @@ export function HeaderClient({
 
   return (
     <header className="mw-app-header">
-      <nav className="mw-header-nav mx-auto max-w-[1680px] px-4 lg:px-8">
-        <div className="mw-header-left-group">
-          <Link href={user ? "/guild-hall" : "/"} className="mw-header-logo-link" aria-label="Milky Way Photographers Guild home">
-            <Image src={logoUrl} alt="Milky Way Photographers Guild" width={360} height={180} priority className="mw-header-logo h-auto" />
-          </Link>
+      <nav className="mw-header-nav mx-auto max-w-[1680px]">
+        <div className="mw-header-brand">
           {user && (
-            <div className="mw-primary-nav">
-              {navItems.map(([label, href]) => (
-                <Link key={`${label}-${href}`} href={href} className={`mw-primary-nav-link ${isActive(pathname, href) ? "mw-primary-nav-link-active" : ""}`}>
-                  {label}
-                </Link>
-              ))}
-            </div>
+            <button type="button" className="mw-nav-toggle" aria-label="Open navigation" aria-expanded={navOpen} onClick={() => setNavOpen((open) => !open)}>
+              <span aria-hidden="true" />
+            </button>
           )}
+          <Link href={user ? "/guild-hall" : "/"} className="mw-header-logo-link" aria-label="Milky Way Photographers Guild home">
+            <Image src={logoUrl} alt="Milky Way Photographers Guild" width={360} height={180} priority unoptimized className="mw-header-logo" />
+          </Link>
         </div>
+        {user && (
+          <div className={`mw-primary-nav ${navOpen ? "is-open" : ""}`}>
+            {navItems.map(([label, href]) => (
+              <Link key={`${label}-${href}`} href={href} onClick={() => setNavOpen(false)} className={`mw-primary-nav-link ${isActive(pathname, href) ? "mw-primary-nav-link-active" : ""}`}>
+                {label}
+              </Link>
+            ))}
+          </div>
+        )}
         {user ? (
           <>
             <div className="mw-header-actions">
@@ -110,7 +116,7 @@ export function HeaderClient({
             </div>
           </>
         ) : (
-          <div className="ml-auto flex items-center gap-3"><Link href="/login" className="mw-btn-secondary px-4 py-2 text-xs">Sign in</Link><Link href="/signup" className="mw-btn-primary px-4 py-2 text-xs">Join free</Link></div>
+          <div className="mw-header-actions"><Link href="/login" className="mw-btn-secondary px-4 py-2 text-xs">Sign in</Link><Link href="/signup" className="mw-btn-primary px-4 py-2 text-xs">Join free</Link></div>
         )}
       </nav>
     </header>

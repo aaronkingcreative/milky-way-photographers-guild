@@ -7,18 +7,12 @@ import { formatStreakBadge, fullPhotographerRank } from "@/lib/display";
 import { EARNED_ACHIEVEMENT_STATUSES } from "@/lib/member-stats";
 import { getAvatarDisplay } from "@/lib/avatar";
 import { ReactionBar } from "@/components/images/ReactionBar";
+import { fetchMembers } from "@/lib/members";
+import { RANKS, fetchHonorCounts, rankLabelForCount } from "@/lib/ranks";
 
 const faviconUrl =
   "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/site-assets/logos/MWPG_Logo_FAVICON.png";
 
-const ranks = [
-  { label: "Unranked", count: 0, position: 6, range: "No Field Honors yet" },
-  { label: "Beginner", count: 1, position: 24, range: "1 to 7 Field Honors" },
-  { label: "Amateur", count: 8, position: 42, range: "8 to 17 Field Honors" },
-  { label: "Novice", count: 18, position: 60, range: "18 to 24 Field Honors" },
-  { label: "Veteran", count: 25, position: 78, range: "25 to 32 Field Honors" },
-  { label: "Master", count: 33, position: 95, range: "33+ Field Honors" },
-];
 const sortChips = ["Most Recent", "Most Reactions", "IOTW Contenders", "Best Stories"];
 
 function postTime(value: string) {
@@ -46,21 +40,6 @@ function achievementCount(image: any, counts: Map<string, number>) {
   return counts.get(image.user_id) || 0;
 }
 
-
-function rankPosition(count: number) {
-  if (count <= 0) return 12;
-  if (count >= 33) return Math.min(98, 95 + Math.min(count - 33, 3));
-  return 24 + ((count - 1) / 32) * (95 - 24);
-}
-
-function rankLabelForCount(count: number) {
-  if (count >= 33) return "Master";
-  if (count >= 25) return "Veteran";
-  if (count >= 18) return "Novice";
-  if (count >= 8) return "Amateur";
-  if (count >= 1) return "Beginner";
-  return "Unranked";
-}
 
 export default async function Page() {
   const { hasAccess, user } = await requireLogin();
@@ -93,6 +72,24 @@ export default async function Page() {
     earnedByUser.forEach((ids, userId) => achievementCounts.set(userId, ids.size));
   }
 
+  const ascent = new Map<string, { id: string; name: string; avatarUrl: string | null; initials: string; count: number }[]>();
+  if (hasAccess) {
+    const [{ data: posters }, allCounts] = await Promise.all([
+      supabase.from("guild_images").select("user_id").is("deleted_at", null).is("hidden_at", null).limit(2000),
+      fetchHonorCounts(supabase),
+    ]);
+    const climberIds = [...new Set([...(posters || []).map((row: any) => row.user_id), ...allCounts.keys()].filter(Boolean))] as string[];
+    const climbers = await fetchMembers(supabase, climberIds);
+    climberIds
+      .map((id) => ({ ...(climbers.get(id) || { id, name: "Guild photographer", avatarUrl: null, initials: "G" }), count: allCounts.get(id) || 0 }))
+      .sort((x, y) => Number(Boolean(y.avatarUrl)) - Number(Boolean(x.avatarUrl)) || y.count - x.count)
+      .forEach((member) => {
+        const label = rankLabelForCount(member.count);
+        if (!ascent.has(label)) ascent.set(label, []);
+        ascent.get(label)!.push(member);
+      });
+  }
+
   return (
     <section className="mw-page-wide">
       {hasAccess ? (
@@ -104,30 +101,27 @@ export default async function Page() {
           </div>
 
           <section className="mw-ascent-board mb-10">
-            <div className="mw-ascent-heading"><p className="mw-ascent-label">The Ascent</p><p className="mw-ascent-helper">Every guildie's climb toward Master, hover a face to see their username &amp; progress.</p></div>
-            <div className="mw-rank-map">
-              <div className="mw-rank-line" />
-              {ranks.map((rank) => (
-                <div key={rank.label} className="mw-rank-marker" style={{ left: `${rank.position}%` }}>
-                  <span className={`mw-rank-dot ${rank.count === 0 ? "mw-rank-dot-unranked" : ""}`} />
-                  <span className={`mw-rank-label ${rank.count === 0 ? "mw-rank-label-unranked" : ""}`}>{rank.label}</span>
-                  <span className="mw-rank-tooltip">{rank.range}</span>
-                </div>
-              ))}
-              {images.filter((image, i, all) => all.findIndex((other) => other.user_id === image.user_id) === i).slice(0, 10).map((image, index) => {
-                const name = authorName(image, index);
-                const avatar = getAvatarDisplay({ avatarPath: image.profiles?.avatar_path, avatarUrl: image.profiles?.avatar_url, displayName: name, email: image.profiles?.email });
-                const count = achievementCount(image, achievementCounts);
-                const rank = rankLabelForCount(count);
-                const top = 34 + (index % 3) * 6;
+            <div className="mw-ascent-heading"><p className="mw-ascent-label">The Ascent</p><p className="mw-ascent-helper">Every guildie&apos;s climb toward Master. Tap a face to visit their profile.</p></div>
+            <ol className="mw-ascent-track">
+              {RANKS.map((rank) => {
+                const climbers = ascent.get(rank.label) || [];
+                const shown = climbers.slice(0, 6);
                 return (
-                  <Link key={image.user_id} href={`/members/${image.user_id}`} aria-label={`${name}, ${rank}, ${count} honors`} className={`mw-rank-avatar ${count === 0 ? "mw-rank-avatar-unranked" : ""}`} style={{ left: `${rankPosition(count)}%`, top: `${top}px` }}>
-                    {avatar.avatarUrl ? <img src={avatar.avatarUrl} alt="" /> : <span className="mw-rank-avatar-initials">{avatar.initials}</span>}
-                    <span className="mw-rank-avatar-tooltip">{name} • {rank} • {count}</span>
-                  </Link>
+                  <li key={rank.label} className={`mw-ascent-step ${climbers.length ? "" : "is-empty"}`}>
+                    <div className="mw-ascent-node"><span className="mw-ascent-dot" /><span className="mw-ascent-rank">{rank.label}</span><span className="mw-ascent-range">{rank.range}</span></div>
+                    <div className="mw-ascent-faces">
+                      {shown.map((member) => (
+                        <Link key={member.id} href={`/members/${member.id}`} className="mw-ascent-face" title={`${member.name}, ${member.count} ${member.count === 1 ? "honor" : "honors"}`} aria-label={`${member.name}, ${rank.label}, ${member.count} honors`}>
+                          {member.avatarUrl ? <img src={member.avatarUrl} alt="" /> : <span>{member.initials}</span>}
+                        </Link>
+                      ))}
+                      {climbers.length > shown.length && <span className="mw-ascent-more">+{climbers.length - shown.length}</span>}
+                      {!climbers.length && <span className="mw-ascent-open">Open</span>}
+                    </div>
+                  </li>
                 );
               })}
-            </div>
+            </ol>
           </section>
 
           <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
@@ -135,7 +129,7 @@ export default async function Page() {
             <div className="flex flex-wrap items-center gap-2"><span className="mw-sort-label">Sort</span>{sortChips.map((chip, i) => <button key={chip} className={`mw-sort-chip ${i === 0 ? "mw-sort-chip-selected" : ""}`}>{chip}</button>)}</div>
           </div>
 
-          <div className="mx-auto max-w-[1120px] space-y-8">
+          <div className="max-w-[1120px] space-y-8">
             {images.map((image, index) => {
               const name = authorName(image, index);
               const avatar = getAvatarDisplay({ avatarPath: image.profiles?.avatar_path, avatarUrl: image.profiles?.avatar_url, displayName: name, email: image.profiles?.email });

@@ -53,7 +53,7 @@ export default async function Page({ params }: { params: Promise<{ memberId: str
     <section className="mw-page-wide">
       <div className="mw-prototype-eyebrow mb-4"><Image src="/launch/mwpg/MWPG_Logo_FAVICON.png" alt="" width={20} height={20} /><span>Guild Member</span></div>
       <div className="mw-member-hero">
-        <span className="mw-member-avatar">{avatar.avatarUrl ? <img src={avatar.avatarUrl} alt="" /> : avatar.initials}</span>
+        <span className="mw-member-profile-avatar">{avatar.avatarUrl ? <img src={avatar.avatarUrl} alt="" /> : avatar.initials}</span>
         <div className="min-w-0">
           <h1 className="mw-prototype-title">{stats.display_name}</h1>
           <p className="mt-1 text-lg font-semibold text-[#f0bd66]">{fullPhotographerRank(stats.rank_short)}</p>
