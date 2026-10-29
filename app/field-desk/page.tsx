@@ -6,6 +6,7 @@ import { getWeekStart, SUBMISSION_LIMIT } from "@/lib/images";
 import { requireLogin } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getMemberStats } from "@/lib/member-stats";
+import { fetchWinningImageIds } from "@/lib/ranks";
 
 const ranks = ["Beginner", "Amateur", "Novice", "Veteran", "Master"];
 const honors = [
@@ -70,7 +71,7 @@ function ContenderPreview({ image }: { image: any }) {
 export default async function Page() {
   const { hasAccess, user } = await requireLogin();
   const supabase = await createServerSupabaseClient();
-  let latest: any[] = [], reactions: any[] = [], remaining = 0, hasCandidate = false, myCount = 0, candidateCount = 0, stats: any = null;
+  let latest: any[] = [], reactions: any[] = [], remaining = 0, hasCandidate = false, myCount = 0, candidateCount = 0, stats: any = null, iotwWins = 0;
 
   if (hasAccess && user) {
     const week = getWeekStart();
@@ -87,6 +88,8 @@ export default async function Page() {
     remaining = Math.max(0, SUBMISSION_LIMIT - (count || 0));
     hasCandidate = (cand || 0) > 0;
     myCount = mine || 0;
+    const [winningIds, { data: myImageIds }] = await Promise.all([fetchWinningImageIds(supabase), supabase.from("guild_images").select("id").eq("user_id", user.id).is("deleted_at", null)]);
+    iotwWins = (myImageIds || []).filter((row: any) => winningIds.has(row.id)).length;
     candidateCount = latest.filter((i) => i.is_weekly_candidate).length;
     stats = memberStats;
   }
@@ -111,7 +114,7 @@ export default async function Page() {
       <div className="fd-rank-track"><div className="fd-rank-line" />{ranks.map((r) => <div key={r} className="fd-rank-step"><span className={ranks.indexOf(r) <= ranks.indexOf(stats?.rank_short || "Beginner") ? `complete ${r === stats?.rank_short ? "active" : ""}` : ""} /><strong className={ranks.indexOf(r) <= ranks.indexOf(stats?.rank_short || "Beginner") ? "complete" : ""}>{r}</strong></div>)}</div>
     </section>
 
-    <section className="fd-stats">{[[myCount, "Guild Submissions"], [stats?.earned_honor_count || 0, "Achievements Earned"], [reactions.length, "Reactions Received"], [0, "Image of the Week Wins"]].map(([n, l], i) => <div key={l} className="fd-stat-card"><strong className={i % 2 ? "gold" : ""}>{n}</strong><span>{l}</span></div>)}</section>
+    <section className="fd-stats">{([[myCount, "Guild Submissions", "Your first field report starts the climb."], [stats?.earned_honor_count || 0, "Achievements Earned", "Claim an honor when you submit."], [reactions.length, "Reactions Received", "Reactions arrive as the Guild sees your work."], [iotwWins, "Image of the Week Wins", "Enter a contender this week."]] as [number, string, string][]).map(([n, l, hint], i) => <div key={l} className="fd-stat-card"><strong className={i % 2 ? "gold" : ""}>{n}</strong><span>{l}</span>{!n && <small className="fd-stat-hint">{hint}</small>}</div>)}</section>
 
     <section className="fd-panel fd-throne"><div className="fd-section-head"><span>✪</span><FieldDeskLabel>The Winners&apos; Throne</FieldDeskLabel><p>Last week&apos;s Image of the Week, the Top 3</p></div><div className="fd-throne-grid"><WinnerSlot image={top[1]} place="2" reactions={reactions} /><WinnerSlot image={top[0]} place="1" featured reactions={reactions} /><WinnerSlot image={top[2]} place="3" reactions={reactions} /></div></section>
 
