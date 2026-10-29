@@ -465,3 +465,32 @@ a { color: inherit; text-decoration: none; }
   @media (max-width: 1100px) { .progress-library-row { grid-template-columns:minmax(180px,1fr) minmax(120px,.55fr) minmax(260px,1.5fr) minmax(100px,.48fr) minmax(100px,.48fr) minmax(120px,.55fr); } }
   @media (max-width: 900px) { .progress-library-notes { grid-template-columns:1fr; } .progress-library-group-head { flex-direction:column; } .progress-library-group-head small { max-width:none; } .progress-library-header { display:none; } .progress-library-row { display:block; padding:1rem; } .progress-library-row > div { display:grid; grid-template-columns:128px 1fr; gap:.8rem; align-items:start; margin-top:.72rem; } .progress-library-row > div:first-child { display:flex; margin-top:0; } .progress-library-row > div[data-label]::before { content:attr(data-label); color:#e79f2b; font-family:var(--font-guild-display); font-size:.74rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; } }
   @media (max-width: 560px) { .progress-honor-explainer, .progress-library-group-head, .progress-library-row { padding:.95rem; } .progress-library-row > div { grid-template-columns:1fr; gap:.28rem; } }
+
+/* Interaction fixes: reactions, comments, honors, member profiles */
+.mw-reaction-chip.mw-reaction-chip-active, .mw-reaction-chip.mw-reaction-chip-active:hover { border-color:rgba(231,159,43,.85); background:rgba(231,159,43,.22); color:#f0bd66; box-shadow:0 0 0 1px rgba(231,159,43,.25) inset; }
+.mw-reaction-chip:disabled { cursor:progress; opacity:.75; }
+.mw-reaction-chip:focus-visible { outline:2px solid #f0bd66; outline-offset:2px; }
+.mw-reaction-status { min-height:1.1rem; font-size:.82rem; color:#f0bd66; }
+.mw-reaction-status.is-error { color:#fca5a5; }
+.mw-reaction-bar-compact { display:grid; gap:.9rem; }
+.mw-reaction-group-label { margin-bottom:.5rem; font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.55); font-family:var(--font-guild-display); }
+.mw-comment-author { font-weight:700; color:#fff; }
+.mw-member-link { color:inherit; text-decoration:none; }
+.mw-member-link:hover, .mw-member-link:focus-visible { color:#f0bd66; text-decoration:underline; text-underline-offset:3px; }
+.mw-comment-notice { margin-top:1rem; border:1px solid rgba(231,159,43,.4); background:rgba(231,159,43,.1); color:#f0bd66; border-radius:.5rem; padding:.7rem .9rem; font-size:.92rem; }
+.mw-comment-error { color:#fca5a5; font-size:.9rem; }
+.mw-comment-fresh { box-shadow:0 0 0 1px rgba(231,159,43,.55), 0 0 24px rgba(231,159,43,.12); }
+.mw-honor-tip-wrap { position:relative; display:inline-flex; }
+.mw-honor-tip-wrap > button { cursor:help; }
+.mw-honor-tip { position:absolute; z-index:30; bottom:calc(100% + 10px); left:50%; transform:translateX(-50%); width:max-content; max-width:240px; padding:.6rem .75rem; border-radius:.5rem; border:1px solid rgba(231,159,43,.45); background:#071321; color:rgba(255,255,255,.82); font-size:.8rem; line-height:1.35; box-shadow:0 10px 30px rgba(0,0,0,.45); opacity:0; pointer-events:none; transition:opacity 140ms ease; text-align:left; }
+.mw-honor-tip strong { display:block; color:#f0bd66; font-size:.88rem; margin-bottom:.15rem; }
+.mw-honor-tip-date { display:block; margin-top:.3rem; color:rgba(255,255,255,.55); font-size:.74rem; }
+.mw-honor-tip-wrap:hover .mw-honor-tip, .mw-honor-tip-wrap:focus-within .mw-honor-tip, .mw-honor-tip-wrap.is-open .mw-honor-tip { opacity:1; pointer-events:auto; }
+.mw-member-hero { display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap; }
+.mw-member-avatar { display:grid; place-items:center; width:112px; height:112px; flex-shrink:0; overflow:hidden; border-radius:999px; border:2px solid rgba(231,159,43,.7); background:rgba(231,159,43,.1); font-family:var(--font-guild-display); font-size:2.2rem; color:#f0bd66; }
+.mw-member-avatar img { width:100%; height:100%; object-fit:cover; }
+.mw-member-stats { margin-top:2rem; display:grid; gap:1rem; grid-template-columns:repeat(2,minmax(0,1fr)); }
+@media (min-width:768px){ .mw-member-stats { grid-template-columns:repeat(4,minmax(0,1fr)); } }
+.mw-member-stat { margin-top:.35rem; font-family:var(--font-guild-display); font-size:2rem; color:#fff; }
+.progress-star:focus .progress-tooltip { opacity:1; visibility:visible; transform:translate(-50%, 0); }
+.progress-star:focus { z-index:20; }

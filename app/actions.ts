@@ -6,6 +6,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { REACTION_TYPES, SUBMISSION_LIMIT, getWeekStart } from "@/lib/images";
 import { getIotwTargetPeriod } from "@/lib/iotw";
 import { coverageFromCaptureDate } from "@/lib/coverage";
+import { displayNameFromProfile, getAvatarDisplay } from "@/lib/avatar";
 import { ALLOWED_IMAGE_TYPES, FIELD_REPORT_IMAGE_BUCKET, MAX_UPLOAD_BYTES, PROFILE_AVATAR_BUCKET, storagePublicUrl } from "@/lib/storage";
 
 function value(formData: FormData, key: string) { return String(formData.get(key) || "").trim(); }
@@ -90,8 +91,56 @@ export async function adminFinalizeIotw(formData: FormData) {
   await requireAdmin(); const supabase=await createServerSupabaseClient(); const ballot_id=value(formData,"ballot_id"); await supabase.from("iotw_ballots").update({ status:"finalized", winner_field_report_id:value(formData,"winner")||null, second_place_field_report_id:value(formData,"second")||null, third_place_field_report_id:value(formData,"third")||null, photog_phavorite_field_report_id:value(formData,"phavorite")||null, admin_notes:value(formData,"admin_notes")||null }).eq("id",ballot_id); revalidatePath("/admin/iotw"); revalidatePath("/winners"); revalidatePath("/field-desk");
 }
 
-export async function addComment(formData: FormData) { const { user } = await requireAccess(); const supabase=await createServerSupabaseClient(); const image_id=value(formData,"image_id"), body=value(formData,"body"); if(!body) return; await supabase.from("image_comments").insert({image_id,user_id:user.id,body}); revalidatePath(`/images/${image_id}`); }
-export async function toggleReaction(formData: FormData) { const { user } = await requireAccess(); const supabase=await createServerSupabaseClient(); const image_id=value(formData,"image_id"), reaction_type=value(formData,"reaction_type"); if(!REACTION_TYPES.some(([t])=>t===reaction_type)) return; const {data}=await supabase.from("image_reactions").select("id").eq("image_id",image_id).eq("user_id",user.id).eq("reaction_type",reaction_type).maybeSingle(); if(data) await supabase.from("image_reactions").delete().eq("id",data.id); else await supabase.from("image_reactions").insert({image_id,user_id:user.id,reaction_type}); revalidatePath(`/images/${image_id}`); revalidatePath("/feed"); }
+export type CommentState = { ok?: boolean; error?: string; comment?: any; nonce?: number };
+export type GuildComment = { id: string; image_id: string; user_id: string; body: string; created_at: string; author: { id: string; name: string; avatarUrl: string | null; initials: string } };
+export type CommentResult = { ok: true; comment: GuildComment; duplicate?: boolean } | { ok: false; error: string };
+
+/** Posts one piece of Guild feedback as the signed-in member and returns it with the author attached. */
+export async function addComment(_prev: CommentState, formData: FormData): Promise<CommentState> {
+  const result = await postComment(formData);
+  return result.ok ? { ok: true, comment: result.comment, nonce: Date.now() } : { ok: false, error: result.error, nonce: Date.now() };
+}
+
+async function postComment(formData: FormData): Promise<CommentResult> {
+  const { user } = await requireAccess();
+  const supabase = await createServerSupabaseClient();
+  const image_id = value(formData, "image_id"), body = value(formData, "body");
+  if (!image_id) return { ok: false, error: "We could not tell which image this feedback is for. Refresh and try again." };
+  if (!body) return { ok: false, error: "Write a little feedback before posting." };
+  if (body.length > 4000) return { ok: false, error: "That feedback is too long. Keep it under 4,000 characters." };
+  const [{ data: profile }, { data: recent }] = await Promise.all([
+    supabase.from("profiles").select("display_name,full_name,avatar_url,avatar_path").eq("id", user.id).maybeSingle(),
+    // Guard against double submits: the same note from the same member on the same image in the last two minutes is returned, not re-inserted.
+    supabase.from("image_comments").select("id,image_id,user_id,body,created_at").eq("image_id", image_id).eq("user_id", user.id).eq("body", body).is("deleted_at", null).gte("created_at", new Date(Date.now() - 2 * 60 * 1000).toISOString()).order("created_at", { ascending: true }).limit(1),
+  ]);
+  const author = commentAuthor(user.id, profile, user);
+  if (recent?.[0]) return { ok: true, duplicate: true, comment: { ...recent[0], author } };
+  const { data, error } = await supabase.from("image_comments").insert({ image_id, user_id: user.id, body }).select("id,image_id,user_id,body,created_at").single();
+  if (error || !data) { console.error("Comment insert failed", error); return { ok: false, error: "Your feedback did not post. Your text is still here, so try again in a moment." }; }
+  revalidatePath(`/images/${image_id}`); revalidatePath("/guild-hall");
+  return { ok: true, comment: { ...data, author } };
+}
+
+function commentAuthor(id: string, profile: any, user?: any) {
+  const name = displayNameFromProfile(profile, user?.user_metadata, null);
+  const avatar = getAvatarDisplay({ avatarPath: profile?.avatar_path, avatarUrl: profile?.avatar_url, displayName: name });
+  return { id, name, avatarUrl: avatar.avatarUrl, initials: avatar.initials };
+}
+
+export type ReactionResult = { ok: true; active: boolean } | { ok: false; error: string };
+
+/** Sets one reaction on or off for the signed-in member. Idempotent, so fast repeat clicks cannot drift out of sync. */
+export async function setReaction(image_id: string, reaction_type: string, active: boolean): Promise<ReactionResult> {
+  const { user } = await requireAccess();
+  if (!image_id || !REACTION_TYPES.some(([t]) => t === reaction_type)) return { ok: false, error: "That reaction is not available." };
+  const supabase = await createServerSupabaseClient();
+  const { error } = active
+    ? await supabase.from("image_reactions").upsert({ image_id, user_id: user.id, reaction_type }, { onConflict: "image_id,user_id,reaction_type", ignoreDuplicates: true })
+    : await supabase.from("image_reactions").delete().eq("image_id", image_id).eq("user_id", user.id).eq("reaction_type", reaction_type);
+  if (error) { console.error("Reaction save failed", error); return { ok: false, error: "That reaction did not save. Try again." }; }
+  revalidatePath(`/images/${image_id}`); revalidatePath("/feed"); revalidatePath("/guild-hall");
+  return { ok: true, active };
+}
 export async function toggleWeeklyCandidate(formData: FormData) { const { user } = await requireAccess(); const supabase=await createServerSupabaseClient(); const image_id=value(formData,"image_id"), week=value(formData,"week_starts_on"), next=value(formData,"next")==="true"; if(next){ const { count }=await supabase.from("guild_images").select("id",{count:"exact",head:true}).eq("user_id",user.id).eq("week_starts_on",week).eq("is_weekly_candidate",true).is("deleted_at",null).neq("id",image_id); if((count||0)>0) return; } await supabase.from("guild_images").update({is_weekly_candidate:next}).eq("id",image_id).eq("user_id",user.id); revalidatePath(`/images/${image_id}`); revalidatePath("/feed"); }
 export type ProfileSaveState = { status: "idle" | "saving" | "success" | "error"; profile?: any; message?: string };
 
@@ -134,3 +183,24 @@ export async function updateProfileLocation(_previousState: ProfileSaveState, fo
 export async function adminImageAction(formData: FormData) { const { user }=await requireAdmin(); const supabase=await createServerSupabaseClient(); const image_id=value(formData,"image_id"), action=value(formData,"action"); const reason=value(formData,"moderation_reason")||null; const patch:any={moderation_reason:reason}; if(action==="hide") Object.assign(patch,{hidden_at:new Date().toISOString(),hidden_by:user.id,moderation_status:"hidden",status:"hidden"}); if(action==="unhide") Object.assign(patch,{hidden_at:null,hidden_by:null,moderation_status:"visible",status:"published"}); if(action==="delete") Object.assign(patch,{deleted_at:new Date().toISOString(),deleted_by:user.id,moderation_status:"deleted",status:"removed"}); if(action==="blur") Object.assign(patch,{moderation_blur_required:true,moderation_status:"blurred"}); if(action==="unblur") Object.assign(patch,{moderation_blur_required:false,moderation_status:"visible"}); if(action==="review") Object.assign(patch,{moderation_reviewed_by:user.id,moderation_reviewed_at:new Date().toISOString()}); await supabase.from("guild_images").update(patch).eq("id",image_id); revalidatePath("/admin/images"); }
 
 export async function adminAchievementClaimAction(formData: FormData) { const { user }=await requireAdmin(); const supabase=await createServerSupabaseClient(); const claim_id=value(formData,"claim_id"), action=value(formData,"action"), review_notes=value(formData,"review_notes")||null; if(!["verified","rejected","revoked"].includes(action)) return; const { data: claim }=await supabase.from("field_report_achievement_claims").select("user_id,achievement_id").eq("id",claim_id).maybeSingle(); if(!claim) return; await supabase.from("field_report_achievement_claims").update({status:action,reviewed_at:new Date().toISOString(),reviewed_by:user.id,review_notes}).eq("id",claim_id); await supabase.from("user_achievements").update({status:action,awarded_by:user.id,notes:review_notes}).eq("user_id",claim.user_id).eq("achievement_id",claim.achievement_id); revalidatePath("/admin/achievements"); revalidatePath("/field-desk"); revalidatePath("/guild-hall"); revalidatePath("/progress"); }
+
+export type EditReportState = { ok?: boolean; error?: string };
+
+export async function updateOwnFieldReport(_prev: EditReportState, formData: FormData): Promise<EditReportState> {
+  const { user } = await requireAccess();
+  const supabase = await createServerSupabaseClient();
+  const image_id = value(formData, "image_id");
+  const title = value(formData, "title"), country = value(formData, "country"), state_or_province = value(formData, "state_or_province"), gear_settings = value(formData, "gear_settings");
+  const specific = value(formData, "specific_location_name") || null, story = value(formData, "short_story") || null, wentWell = value(formData, "what_went_well") || null, better = value(formData, "what_could_have_gone_better") || null;
+  if (!image_id) return { error: "That field report could not be found." };
+  if (!title || !country || !state_or_province || !gear_settings) return { error: "Title, country, state or region, and gear are required." };
+  if (title.length > 200 || (story?.length || 0) > 4000 || (wentWell?.length || 0) > 2000 || (better?.length || 0) > 2000 || gear_settings.length > 500) return { error: "One of the fields is too long. Trim it a little and save again." };
+  const { data: image } = await supabase.from("guild_images").select("id,user_id").eq("id", image_id).eq("user_id", user.id).maybeSingle();
+  if (!image) return { error: "You can only edit your own field reports." };
+  const { error } = await supabase.from("guild_images").update({ title, country, state_or_province, specific_location_name: specific, gear_settings, short_story: story, what_went_well: wentWell, what_could_have_gone_better: better }).eq("id", image_id).eq("user_id", user.id);
+  if (error) return { error: "Your changes did not save. Please try again in a moment." };
+  const { error: reportError } = await supabase.from("field_reports").update({ title, country, region: state_or_province, specific_location: specific, gear: gear_settings, story, went_well: wentWell, could_have_gone_better: better }).eq("guild_image_id", image_id).eq("user_id", user.id);
+  if (reportError) console.error("Field report sync failed", reportError);
+  revalidatePath(`/images/${image_id}`); revalidatePath("/feed"); revalidatePath("/guild-hall"); revalidatePath("/field-desk"); revalidatePath(`/members/${user.id}`);
+  redirect(`/images/${image_id}?edited=1`);
+}

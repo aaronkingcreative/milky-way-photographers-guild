@@ -12,6 +12,7 @@ export function IotwVotingModal({ ballot, entries, existingVote, required = fals
   const [state, action] = useActionState<any, FormData>(submitIotwVote, {});
   useEffect(() => { if (state?.ok) { setVoted(true); setOpen(false); } }, [state]);
   useEffect(() => { if (blocking) setOpen(true); }, [blocking]);
+  useEffect(() => { const openVote = () => setOpen(true); window.addEventListener("mw:open-iotw", openVote); return () => window.removeEventListener("mw:open-iotw", openVote); }, []);
   const needed = Math.min(3, entries.length);
   const byId = useMemo(() => new Map(entries.map((entry) => [entry.field_report_id, entry])), [entries]);
   if (!ballot || !entries.length) return null;
