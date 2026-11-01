@@ -709,3 +709,81 @@ a { color: inherit; text-decoration: none; }
   .mw-feed-title { font-size:1.25rem; }
   .mw-feed-media { height:clamp(220px, 70vw, 340px); }
 }
+
+/* Field report, three column top (Nov 1). Image centered, reactions left, details and honors right.
+   The image width is computed from its aspect ratio so the side columns always keep their room. */
+.mw-report-stage {
+  --mw-side: 250px;
+  --mw-gap: 1.5rem;
+  --mw-img-h: calc(100svh - var(--mw-header-h) - 5.5rem);
+  --mw-img-w: min(calc(100vw - 2 * var(--mw-side) - 4 * var(--mw-gap) - 1rem), calc(var(--mw-img-h) * var(--mw-ar, 1.5)));
+  display:grid;
+  grid-template-columns:minmax(0,1fr) var(--mw-img-w) minmax(0,1fr);
+  grid-template-areas:"left center right";
+  column-gap:var(--mw-gap);
+  align-items:center;
+  padding:0 var(--mw-gap);
+  background:#06101c;
+}
+@media (min-width: 1600px) { .mw-report-stage { --mw-side: 290px; } }
+@media (min-width: 1900px) { .mw-report-stage { --mw-side: 330px; } }
+.mw-report-center { grid-area:center; position:relative; display:grid; place-items:center; min-width:0; }
+.mw-report-center .mw-detail-image { width:100%; height:auto; max-width:100%; max-height:var(--mw-img-h); object-fit:contain; }
+.mw-report-side { min-width:0; display:flex; flex-direction:column; gap:1rem; padding:1.25rem 0; }
+.mw-report-left { grid-area:left; justify-self:end; width:min(100%, 380px); }
+.mw-report-right { grid-area:right; justify-self:start; width:min(100%, 380px); }
+.mw-report-panel { border:1px solid rgba(255,255,255,.1); border-radius:8px; background:rgba(13,27,44,.82); padding:1.1rem 1.15rem; }
+.mw-report-honors { border-color:rgba(231,159,43,.42); background:linear-gradient(160deg, rgba(231,159,43,.12), rgba(13,27,44,.85) 60%); }
+.mw-report-nudge { margin:0 0 1rem; padding-bottom:.85rem; border-bottom:1px solid rgba(255,255,255,.08); font-size:1rem; line-height:1.4; font-weight:700; color:#f0bd66; }
+.mw-report-side .mw-reaction-chip { min-height:36px; padding:.4rem .7rem; font-size:.76rem; gap:.4rem; }
+.mw-report-side .mw-section-label { margin-bottom:.55rem; }
+.mw-report-details { margin:1rem 0 0; display:grid; gap:.9rem; font-size:.95rem; }
+.mw-report-details dd { margin:.2rem 0 0; color:rgba(255,255,255,.86); line-height:1.45; }
+.mw-report-right .mw-iotw-panel h3 { font-size:1.1rem; }
+
+/* Below the image: title, photographer, story, then the two answers with reply trays */
+.mw-report-body { max-width:880px; margin:0 auto; padding:2.25rem 1.5rem 0; display:flex; flex-direction:column; gap:2rem; }
+.mw-report-body .mw-post-title { font-size:clamp(1.8rem, 2.8vw, 2.6rem); }
+.mw-report-story .mw-body { font-size:1.12rem; line-height:1.7; }
+
+.mw-insight-block { --tone:95,207,148; --tone-text:#7fe0ad; --reply-bg:rgba(58,150,104,.16); border:1px solid rgba(var(--tone),.32); border-radius:10px; background:rgba(var(--tone),.075); overflow:hidden; }
+.mw-insight-block.is-better { --tone:231,159,43; --tone-text:#f0bd66; --reply-bg:rgba(190,122,28,.16); }
+.mw-insight-answer { padding:1.25rem 1.4rem 1.1rem; }
+.mw-insight-title { margin:0; font-family:var(--font-guild-display); font-weight:800; font-size:.92rem; letter-spacing:.2em; text-transform:uppercase; color:var(--tone-text); }
+.mw-insight-by { margin:.7rem 0 0; font-size:.9rem; font-weight:700; color:rgba(255,255,255,.55); }
+.mw-insight-quote { margin:.25rem 0 0; padding-left:.9rem; border-left:3px solid rgba(var(--tone),.65); font-size:1.15rem; line-height:1.55; color:#fff; white-space:pre-wrap; }
+.mw-reply-tray { border-top:1px solid rgba(var(--tone),.22); background:rgba(4,12,22,.35); padding:.9rem 1.1rem 1rem; display:flex; flex-direction:column; gap:.75rem; }
+.mw-reply-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.55rem; }
+.mw-reply { display:flex; gap:.7rem; align-items:flex-start; padding:.7rem .85rem; border-radius:8px; border:1px solid rgba(var(--tone),.22); background:var(--reply-bg); scroll-margin-top:calc(var(--mw-header-h) + 1.5rem); }
+.mw-reply-who { margin:0; display:flex; align-items:baseline; gap:.5rem; font-weight:800; color:#fff; font-size:.95rem; }
+.mw-reply-who time { font-size:.78rem; font-weight:600; color:rgba(255,255,255,.45); }
+.mw-reply-body { margin:.2rem 0 0; color:rgba(255,255,255,.88); line-height:1.45; white-space:pre-wrap; overflow-wrap:anywhere; }
+.mw-reply-form { display:flex; flex-direction:column; gap:.5rem; }
+.mw-reply-input { width:100%; min-height:3.4rem; resize:vertical; border-radius:8px; border:1px solid rgba(var(--tone),.3); background:var(--reply-bg); color:#fff; padding:.7rem .85rem; font:inherit; font-size:1rem; line-height:1.45; }
+.mw-reply-input::placeholder { color:rgba(255,255,255,.5); }
+.mw-reply-input:focus { outline:none; border-color:rgba(var(--tone),.75); box-shadow:0 0 0 3px rgba(var(--tone),.16); }
+.mw-reply-actions { display:flex; align-items:center; justify-content:space-between; gap:.75rem; }
+.mw-reply-count { font-size:.8rem; font-weight:700; color:rgba(255,255,255,.42); }
+.mw-reply-count.is-near { color:var(--tone-text); }
+.mw-reply-button { border-radius:999px; border:1px solid rgba(var(--tone),.6); background:rgba(var(--tone),.18); color:var(--tone-text); padding:.45rem 1.15rem; font-family:var(--font-guild-display); font-size:.8rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; cursor:pointer; transition:background .15s ease; }
+.mw-reply-button:hover, .mw-reply-button:focus-visible { background:rgba(var(--tone),.32); }
+.mw-reply-button:disabled { cursor:wait; opacity:.6; }
+
+.mw-rail-comment-tag { font-size:.72rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#7fe0ad; }
+.mw-rail-comment-tag.is-better { color:#f0bd66; }
+
+/* Tablet: image full width, then reactions and details side by side */
+@media (max-width: 1179px) {
+  .mw-report-stage { grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-areas:"center center" "left right"; column-gap:1.25rem; padding:0 1.25rem; align-items:start; }
+  .mw-report-center .mw-detail-image { width:auto; max-width:100%; }
+  .mw-report-left, .mw-report-right { justify-self:stretch; width:auto; }
+}
+/* Phone: one column, image then reactions then details */
+@media (max-width: 720px) {
+  .mw-report-stage { grid-template-columns:minmax(0,1fr); grid-template-areas:"center" "left" "right"; padding:0 4px; }
+  .mw-report-side { padding:.9rem .75rem 0; }
+  .mw-report-side:last-child { padding-bottom:1rem; }
+  .mw-report-body { padding:1.75rem 1rem 0; gap:1.6rem; }
+  .mw-insight-answer { padding:1.1rem 1rem 1rem; }
+  .mw-reply-tray { padding:.8rem .8rem .9rem; }
+}

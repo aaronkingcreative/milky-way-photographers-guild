@@ -13,7 +13,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
   const [{ data: image }, { data: reactions }, { data: comments }, { data: claims }, { data: coverage }] = await Promise.all([
     supabase.from("guild_images").select("*, profiles:member_profiles(display_name,avatar_url,avatar_path,full_name)").eq("id", imageId).maybeSingle(),
     supabase.from("image_reactions").select("image_id,user_id,reaction_type").eq("image_id", imageId),
-    supabase.from("image_comments").select("id,image_id,user_id,body,created_at").eq("image_id", imageId).is("deleted_at", null).order("created_at", { ascending: true }),
+    supabase.from("image_comments").select("id,image_id,user_id,body,created_at,section").eq("image_id", imageId).is("deleted_at", null).order("created_at", { ascending: true }),
     supabase.from("field_report_achievement_claims").select("achievement_definitions(name,glyph),field_reports!inner(guild_image_id)").eq("user_id", user.id).eq("field_reports.guild_image_id", imageId),
     supabase.from("user_field_coverage").select("capture_year,capture_month,capture_season,field_reports!inner(guild_image_id)").eq("field_reports.guild_image_id", imageId).maybeSingle(),
   ]);
