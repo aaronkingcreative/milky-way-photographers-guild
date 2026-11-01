@@ -4,7 +4,8 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { addComment, type CommentState } from "@/app/actions";
 
 export type CommentAuthor = { id: string; name: string; avatarUrl: string | null; initials: string };
-export type CommentView = { id: string; body: string; created_at: string; user_id: string; author: CommentAuthor };
+export type CommentSectionKey = "general" | "went_well" | "could_be_better";
+export type CommentView = { id: string; body: string; created_at: string; user_id: string; section?: CommentSectionKey | null; author: CommentAuthor };
 
 export function MemberAvatar({ author, size = "h-9 w-9" }: { author: CommentAuthor; size?: string }) {
   return (
@@ -75,6 +76,59 @@ export function CommentsSection({ imageId, comments, currentAuthor }: { imageId:
           <button type="button" className="mw-btn-ghost rounded-sm px-4 py-2" onClick={() => { setOpen(true); setNotice(null); }}>Add more feedback</button>
         </div>
       )}
+    </div>
+  );
+}
+
+function ReplyItem({ c, fresh }: { c: CommentView; fresh?: boolean }) {
+  return (
+    <li id={`comment-${c.id}`} className={`mw-reply ${fresh ? "mw-comment-fresh" : ""}`}>
+      <Link href={`/members/${c.user_id}`} aria-label={`View ${c.author.name}'s profile`}><MemberAvatar author={c.author} size="h-8 w-8" /></Link>
+      <div className="min-w-0">
+        <p className="mw-reply-who"><Link href={`/members/${c.user_id}`} className="mw-member-link">{c.author.name}</Link><time dateTime={c.created_at}>{new Date(c.created_at).toLocaleDateString([], { month: "short", day: "numeric" })}</time></p>
+        <p className="mw-reply-body">{c.body}</p>
+      </div>
+    </li>
+  );
+}
+
+const REPLY_MAX = 600;
+
+/**
+ * Reply tray under one of the photographer's answers (what went well, or what could have gone better).
+ * Short, on-topic replies only. Posts as an image comment with its section set.
+ */
+export function SectionReplyTray({ imageId, section, comments, currentAuthor, placeholder, label }: { imageId: string; section: Exclude<CommentSectionKey, "general">; comments: CommentView[]; currentAuthor: CommentAuthor; placeholder: string; label: string }) {
+  const [list, setList] = useState<CommentView[]>(comments);
+  const [freshId, setFreshId] = useState<string | null>(null);
+  const [length, setLength] = useState(0);
+  const formRef = useRef<HTMLFormElement>(null);
+  const [state, formAction, pending] = useActionState<CommentState, FormData>(addComment, {});
+
+  useEffect(() => { setList((prev) => { const ids = new Set(prev.map((c) => c.id)); return [...prev, ...comments.filter((c) => !ids.has(c.id))]; }); }, [comments]);
+
+  useEffect(() => {
+    if (!state?.ok || !state.comment) return;
+    const c = state.comment;
+    setList((prev) => (prev.some((p) => p.id === c.id) ? prev : [...prev, { ...c, author: currentAuthor }]));
+    formRef.current?.reset();
+    setLength(0);
+    setFreshId(c.id);
+  }, [state?.nonce]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <div className="mw-reply-tray">
+      {list.length > 0 && <ol className="mw-reply-list" aria-label={`Replies on ${label}`}>{list.map((c) => <ReplyItem key={c.id} c={c} fresh={c.id === freshId} />)}</ol>}
+      <form ref={formRef} action={formAction} className="mw-reply-form">
+        <input type="hidden" name="image_id" value={imageId} />
+        <input type="hidden" name="section" value={section} />
+        <textarea className="mw-reply-input" name="body" rows={2} required maxLength={REPLY_MAX} placeholder={placeholder} aria-label={`Reply on ${label}`} readOnly={pending} onChange={(e) => setLength(e.currentTarget.value.length)} />
+        <div className="mw-reply-actions">
+          <span className={`mw-reply-count ${length > REPLY_MAX - 80 ? "is-near" : ""}`} aria-live="polite">{length > 0 ? `${REPLY_MAX - length} left` : "Keep it short"}</span>
+          <button className="mw-reply-button" type="submit" disabled={pending} aria-busy={pending}>{pending ? "Posting..." : "Reply"}</button>
+        </div>
+        {state?.error && <p className="mw-comment-error" role="alert">{state.error}</p>}
+      </form>
     </div>
   );
 }

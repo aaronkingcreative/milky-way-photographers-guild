@@ -90,7 +90,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
     const [{ data: pool }, { data: msg }, { data: cmts }] = await Promise.all([
       poolQuery,
       supabase.from("guild_messages").select("id,body,created_at").is("archived_at", null).order("created_at", { ascending: false }).limit(1).maybeSingle(),
-      supabase.from("image_comments").select("id,body,created_at,user_id,image_id,guild_images!inner(id,title,image_url,hidden_at,deleted_at,moderation_status,moderation_blur_required)").is("deleted_at", null).is("guild_images.hidden_at", null).is("guild_images.deleted_at", null).order("created_at", { ascending: false }).limit(18),
+      supabase.from("image_comments").select("id,body,created_at,user_id,image_id,section,guild_images!inner(id,title,image_url,hidden_at,deleted_at,moderation_status,moderation_blur_required)").is("deleted_at", null).is("guild_images.hidden_at", null).is("guild_images.deleted_at", null).order("created_at", { ascending: false }).limit(18),
     ]);
     const poolImages = pool || [];
     const poolIds = poolImages.map((i: any) => i.id);
@@ -241,6 +241,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
                           <Link href={`/images/${c.image_id}?from=guild-hall#comment-${c.id}`} className="mw-rail-comment" title={`${who} on ${c.guild_images?.title || "a field report"}`}>
                             <span className="mw-rail-comment-text">
                               <span className="mw-rail-comment-who"><b>{who}</b><time dateTime={c.created_at}>{shortAgo(c.created_at)}</time></span>
+                              {c.section === "went_well" && <span className="mw-rail-comment-tag is-good">On what went well</span>}
+                              {c.section === "could_be_better" && <span className="mw-rail-comment-tag is-better">On what could have gone better</span>}
                               <span className="mw-rail-comment-body">{snippet(c.body)}</span>
                             </span>
                             <img src={c.guild_images?.image_url} alt="" loading="lazy" decoding="async" className={`mw-rail-thumb ${c.guild_images?.moderation_blur_required ? "blur-sm" : ""}`} />

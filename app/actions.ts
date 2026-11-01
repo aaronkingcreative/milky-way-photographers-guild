@@ -92,7 +92,9 @@ export async function adminFinalizeIotw(formData: FormData) {
 }
 
 export type CommentState = { ok?: boolean; error?: string; comment?: any; nonce?: number };
-export type GuildComment = { id: string; image_id: string; user_id: string; body: string; created_at: string; author: { id: string; name: string; avatarUrl: string | null; initials: string } };
+export type CommentSection = "general" | "went_well" | "could_be_better";
+const COMMENT_SECTIONS: CommentSection[] = ["general", "went_well", "could_be_better"];
+export type GuildComment = { id: string; image_id: string; user_id: string; body: string; created_at: string; section: CommentSection; author: { id: string; name: string; avatarUrl: string | null; initials: string } };
 export type CommentResult = { ok: true; comment: GuildComment; duplicate?: boolean } | { ok: false; error: string };
 
 /** Posts one piece of Guild feedback as the signed-in member and returns it with the author attached. */
@@ -105,17 +107,21 @@ async function postComment(formData: FormData): Promise<CommentResult> {
   const { user } = await requireAccess();
   const supabase = await createServerSupabaseClient();
   const image_id = value(formData, "image_id"), body = value(formData, "body");
+  const rawSection = value(formData, "section") || "general";
+  const section = COMMENT_SECTIONS.find((s) => s === rawSection);
   if (!image_id) return { ok: false, error: "We could not tell which image this feedback is for. Refresh and try again." };
-  if (!body) return { ok: false, error: "Write a little feedback before posting." };
-  if (body.length > 4000) return { ok: false, error: "That feedback is too long. Keep it under 4,000 characters." };
+  if (!section) return { ok: false, error: "We could not tell where this reply goes. Refresh and try again." };
+  if (!body) return { ok: false, error: section === "general" ? "Write a little feedback before posting." : "Write a short reply before posting." };
+  if (section === "general" && body.length > 4000) return { ok: false, error: "That feedback is too long. Keep it under 4,000 characters." };
+  if (section !== "general" && body.length > 600) return { ok: false, error: "Keep section replies short, under 600 characters. Longer thoughts fit in Guild Feedback below." };
   const [{ data: profile }, { data: recent }] = await Promise.all([
     supabase.from("profiles").select("display_name,full_name,avatar_url,avatar_path").eq("id", user.id).maybeSingle(),
     // Guard against double submits: the same note from the same member on the same image in the last two minutes is returned, not re-inserted.
-    supabase.from("image_comments").select("id,image_id,user_id,body,created_at").eq("image_id", image_id).eq("user_id", user.id).eq("body", body).is("deleted_at", null).gte("created_at", new Date(Date.now() - 2 * 60 * 1000).toISOString()).order("created_at", { ascending: true }).limit(1),
+    supabase.from("image_comments").select("id,image_id,user_id,body,created_at,section").eq("image_id", image_id).eq("user_id", user.id).eq("section", section).eq("body", body).is("deleted_at", null).gte("created_at", new Date(Date.now() - 2 * 60 * 1000).toISOString()).order("created_at", { ascending: true }).limit(1),
   ]);
   const author = commentAuthor(user.id, profile, user);
   if (recent?.[0]) return { ok: true, duplicate: true, comment: { ...recent[0], author } };
-  const { data, error } = await supabase.from("image_comments").insert({ image_id, user_id: user.id, body }).select("id,image_id,user_id,body,created_at").single();
+  const { data, error } = await supabase.from("image_comments").insert({ image_id, user_id: user.id, body, section }).select("id,image_id,user_id,body,created_at,section").single();
   if (error || !data) { console.error("Comment insert failed", error); return { ok: false, error: "Your feedback did not post. Your text is still here, so try again in a moment." }; }
   revalidatePath(`/images/${image_id}`); revalidatePath("/guild-hall");
   return { ok: true, comment: { ...data, author } };
