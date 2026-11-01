@@ -18,6 +18,8 @@ export type MemberStats = {
   first_name: string;
   avatar_url: string | null;
   avatar_path: string | null;
+  /** Header pill crop, falls back to the circle in the header when missing. */
+  avatar_pill_url: string | null;
   earned_honor_count: number;
   rank: string;
   rank_short: string;
@@ -50,7 +52,7 @@ function firstNameFor(displayName: string) {
 
 /** Own row (or any row for admins) from profiles; otherwise the public member_profiles view, which has no email or exact location. */
 async function loadProfile(supabase: SupabaseClient, id: string) {
-  const own = await supabase.from("profiles").select("display_name,full_name,email,avatar_url,avatar_path,country,region,state_or_province,specific_location,specific_location_name").eq("id", id).maybeSingle();
+  const own = await supabase.from("profiles").select("display_name,full_name,email,avatar_url,avatar_path,avatar_pill_path,country,region,state_or_province,specific_location,specific_location_name").eq("id", id).maybeSingle();
   if (own.data) return own;
   return supabase.from("member_profiles").select("display_name,full_name,avatar_url,avatar_path,country,region,state_or_province").eq("id", id).maybeSingle();
 }
@@ -73,6 +75,7 @@ export async function getMemberStats(supabase: SupabaseClient, user: AuthUser): 
     first_name: firstNameFor(display_name),
     avatar_url: resolveAvatarUrl(avatar_path || profile?.avatar_url),
     avatar_path,
+    avatar_pill_url: (profile as any)?.avatar_pill_path ? resolveAvatarUrl((profile as any).avatar_pill_path) : null,
     earned_honor_count: earned,
     rank: rank.full,
     rank_short: rank.short,

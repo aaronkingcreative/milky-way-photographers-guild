@@ -10,7 +10,7 @@ export function EditFieldReportForm({ image }: { image: any }) {
     <form action={action} className="mw-submit-card mt-6 space-y-5 p-5">
       <input type="hidden" name="image_id" value={image.id} />
       <label className="mw-submit-field-label block">Image Title <span>*</span><input className="mw-input mt-2" name="title" required maxLength={200} defaultValue={image.title || ""} /></label>
-      <LocationSelects defaults={{ country: image.country, state_or_province: image.state_or_province, specific_location_name: image.specific_location_name }} />
+      <LocationSelects required defaults={{ country: image.country, state_or_province: image.state_or_province, specific_location_name: image.specific_location_name }} />
       <label className="mw-submit-field-label block">Gear and Settings <span>*</span><input className="mw-input mt-2" name="gear_settings" required maxLength={500} defaultValue={image.gear_settings || ""} /></label>
       <label className="block text-[15.5px] font-bold text-white/85">The story<textarea className="mw-input mt-2 min-h-24" name="short_story" rows={5} maxLength={4000} defaultValue={image.short_story || ""} /></label>
       <div className="grid gap-4 md:grid-cols-2">

@@ -9,7 +9,7 @@ export type CommentView = { id: string; body: string; created_at: string; user_i
 
 export function MemberAvatar({ author, size = "h-9 w-9" }: { author: CommentAuthor; size?: string }) {
   return (
-    <span className={`grid ${size} shrink-0 place-items-center overflow-hidden rounded-full border border-[#e79f2b]/50 bg-[#06101c] font-display text-[#f0bd66]`}>
+    <span className={`mw-avatar-circle grid ${size} shrink-0 place-items-center overflow-hidden rounded-full border border-[#e79f2b]/50 bg-[#06101c] font-display text-[#f0bd66]`}>
       {author.avatarUrl ? <img src={author.avatarUrl} alt="" className="h-full w-full object-cover" /> : author.initials || "GM"}
     </span>
   );
@@ -92,7 +92,7 @@ function ReplyItem({ c, fresh }: { c: CommentView; fresh?: boolean }) {
   );
 }
 
-const REPLY_MAX = 600;
+export const REPLY_MAX = 280;
 
 /**
  * Reply tray under one of the photographer's answers (what went well, or what could have gone better).
@@ -101,8 +101,10 @@ const REPLY_MAX = 600;
 export function SectionReplyTray({ imageId, section, comments, currentAuthor, placeholder, label }: { imageId: string; section: Exclude<CommentSectionKey, "general">; comments: CommentView[]; currentAuthor: CommentAuthor; placeholder: string; label: string }) {
   const [list, setList] = useState<CommentView[]>(comments);
   const [freshId, setFreshId] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
   const [length, setLength] = useState(0);
   const formRef = useRef<HTMLFormElement>(null);
+  const openerRef = useRef<HTMLButtonElement>(null);
   const [state, formAction, pending] = useActionState<CommentState, FormData>(addComment, {});
 
   useEffect(() => { setList((prev) => { const ids = new Set(prev.map((c) => c.id)); return [...prev, ...comments.filter((c) => !ids.has(c.id))]; }); }, [comments]);
@@ -114,21 +116,35 @@ export function SectionReplyTray({ imageId, section, comments, currentAuthor, pl
     formRef.current?.reset();
     setLength(0);
     setFreshId(c.id);
+    setOpen(false);
   }, [state?.nonce]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function close() { formRef.current?.reset(); setLength(0); setOpen(false); requestAnimationFrame(() => openerRef.current?.focus()); }
+  const left = REPLY_MAX - length;
 
   return (
     <div className="mw-reply-tray">
       {list.length > 0 && <ol className="mw-reply-list" aria-label={`Replies on ${label}`}>{list.map((c) => <ReplyItem key={c.id} c={c} fresh={c.id === freshId} />)}</ol>}
-      <form ref={formRef} action={formAction} className="mw-reply-form">
-        <input type="hidden" name="image_id" value={imageId} />
-        <input type="hidden" name="section" value={section} />
-        <textarea className="mw-reply-input" name="body" rows={2} required maxLength={REPLY_MAX} placeholder={placeholder} aria-label={`Reply on ${label}`} readOnly={pending} onChange={(e) => setLength(e.currentTarget.value.length)} />
-        <div className="mw-reply-actions">
-          <span className={`mw-reply-count ${length > REPLY_MAX - 80 ? "is-near" : ""}`} aria-live="polite">{length > 0 ? `${REPLY_MAX - length} left` : "Keep it short"}</span>
-          <button className="mw-reply-button" type="submit" disabled={pending} aria-busy={pending}>{pending ? "Posting..." : "Reply"}</button>
-        </div>
-        {state?.error && <p className="mw-comment-error" role="alert">{state.error}</p>}
-      </form>
+      {!open ? (
+        <button ref={openerRef} type="button" className="mw-reply-open" onClick={() => setOpen(true)} aria-expanded={false}>
+          <span aria-hidden="true">+</span> {list.length ? "Reply" : "Click to comment"}
+        </button>
+      ) : (
+        <form ref={formRef} action={formAction} className="mw-reply-form" onKeyDown={(e) => { if (e.key === "Escape") close(); }}>
+          <input type="hidden" name="image_id" value={imageId} />
+          <input type="hidden" name="section" value={section} />
+          <textarea className="mw-reply-input" name="body" rows={3} required autoFocus maxLength={REPLY_MAX} placeholder={placeholder} aria-label={`Reply on ${label}`} aria-describedby={`${section}-count`} readOnly={pending} onChange={(e) => setLength(e.currentTarget.value.length)} />
+          <p className="mw-reply-note">Short and sweet, {REPLY_MAX} characters. Longer thoughts belong in Guild Feedback below.</p>
+          <div className="mw-reply-actions">
+            <span id={`${section}-count`} className={`mw-reply-count ${left <= 40 ? "is-near" : ""} ${left === 0 ? "is-out" : ""}`} aria-live="polite">{left}</span>
+            <span className="mw-reply-buttons">
+              <button className="mw-reply-cancel" type="button" onClick={close} disabled={pending}>Cancel</button>
+              <button className="mw-reply-button" type="submit" disabled={pending || length === 0} aria-busy={pending}>{pending ? "Posting..." : "Reply"}</button>
+            </span>
+          </div>
+          {state?.error && <p className="mw-comment-error" role="alert">{state.error}</p>}
+        </form>
+      )}
     </div>
   );
 }
