@@ -2,12 +2,12 @@ import Image from "next/image";
 import { SubmitImageForm } from "@/components/images/SubmitImageForm";
 import { requireAccess } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getIotwTargetPeriod } from "@/lib/iotw";
+import { getIotwEntryPeriod } from "@/lib/iotw";
 
 export default async function Page() {
   const { user } = await requireAccess();
   const supabase = await createServerSupabaseClient();
-  const period = getIotwTargetPeriod();
+  const period = await getIotwEntryPeriod(supabase);
   const [{ count: candidateCount }, { data: achievements }, { data: earnedAchievements }] = await Promise.all([
     supabase
       .from("field_reports")
