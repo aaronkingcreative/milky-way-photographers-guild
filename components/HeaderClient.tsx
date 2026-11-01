@@ -116,7 +116,7 @@ export function HeaderClient({
                   aria-expanded={accountMenuOpen}
                   onClick={() => setAccountMenuOpen((open) => !open)}
                 >
-                  {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full rounded-full object-cover" /> : initials}
+                  {avatarUrl ? <img src={avatarUrl} alt="" /> : initials}
                 </button>
                 {accountMenuOpen && (
                   <div className="mw-account-menu">

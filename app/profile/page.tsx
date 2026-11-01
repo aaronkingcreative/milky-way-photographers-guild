@@ -6,7 +6,7 @@ import { ProfileSettingsForm } from "@/components/ProfileSettingsForm";
 export default async function Page() {
   const { user } = await requireLogin();
   const supabase = await createServerSupabaseClient();
-  const { data: profile } = await supabase.from("profiles").select("display_name,full_name,email,avatar_url,avatar_path,country,region,state_or_province,specific_location,specific_location_name").eq("id", user.id).maybeSingle();
+  const { data: profile } = await supabase.from("profiles").select("display_name,full_name,email,avatar_url,avatar_path,avatar_pill_path,avatar_original_path,avatar_crop,country,region,state_or_province,specific_location,specific_location_name").eq("id", user.id).maybeSingle();
 
   return (
     <main className="mw-page-wide profile-settings-page">

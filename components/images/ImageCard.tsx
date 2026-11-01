@@ -52,7 +52,7 @@ export function ImageCard({ image, reactions }: { image: any; reactions?: any[] 
         <div className="absolute bottom-0 left-0 right-0 p-4">
           <h2 className="mw-gallery-card-title">{image.title}</h2>
           <Link href={`/members/${image.user_id}`} className="relative z-[2] mt-2 inline-flex items-center gap-2 hover:underline">
-            <span className="grid h-6 w-6 place-items-center overflow-hidden rounded-full border border-[#e79f2b]/55 bg-[#e79f2b]/15 font-display text-[.7rem] text-[#f0bd66]">
+            <span className="mw-avatar-circle grid h-6 w-6 place-items-center overflow-hidden rounded-full border border-[#e79f2b]/55 bg-[#e79f2b]/15 font-display text-[.7rem] text-[#f0bd66]">
               {avatar.avatarUrl ? <img src={avatar.avatarUrl} alt="" className="h-full w-full object-cover" /> : avatar.initials || "G"}
             </span>
             <span className="text-sm font-bold text-white/90">{name}</span>

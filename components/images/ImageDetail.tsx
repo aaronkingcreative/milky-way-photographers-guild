@@ -68,34 +68,36 @@ export function ImageDetail({ image, authorStats, reactions, comments, canEditCa
         <header>
           <h1 className="mw-post-title">{image.title}</h1>
           <div className="mt-4 flex items-center gap-3">
-            <Link href={memberHref} aria-label={`View ${name}'s profile`} className="grid h-12 w-12 place-items-center overflow-hidden rounded-full border border-[#e79f2b]/65 bg-[#e79f2b]/10 font-display text-[#f0bd66]">{avatar.avatarUrl ? <img src={avatar.avatarUrl} alt="" className="h-full w-full rounded-full object-cover" /> : avatar.initials}</Link>
+            <Link href={memberHref} aria-label={`View ${name}'s profile`} className="mw-avatar-circle grid h-12 w-12 place-items-center overflow-hidden rounded-full border border-[#e79f2b]/65 bg-[#e79f2b]/10 font-display text-[#f0bd66]">{avatar.avatarUrl ? <img src={avatar.avatarUrl} alt="" className="h-full w-full rounded-full object-cover" /> : avatar.initials}</Link>
             <div>
               <p className="flex flex-wrap items-center gap-2 text-lg font-bold text-white"><Link href={memberHref} className="mw-member-link">{name}</Link>{streak && <span className="mw-streak-pill">{streak}</span>}</p>
               <p className="mt-0.5 font-semibold text-[#e79f2b]">{rank}</p>
             </div>
           </div>
           {canEditCandidate && <div className="mt-4 flex flex-wrap gap-3">
-            <Link href={`/images/${image.id}/edit`} className="mw-btn-ghost inline-block">Edit field report</Link>
+            <Link href={`/images/${image.id}/edit`} className="mw-owner-edit"><span aria-hidden="true">✎</span> Edit your field report</Link>
             <form action={toggleWeeklyCandidate} className="inline-block"><input type="hidden" name="image_id" value={image.id} /><input type="hidden" name="week_starts_on" value={image.week_starts_on} /><input type="hidden" name="next" value={(!image.is_weekly_candidate).toString()} /><button className="mw-btn-ghost">{image.is_weekly_candidate ? "Unmark weekly candidate" : "Mark as weekly candidate"}</button></form>
           </div>}
         </header>
         <section className="mw-report-story"><h2 className="mw-field-report-label">The Field Report</h2><p className="mt-3 whitespace-pre-wrap mw-body">{image.short_story || "No story added yet."}</p></section>
-        <section id="went-well" className="mw-insight-block is-good" aria-labelledby="went-well-heading">
-          <div className="mw-insight-answer">
-            <h2 id="went-well-heading" className="mw-insight-title">What went well</h2>
-            <p className="mw-insight-by">{firstName} wrote</p>
-            <p className="mw-insight-quote">{image.what_went_well || `${firstName} left this one blank.`}</p>
-          </div>
-          <SectionReplyTray imageId={image.id} section="went_well" comments={wentWellReplies} currentAuthor={currentAuthor} label="what went well" placeholder={`Reply to ${whose} what went well, or share what you think went well in this image.`} />
-        </section>
-        <section id="could-be-better" className="mw-insight-block is-better" aria-labelledby="could-be-better-heading">
-          <div className="mw-insight-answer">
-            <h2 id="could-be-better-heading" className="mw-insight-title">What could have gone better</h2>
-            <p className="mw-insight-by">{firstName} wrote</p>
-            <p className="mw-insight-quote">{image.what_could_have_gone_better || `${firstName} left this one blank.`}</p>
-          </div>
-          <SectionReplyTray imageId={image.id} section="could_be_better" comments={betterReplies} currentAuthor={currentAuthor} label="what could have gone better" placeholder={`Reply to ${whose} what could have gone better, or share what you'd try differently.`} />
-        </section>
+        <div className="mw-insight-row">
+          <section id="went-well" className="mw-insight-block is-good" aria-labelledby="went-well-heading">
+            <div className="mw-insight-answer">
+              <h2 id="went-well-heading" className="mw-insight-title">What went well</h2>
+              <p className="mw-insight-by">{firstName} wrote</p>
+              <p className="mw-insight-quote">{image.what_went_well || `${firstName} left this one blank.`}</p>
+            </div>
+            <SectionReplyTray imageId={image.id} section="went_well" comments={wentWellReplies} currentAuthor={currentAuthor} label="what went well" placeholder={`Reply to ${whose} what went well, or share what you think went well in this image.`} />
+          </section>
+          <section id="could-be-better" className="mw-insight-block is-better" aria-labelledby="could-be-better-heading">
+            <div className="mw-insight-answer">
+              <h2 id="could-be-better-heading" className="mw-insight-title">What could have gone better</h2>
+              <p className="mw-insight-by">{firstName} wrote</p>
+              <p className="mw-insight-quote">{image.what_could_have_gone_better || `${firstName} left this one blank.`}</p>
+            </div>
+            <SectionReplyTray imageId={image.id} section="could_be_better" comments={betterReplies} currentAuthor={currentAuthor} label="what could have gone better" placeholder={`Reply to ${whose} what could have gone better, or share what you'd try differently.`} />
+          </section>
+        </div>
         <section id="feedback">
           <h2 className="mw-feedback-heading">Guild Feedback <span>{general.length}</span></h2>
           <div className="mt-4"><CommentsSection imageId={image.id} comments={general} currentAuthor={currentAuthor} /></div>

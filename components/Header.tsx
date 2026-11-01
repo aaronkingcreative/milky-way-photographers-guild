@@ -25,5 +25,5 @@ export async function Header() {
     }
   }
   const streakLabel = stats?.year_streak ? `${stats.year_streak} Year Streak` : undefined;
-  return <HeaderClient user={Boolean(user)} isAdmin={isAdmin} name={publicMemberName(stats?.display_name)} needsProfile={Boolean(stats && (!stats.has_display_name || !stats.has_avatar))} missingName={Boolean(stats && !stats.has_display_name)} missingPhoto={Boolean(stats && !stats.has_avatar)} userId={user?.id || null} rankLabel={stats?.rank_short} streakLabel={streakLabel} avatarUrl={stats?.avatar_url || null} iotw={iotw} />;
+  return <HeaderClient user={Boolean(user)} isAdmin={isAdmin} name={publicMemberName(stats?.display_name)} needsProfile={Boolean(stats && (!stats.has_display_name || !stats.has_avatar))} missingName={Boolean(stats && !stats.has_display_name)} missingPhoto={Boolean(stats && !stats.has_avatar)} userId={user?.id || null} rankLabel={stats?.rank_short} streakLabel={streakLabel} avatarUrl={stats?.avatar_pill_url || stats?.avatar_url || null} iotw={iotw} />;
 }

@@ -5,6 +5,7 @@ import { requireAccess, requireAdmin, requireLogin } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { REACTION_TYPES, SUBMISSION_LIMIT, getWeekStart } from "@/lib/images";
 import { getIotwTargetPeriod } from "@/lib/iotw";
+import { sanitizeCrop } from "@/lib/portrait";
 import { coverageFromCaptureDate } from "@/lib/coverage";
 import { displayNameFromProfile, getAvatarDisplay } from "@/lib/avatar";
 import { ALLOWED_IMAGE_TYPES, FIELD_REPORT_IMAGE_BUCKET, MAX_UPLOAD_BYTES, PROFILE_AVATAR_BUCKET, storagePublicUrl } from "@/lib/storage";
@@ -113,7 +114,7 @@ async function postComment(formData: FormData): Promise<CommentResult> {
   if (!section) return { ok: false, error: "We could not tell where this reply goes. Refresh and try again." };
   if (!body) return { ok: false, error: section === "general" ? "Write a little feedback before posting." : "Write a short reply before posting." };
   if (section === "general" && body.length > 4000) return { ok: false, error: "That feedback is too long. Keep it under 4,000 characters." };
-  if (section !== "general" && body.length > 600) return { ok: false, error: "Keep section replies short, under 600 characters. Longer thoughts fit in Guild Feedback below." };
+  if (section !== "general" && body.length > 280) return { ok: false, error: "Section replies stop at 280 characters. Longer thoughts belong in Guild Feedback below." };
   const [{ data: profile }, { data: recent }] = await Promise.all([
     supabase.from("profiles").select("display_name,full_name,avatar_url,avatar_path").eq("id", user.id).maybeSingle(),
     // Guard against double submits: the same note from the same member on the same image in the last two minutes is returned, not re-inserted.
@@ -148,18 +149,17 @@ export async function setReaction(image_id: string, reaction_type: string, activ
   return { ok: true, active };
 }
 export async function toggleWeeklyCandidate(formData: FormData) { const { user } = await requireAccess(); const supabase=await createServerSupabaseClient(); const image_id=value(formData,"image_id"), week=value(formData,"week_starts_on"), next=value(formData,"next")==="true"; if(next){ const { count }=await supabase.from("guild_images").select("id",{count:"exact",head:true}).eq("user_id",user.id).eq("week_starts_on",week).eq("is_weekly_candidate",true).is("deleted_at",null).neq("id",image_id); if((count||0)>0) return; } await supabase.from("guild_images").update({is_weekly_candidate:next}).eq("id",image_id).eq("user_id",user.id); revalidatePath(`/images/${image_id}`); revalidatePath("/feed"); }
+const PROFILE_SETTINGS_COLUMNS = "display_name,full_name,email,avatar_url,avatar_path,avatar_pill_path,avatar_original_path,avatar_crop,country,region,state_or_province,specific_location,specific_location_name,updated_at";
 export type ProfileSaveState = { status: "idle" | "saving" | "success" | "error"; profile?: any; message?: string };
 
 export async function updateProfileLocation(_previousState: ProfileSaveState, formData: FormData): Promise<ProfileSaveState> {
   const { user } = await requireLogin();
   const supabase = await createServerSupabaseClient();
-  const avatar_path = value(formData, "avatar_path") || null;
+  // The portrait saves on its own (savePortrait), so this form never touches avatar columns.
   const profilePayload = {
     id: user.id,
     email: user.email || null,
     display_name: value(formData, "display_name") || null,
-    avatar_path,
-    avatar_url: avatar_path ? storagePublicUrl(PROFILE_AVATAR_BUCKET, avatar_path) : null,
     country: value(formData, "country") || null,
     region: value(formData, "state_or_province") || null,
     state_or_province: value(formData, "state_or_province") || null,
@@ -175,16 +175,53 @@ export async function updateProfileLocation(_previousState: ProfileSaveState, fo
 
   const { data: refetchedProfile, error: refetchError } = await supabase
     .from("profiles")
-    .select("display_name,full_name,email,avatar_url,avatar_path,country,region,state_or_province,specific_location,specific_location_name,updated_at")
+    .select(PROFILE_SETTINGS_COLUMNS)
     .eq("id", user.id)
     .maybeSingle();
-  if (refetchError || !refetchedProfile || refetchedProfile.avatar_path !== avatar_path) {
-    console.error("Profile refetch failed", refetchError || { expectedAvatarPath: avatar_path, refetchedProfile });
+  if (refetchError || !refetchedProfile) {
+    console.error("Profile refetch failed", refetchError);
     return { status: "error", message: "We could not save your profile. Try again." };
   }
 
-  revalidatePath("/profile"); revalidatePath("/progress"); revalidatePath("/field-desk"); revalidatePath("/guild-hall"); revalidatePath("/feed"); revalidatePath("/gallery");
+  revalidatePath("/", "layout");
   return { status: "success", message: "Profile saved. Your Guild identity is updated.", profile: refetchedProfile };
+}
+
+export type PortraitSaveState = { ok: boolean; message: string; profile?: any };
+const PORTRAIT_FILE = /^users\/[0-9a-f-]{36}\/avatar[a-z0-9-]*\.(jpg|png|webp)$/;
+
+/**
+ * Saves the member's portrait in one step right after the browser uploads the crops.
+ * avatar_path is the circle crop (used everywhere), avatar_pill_path the header pill, avatar_original_path the source photo,
+ * and avatar_crop the position and zoom for each shape so the member can come back and adjust.
+ */
+export async function savePortrait(input: { circlePath: string; pillPath: string; originalPath: string | null; crop: unknown }): Promise<PortraitSaveState> {
+  const { user } = await requireLogin();
+  const supabase = await createServerSupabaseClient();
+  const own = (p: string | null | undefined) => !p || (p.startsWith(`users/${user.id}/`) && PORTRAIT_FILE.test(p));
+  if (!input?.circlePath || !input?.pillPath || !own(input.circlePath) || !own(input.pillPath) || !own(input.originalPath)) return { ok: false, message: "That portrait upload did not match your account. Try again." };
+  const avatar_crop = sanitizeCrop(input.crop);
+  const patch = {
+    id: user.id,
+    avatar_path: input.circlePath,
+    avatar_url: storagePublicUrl(PROFILE_AVATAR_BUCKET, input.circlePath),
+    avatar_pill_path: input.pillPath,
+    avatar_original_path: input.originalPath || null,
+    avatar_crop,
+  };
+  const { error } = await supabase.from("profiles").upsert(patch, { onConflict: "id" });
+  if (error) { console.error("Portrait save failed", error); return { ok: false, message: "We could not save your portrait. Try again." }; }
+  const { data: profile } = await supabase.from("profiles").select(PROFILE_SETTINGS_COLUMNS).eq("id", user.id).maybeSingle();
+  if (!profile || profile.avatar_path !== input.circlePath) return { ok: false, message: "We could not save your portrait. Try again." };
+
+  // Tidy older portrait files in the member's own folder. Field report images live in a subfolder and are never touched.
+  const keep = new Set([input.circlePath, input.pillPath, input.originalPath].filter(Boolean));
+  const { data: files } = await supabase.storage.from(PROFILE_AVATAR_BUCKET).list(`users/${user.id}`, { limit: 100 });
+  const stale = (files || []).filter((f: any) => f.id && /^avatar/.test(f.name)).map((f: any) => `users/${user.id}/${f.name}`).filter((p: string) => !keep.has(p));
+  if (stale.length) { const { error: removeError } = await supabase.storage.from(PROFILE_AVATAR_BUCKET).remove(stale); if (removeError) console.error("Old portrait cleanup failed", removeError); }
+
+  revalidatePath("/", "layout");
+  return { ok: true, message: "Portrait saved. It shows across the Guild now.", profile };
 }
 export async function adminImageAction(formData: FormData) { const { user }=await requireAdmin(); const supabase=await createServerSupabaseClient(); const image_id=value(formData,"image_id"), action=value(formData,"action"); const reason=value(formData,"moderation_reason")||null; const patch:any={moderation_reason:reason}; if(action==="hide") Object.assign(patch,{hidden_at:new Date().toISOString(),hidden_by:user.id,moderation_status:"hidden",status:"hidden"}); if(action==="unhide") Object.assign(patch,{hidden_at:null,hidden_by:null,moderation_status:"visible",status:"published"}); if(action==="delete") Object.assign(patch,{deleted_at:new Date().toISOString(),deleted_by:user.id,moderation_status:"deleted",status:"removed"}); if(action==="blur") Object.assign(patch,{moderation_blur_required:true,moderation_status:"blurred"}); if(action==="unblur") Object.assign(patch,{moderation_blur_required:false,moderation_status:"visible"}); if(action==="review") Object.assign(patch,{moderation_reviewed_by:user.id,moderation_reviewed_at:new Date().toISOString()}); await supabase.from("guild_images").update(patch).eq("id",image_id); revalidatePath("/admin/images"); }
 
