@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { requireAccess, requireAdmin, requireLogin } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { REACTION_TYPES, SUBMISSION_LIMIT, getWeekStart } from "@/lib/images";
-import { getIotwTargetPeriod } from "@/lib/iotw";
+import { getIotwEntryPeriod, getIotwTargetPeriod } from "@/lib/iotw";
 import { sanitizeCrop } from "@/lib/portrait";
 import { coverageFromCaptureDate } from "@/lib/coverage";
 import { displayNameFromProfile, getAvatarDisplay } from "@/lib/avatar";
@@ -25,7 +25,7 @@ async function awardPerfectYearIfComplete(supabase: any, userId: string, fieldRe
 }
 
 export async function submitImage(formData: FormData) {
-  const { user } = await requireAccess(); const supabase = await createServerSupabaseClient(); const targetBallot = getIotwTargetPeriod();
+  const { user } = await requireAccess(); const supabase = await createServerSupabaseClient(); const targetBallot = await getIotwEntryPeriod(supabase);
   const title=value(formData,"title"), capture_date=value(formData,"capture_date"), country=value(formData,"country"), state_or_province=value(formData,"state_or_province"), gear_settings=value(formData,"gear_settings");
   const image_original_path=value(formData,"image_original_path"), image_mime_type=value(formData,"image_mime_type"), submission_id=value(formData,"submission_id");
   const image_size_bytes=Number(value(formData,"image_size_bytes") || 0), image_width=Number(value(formData,"image_width") || 0) || null, image_height=Number(value(formData,"image_height") || 0) || null;
@@ -65,7 +65,7 @@ async function ensureIotwBallot(supabase: any, _period?: ReturnType<typeof getIo
 }
 
 export async function enterIotwContender(formData: FormData) {
-  const { user } = await requireAccess(); const supabase = await createServerSupabaseClient(); const field_report_id = value(formData,"field_report_id"), guild_image_id = value(formData,"guild_image_id"); const period = getIotwTargetPeriod(); const ballotId = await ensureIotwBallot(supabase, period); if (!ballotId) return;
+  const { user } = await requireAccess(); const supabase = await createServerSupabaseClient(); const field_report_id = value(formData,"field_report_id"), guild_image_id = value(formData,"guild_image_id"); const period = await getIotwEntryPeriod(supabase); const ballotId = await ensureIotwBallot(supabase, period); if (!ballotId) return;
   const { data: report } = await supabase.from("field_reports").select("id,user_id,status").eq("id",field_report_id).eq("user_id",user.id).maybeSingle(); if(!report || report.status === "removed") return;
   const { error: candidateError } = await supabase.from("field_reports").update({ is_iotw_candidate:true, iotw_week_start:period.period_start.slice(0,10) }).eq("id",field_report_id).eq("user_id",user.id);
   if (candidateError) { console.error("IOTW candidate update failed", candidateError); return; }
@@ -148,7 +148,26 @@ export async function setReaction(image_id: string, reaction_type: string, activ
   revalidatePath(`/images/${image_id}`); revalidatePath("/feed"); revalidatePath("/guild-hall");
   return { ok: true, active };
 }
-export async function toggleWeeklyCandidate(formData: FormData) { const { user } = await requireAccess(); const supabase=await createServerSupabaseClient(); const image_id=value(formData,"image_id"), week=value(formData,"week_starts_on"), next=value(formData,"next")==="true"; if(next){ const { count }=await supabase.from("guild_images").select("id",{count:"exact",head:true}).eq("user_id",user.id).eq("week_starts_on",week).eq("is_weekly_candidate",true).is("deleted_at",null).neq("id",image_id); if((count||0)>0) return; } await supabase.from("guild_images").update({is_weekly_candidate:next}).eq("id",image_id).eq("user_id",user.id); revalidatePath(`/images/${image_id}`); revalidatePath("/feed"); }
+export async function toggleWeeklyCandidate(formData: FormData) {
+  // Marking an image as a contender must also put its field report on the ballot, otherwise it shows as entered but never reaches voters.
+  const { user } = await requireAccess(); const supabase=await createServerSupabaseClient(); const image_id=value(formData,"image_id"), next=value(formData,"next")==="true";
+  const { data: report } = await supabase.from("field_reports").select("id,status,is_iotw_candidate,iotw_week_start").eq("guild_image_id",image_id).eq("user_id",user.id).maybeSingle();
+  if (next) {
+    if (!report || report.status === "removed") return;
+    const period = await getIotwEntryPeriod(supabase); const week = period.period_start.slice(0,10);
+    const { count } = await supabase.from("field_reports").select("id",{count:"exact",head:true}).eq("user_id",user.id).eq("iotw_week_start",week).eq("is_iotw_candidate",true).neq("status","removed").neq("id",report.id); if((count||0)>0) return;
+    const ballotId = await ensureIotwBallot(supabase, period); if (!ballotId) return;
+    const { error: candidateError } = await supabase.from("field_reports").update({ is_iotw_candidate:true, iotw_week_start:week }).eq("id",report.id).eq("user_id",user.id); if (candidateError) { console.error("IOTW candidate update failed", candidateError); return; }
+    const { error: entryError } = await supabase.from("iotw_ballot_entries").insert({ ballot_id: ballotId, field_report_id: report.id, user_id: user.id }); if (entryError && entryError.code !== "23505") { console.error("IOTW entry failed", entryError); return; }
+  } else if (report) {
+    // Withdrawal only removes the entry while its ballot is still upcoming (RLS). Once voting opens it stays on the ballot.
+    const { count: removed } = await supabase.from("iotw_ballot_entries").delete({ count: "exact" }).eq("field_report_id",report.id).eq("user_id",user.id);
+    const { count: remaining } = await supabase.from("iotw_ballot_entries").select("field_report_id",{count:"exact",head:true}).eq("field_report_id",report.id);
+    if ((remaining || 0) > 0) { if (removed) console.error("IOTW partial withdrawal"); return; }
+    await supabase.from("field_reports").update({ is_iotw_candidate:false }).eq("id",report.id).eq("user_id",user.id);
+  }
+  await supabase.from("guild_images").update({is_weekly_candidate:next}).eq("id",image_id).eq("user_id",user.id); revalidatePath(`/images/${image_id}`); revalidatePath("/feed");
+}
 const PROFILE_SETTINGS_COLUMNS = "display_name,full_name,email,avatar_url,avatar_path,avatar_pill_path,avatar_original_path,avatar_crop,country,region,state_or_province,specific_location,specific_location_name,updated_at";
 export type ProfileSaveState = { status: "idle" | "saving" | "success" | "error"; profile?: any; message?: string };
 

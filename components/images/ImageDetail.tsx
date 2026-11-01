@@ -1,3 +1,4 @@
+import { formatMountainDeadline } from "@/lib/iotw";
 import type React from "react";
 import Link from "next/link";
 import { getAvatarDisplay, MEMBER_NAME_FALLBACK, publicMemberName } from "@/lib/avatar";
@@ -12,7 +13,7 @@ import { HonorBadge, type HonorView } from "@/components/HonorBadge";
 const formatDate = (v: string) => new Date(v).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 const loc = (image: any) => ({ primary: [image.specific_location_name, image.state_or_province].filter(Boolean).join(", ") || image.state_or_province || "Location pending", country: image.country });
 
-export function ImageDetail({ image, authorStats, reactions, comments, canEditCandidate, from, currentUserId, currentAuthor, honors, edited }: { edited?: boolean; image: any; authorStats?: any; reactions: any[]; comments: CommentView[]; canEditCandidate: boolean; from?: string; currentUserId: string; currentAuthor: CommentAuthor; honors: HonorView[] }) {
+export function ImageDetail({ image, authorStats, reactions, comments, canEditCandidate, from, currentUserId, currentAuthor, honors, edited, iotwClosesAt }: { edited?: boolean; iotwClosesAt?: string | null; image: any; authorStats?: any; reactions: any[]; comments: CommentView[]; canEditCandidate: boolean; from?: string; currentUserId: string; currentAuthor: CommentAuthor; honors: HonorView[] }) {
   const location = loc(image);
   const name = publicMemberName(authorStats?.display_name, image.profiles?.display_name, image.profiles?.full_name, image.display_name, image.photographer_name);
   const avatar = getAvatarDisplay({ avatarPath: authorStats?.avatar_path || image.profiles?.avatar_path, avatarUrl: authorStats?.avatar_url || image.profiles?.avatar_url, displayName: name });
@@ -61,7 +62,7 @@ export function ImageDetail({ image, authorStats, reactions, comments, canEditCa
               <p className="mt-3 text-sm text-white/60">No honors on this one yet.</p>
             )}
           </section>
-          {image.is_weekly_candidate && <section className="mw-iotw-panel p-5"><p className="text-2xl text-[#f0bd66]">✪</p><h3>Image of the Week Contender</h3><p>Entered in this week&apos;s vote. Winners are crowned every Monday.</p><OpenVoteButton className="mw-btn-primary mt-4 w-full rounded-sm" /></section>}
+          {image.is_weekly_candidate && <section className="mw-iotw-panel p-5"><p className="text-2xl text-[#f0bd66]">✪</p><h3>Image of the Week Contender</h3><p>{iotwClosesAt ? `On the ballot. Voting closes ${formatMountainDeadline(iotwClosesAt)}.` : "Entered for the next ballot. Winners are crowned the day after it closes."}</p><OpenVoteButton className="mw-btn-primary mt-4 w-full rounded-sm" /></section>}
         </aside>
       </div>
       <div className="mw-report-body">
