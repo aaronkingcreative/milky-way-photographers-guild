@@ -4,7 +4,7 @@ import { toggleWeeklyCandidate } from "@/app/actions";
 import { formatStreakBadge, fullPhotographerRank } from "@/lib/display";
 import { ReactionBar } from "./ReactionBar";
 import { CommentsSection, type CommentAuthor, type CommentView } from "./Comments";
-import { ImageLightbox } from "./ImageLightbox";
+import { ImageViewer } from "./ImageViewer";
 import { OpenVoteButton } from "./OpenVoteButton";
 import { HonorBadge, type HonorView } from "@/components/HonorBadge";
 
@@ -23,8 +23,8 @@ export function ImageDetail({ image, authorStats, reactions, comments, canEditCa
     <article className="pb-6">
       <div className="mw-detail-topbar"><Link href={back.href} className="mw-nav-text text-sm text-[#f0bd66]">{back.label}</Link></div>
       <div className={`mw-detail-stage ${Number(image.image_width) > 0 && Number(image.image_height) > 0 && Number(image.image_width) < Number(image.image_height) ? "is-portrait" : "is-landscape"}`}>
-        <div className="relative grid min-h-[40vh] place-items-center">
-          <ImageLightbox src={image.image_url} alt={image.title} className={`mw-detail-image ${image.moderation_blur_required ? "blur-2xl" : ""}`} />
+        <div className="relative grid place-items-center">
+          <ImageViewer src={image.image_url} alt={image.title} width={Number(image.image_width) || null} height={Number(image.image_height) || null} blurred={Boolean(image.moderation_blur_required)} className={`mw-detail-image ${image.moderation_blur_required ? "blur-2xl" : ""}`} />
           {image.moderation_blur_required && <div className="absolute inset-0 grid place-items-center bg-black/45 text-center font-display text-xl uppercase tracking-widest">Blurred pending moderation review</div>}
           {edited && <p role="status" className="mw-comment-notice absolute right-4 top-4 z-[3]">✓ Your changes are saved.</p>}
           {image.is_weekly_candidate && <span className="absolute left-4 top-4 rounded-sm border border-[#e79f2b]/70 bg-[#091625] px-4 py-2 font-display text-xs uppercase tracking-[.16em] text-[#f0bd66]">IOTW Contender</span>}
@@ -55,7 +55,7 @@ export function ImageDetail({ image, authorStats, reactions, comments, canEditCa
             <div className="mt-4"><CommentsSection imageId={image.id} comments={comments} currentAuthor={currentAuthor} /></div>
           </section>
         </main>
-        <aside className="space-y-5 lg:sticky lg:top-28 lg:self-start">
+        <aside className="space-y-5 lg:sticky lg:top-[136px] lg:self-start">
           <section className="mw-card-soft p-5">
             <p className="mw-capture-heading">Capture Details</p>
             <dl className="mt-4 space-y-4 text-sm">

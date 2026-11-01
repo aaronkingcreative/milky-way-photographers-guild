@@ -98,7 +98,7 @@ export function HeaderClient({
             <div className="mw-header-actions">
               {iotw ? <IotwVotingModal ballot={iotw.ballot} entries={iotw.entries} existingVote={iotw.vote} required={Boolean(iotw.mustVote) && voteGateApplies(pathname)} /> : null}
               <Link href="/submit" className="mw-submit-image-button">Submit Image</Link>
-              {isAdmin && <Link href="/admin" className="hidden mw-meta text-white/45 hover:text-[#f0bd66] md:inline">Admin</Link>}
+              {isAdmin && <Link href="/admin" className="hidden mw-meta mw-header-admin-link text-white/45 hover:text-[#f0bd66] md:inline">Admin</Link>}
               <div className="mw-account-wrap">
                 <Link href="/profile" className="mw-member-cluster" aria-label="Open member profile">
                   <span className="mw-member-copy">
