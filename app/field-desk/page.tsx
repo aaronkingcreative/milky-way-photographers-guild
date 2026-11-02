@@ -5,6 +5,7 @@ import { WeeklySubmissionStatus } from "@/components/images/WeeklySubmissionStat
 import { getWeekStart, SUBMISSION_LIMIT } from "@/lib/images";
 import { requireLogin } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { badgeTone, fetchIotwBadges } from "@/lib/iotw-badges";
 import { getMemberStats } from "@/lib/member-stats";
 import { fetchWinningImageIds } from "@/lib/ranks";
 import { publicMemberName } from "@/lib/avatar";
@@ -53,9 +54,9 @@ function WinnerSlot({ placement, place, featured, weekLabel }: { placement: Iotw
       <div className={featured ? "fd-winner-image fd-winner-image-featured" : "fd-winner-image"}>
         <img src={image.image_url} alt={placement.title || "Guild image"} />
         <span className={`fd-place fd-place-${place}`}>{place}</span>
-        {featured && <div className="fd-winner-overlay"><span>{weekLabel ? `IOTW ${weekLabel} winner` : "Image of the Week"}</span><h3>{placement.title}</h3><p>{nameFor(image)}, {votes}</p></div>}
+        {featured && <div className="fd-winner-overlay"><span className="mw-iotw-badge is-gold">{weekLabel ? `IOTW ${weekLabel} #1` : "Image of the Week"}</span><h3>{placement.title}</h3><p>{nameFor(image)}, {votes}</p></div>}
       </div>
-      {!featured && <><h3>{placement.title}</h3><p>{nameFor(image)}, {votes}</p></>}
+      {!featured && <>{weekLabel && <span className={`mw-iotw-badge mw-iotw-badge-sm ${place === "2" ? "is-silver" : "is-bronze"}`}>IOTW {weekLabel} #{place}</span>}<h3>{placement.title}</h3><p>{nameFor(image)}, {votes}</p></>}
     </Link>
   );
 }
@@ -65,7 +66,7 @@ function ContenderPreview({ image }: { image: any }) {
     <Link href={`/images/${image.id}`} className="fd-contender-card">
       <img src={image.image_url} alt={image.title || "Guild image"} />
       <div className="fd-contender-shade" />
-      {image.is_weekly_candidate && <span className="fd-ribbon">IOTW Contender</span>}
+      {image.iotw_badge ? <span className={`fd-ribbon mw-iotw-badge ${badgeTone(image.iotw_badge)}`}>{image.iotw_badge.label}</span> : image.is_weekly_candidate && <span className="fd-ribbon">IOTW Contender</span>}
       <div className="fd-contender-copy"><h3>{image.title}</h3><p>{nameFor(image)}</p></div>
       <span className="fd-view">View →</span>
     </Link>
@@ -110,7 +111,8 @@ export default async function Page() {
         const imageIds = (reports || []).map((r: any) => r.guild_image_id).filter(Boolean);
         const { data: imgs2 } = imageIds.length ? await supabase.from("guild_images").select("*, profiles:member_profiles(display_name,full_name,avatar_url,avatar_path)").in("id", imageIds).is("hidden_at", null).is("deleted_at", null) : { data: [] };
         const order = new Map<string, number>((reports || []).map((r: any) => [r.guild_image_id, reportIds.indexOf(r.id)]));
-        contenders = (imgs2 || []).map((i: any) => ({ ...i, is_weekly_candidate: true })).sort((a: any, b: any) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+        const badges = await fetchIotwBadges(supabase, (imgs2 || []).map((i: any) => i.id)).catch(() => new Map());
+        contenders = (imgs2 || []).map((i: any) => ({ ...i, is_weekly_candidate: true, iotw_badge: badges.get(i.id) || null })).sort((a: any, b: any) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
       }
     }
   }
@@ -141,7 +143,7 @@ export default async function Page() {
 
     <section className="fd-stats">{([[myCount, "Guild Submissions", "Your first field report starts the climb."], [stats?.earned_honor_count || 0, "Achievements Earned", "Claim an honor when you submit."], [reactions.length, "Reactions Received", "Reactions arrive as the Guild sees your work."], [iotwWins, "Image of the Week Wins", "Enter a contender this week."]] as [number, string, string][]).map(([n, l, hint], i) => <div key={l} className="fd-stat-card"><strong className={i % 2 ? "gold" : ""}>{n}</strong><span>{l}</span>{!n && <small className="fd-stat-hint">{hint}</small>}</div>)}</section>
 
-    <section className="fd-panel fd-throne"><div className="fd-section-head"><span>✪</span><FieldDeskLabel>The Winners&apos; Throne</FieldDeskLabel><p>{throneCopy}</p><Link href="/winners" className="fd-throne-archive">All winners →</Link></div><div className="fd-throne-grid"><WinnerSlot placement={place(2)} place="2" /><WinnerSlot placement={place(1)} place="1" featured weekLabel={lastWeek?.label} /><WinnerSlot placement={place(3)} place="3" /></div></section>
+    <section className="fd-panel fd-throne"><div className="fd-section-head"><span>✪</span><FieldDeskLabel>The Winners&apos; Throne</FieldDeskLabel><p>{throneCopy}</p><Link href="/winners" className="fd-throne-archive">All winners →</Link></div><div className="fd-throne-grid"><WinnerSlot placement={place(2)} place="2" weekLabel={lastWeek?.label} /><WinnerSlot placement={place(1)} place="1" featured weekLabel={lastWeek?.label} /><WinnerSlot placement={place(3)} place="3" weekLabel={lastWeek?.label} /></div></section>
 
     <div className="fd-main-grid"><section className="fd-panel fd-phavorite"><div className="fd-section-head"><span>✪</span><FieldDeskLabel>Photog Phavorite, Moment of Envy</FieldDeskLabel></div>{top[0] ? <Link href={`/images/${top[0].id}`} className="fd-phavorite-image"><img src={top[0].image_url} alt={top[0].title || "Guild image"} /><div /><span className="fd-video-chip">▶ Envy Video</span><div className="fd-phavorite-copy"><span>Aaron&apos;s Phavorite</span><h3>{top[0].title}</h3><p>{nameFor(top[0])}{imageLocation(top[0]) ? `, ${imageLocation(top[0])}` : ""}</p></div></Link> : <div className="fd-empty fd-empty-large">Aaron&apos;s Phavorite will appear here once images are available.</div>}<div className="fd-phavorite-foot"><p>Aaron&apos;s personal pick from outside the Top 3, awarded its own Moment of Envy video</p>{top[0] && <Link href={`/images/${top[0].id}`}>View →</Link>}</div></section>
       <div className="fd-side-stack"><WeeklySubmissionStatus remaining={remaining} hasCandidate={hasCandidate} iotwLabel={iotwSchedule?.entry.label} /><section className="fd-panel fd-recent"><FieldDeskLabel muted>Your Recent Reports</FieldDeskLabel><div>{latest.slice(0, 3).map((i) => <Link key={i.id} href={`/images/${i.id}`}><img src={i.image_url} alt="" /><span><strong>{i.title}</strong><small>{reportMeta(i, reactions)}</small></span></Link>)}{!latest.length && <p>No recent reports yet.</p>}</div></section></div>
