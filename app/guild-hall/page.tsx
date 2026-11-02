@@ -7,7 +7,7 @@ import { formatStreakBadge, fullPhotographerRank } from "@/lib/display";
 import { EARNED_ACHIEVEMENT_STATUSES } from "@/lib/member-stats";
 import { getAvatarDisplay, MEMBER_NAME_FALLBACK, publicMemberName } from "@/lib/avatar";
 import { ReactionBar } from "@/components/images/ReactionBar";
-import { fetchMembers } from "@/lib/members";
+import { fetchMembers, type MemberLite } from "@/lib/members";
 import { RANKS, fetchHonorCounts, rankLabelForCount } from "@/lib/ranks";
 import { MessageFromAaron } from "@/components/hall/MessageFromAaron";
 import { formatMountainShort, getIotwSchedule, type IotwScheduleWeek } from "@/lib/iotw";
@@ -83,6 +83,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
   let badges = new Map<string, IotwBadge>();
   let images: any[] = [];
   let reactions: any[] = [];
+  let reactors: Record<string, MemberLite> = {};
   const commentCounts = new Map<string, number>();
   let message: { id: string; body: string; created_at: string } | null = null;
   let messageRead = false;
@@ -113,7 +114,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
     const poolIds = poolImages.map((i: any) => i.id);
     if (poolIds.length) {
       const [{ data: rx }, { data: cm }] = await Promise.all([
-        supabase.from("image_reactions").select("image_id,user_id,reaction_type").in("image_id", poolIds),
+        supabase.from("image_reactions").select("image_id,user_id,reaction_type,created_at").in("image_id", poolIds).order("created_at", { ascending: true }),
         supabase.from("image_comments").select("image_id").in("image_id", poolIds).is("deleted_at", null),
       ]);
       reactions = rx || [];
@@ -125,6 +126,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
     if (sort === "reactions") poolImages.sort((a: any, b: any) => (reactionTotals.get(b.id) || 0) - (reactionTotals.get(a.id) || 0) || byRecent(a, b));
     if (sort === "stories") poolImages.sort((a: any, b: any) => storyWeight(b) - storyWeight(a) || byRecent(a, b));
     images = poolImages.slice(0, FEED_SIZE);
+    const shownIds = new Set(images.map((i: any) => i.id));
+    reactors = Object.fromEntries(await fetchMembers(supabase, [...reactions.filter((r) => shownIds.has(r.image_id)).map((r) => r.user_id), user?.id || ""]));
     badges = await fetchIotwBadges(supabase, images.map((i: any) => i.id), images.filter((i: any) => i.is_weekly_candidate).map((i: any) => i.id)).catch(() => new Map());
 
     message = msg || null;
@@ -203,7 +206,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
           <div className="mw-hall-layout">
             <div className="mw-hall-feed">
               <h2 className="mw-recent-activity-label mb-5">Recent Activity{sort !== "recent" && <span className="mw-feed-sort-note">{SORTS.find((s) => s.key === sort)?.label}</span>}</h2>
-              <div className="space-y-6">
+              <div className="space-y-6 mw-sort-list">
                 {images.map((image, index) => {
                   const name = authorName(image, index);
                   const avatar = getAvatarDisplay({ avatarPath: image.profiles?.avatar_path, avatarUrl: image.profiles?.avatar_url, displayName: name });
@@ -231,7 +234,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
                       <div className="mw-feed-body">
                         <h3 className="mw-feed-title"><Link href={href}>{image.title}</Link></h3>
                         {(image.short_story || image.what_went_well) && <p className="mw-feed-excerpt">{image.short_story || image.what_went_well}</p>}
-                        <div className="mw-feed-reactions"><ReactionBar imageId={image.id} reactions={imageReactions} currentUserId={user?.id} compact /></div>
+                        <div className="mw-feed-reactions"><ReactionBar imageId={image.id} reactions={imageReactions} currentUserId={user?.id} people={pick(reactors, [...imageReactions.map((r) => r.user_id), user?.id])} compact /></div>
                         <div className="mw-feed-foot">
                           <span>{total} {total === 1 ? "reaction" : "reactions"} · {comments} {comments === 1 ? "comment" : "comments"}</span>
                           <Link href={`${href}#feedback`} className="mw-feed-open">Open &amp; Comment →</Link>
@@ -247,7 +250,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
             <aside className="mw-hall-rail" aria-label="Guild Hall side column">
               <nav className="mw-rail-sort" aria-label="Sort the feed">
                 <span className="mw-sort-label">Sort</span>
-                <div className="mw-rail-sort-chips">{SORTS.map((s) => <Link key={s.key} href={s.key === "recent" ? "/guild-hall" : `/guild-hall?sort=${s.key}`} scroll={false} aria-current={s.key === sort ? "page" : undefined} className={`mw-sort-chip ${s.key === sort ? "mw-sort-chip-selected" : ""}`}>{s.label}</Link>)}</div>
+                <div className="mw-rail-sort-chips">{SORTS.map((s) => <Link key={s.key} href={s.key === "recent" ? "/guild-hall" : `/guild-hall?sort=${s.key}`} scroll={false} data-list-sort aria-current={s.key === sort ? "page" : undefined} className={`mw-sort-chip ${s.key === sort ? "mw-sort-chip-selected" : ""}`}>{s.label}</Link>)}</div>
               </nav>
               {message && <MessageFromAaron id={message.id} body={message.body} postedLabel={new Date(message.created_at).toLocaleDateString("en-US", { month: "long", day: "numeric", timeZone: "America/Denver" })} initiallyRead={messageRead} canEdit={isAdmin} />}
               <section className="mw-rail-comments" aria-labelledby="recent-comments-heading">
@@ -279,4 +282,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
       ) : <div className="mt-8"><AccessNeededPanel /></div>}
     </section>
   );
+}
+
+function pick<T>(all: Record<string, T>, ids: (string | null | undefined)[]) {
+  const out: Record<string, T> = {};
+  ids.forEach((id) => { if (id && all[id]) out[id] = all[id]; });
+  return out;
 }

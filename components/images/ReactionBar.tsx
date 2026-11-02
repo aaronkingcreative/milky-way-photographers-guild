@@ -1,6 +1,7 @@
 "use client";
 
-import { useOptimistic, useState, useTransition } from "react";
+import { useOptimistic, useRef, useState, useTransition } from "react";
+import { ReactionBurst, useBurst, type Reactor } from "./ReactionBurst";
 import { setReaction } from "@/app/actions";
 import { REACTION_TYPES } from "@/lib/images";
 
@@ -18,7 +19,7 @@ type Toggle = { type: string; active: boolean };
  * Reactions for one image. Clicks update instantly (optimistic), save in the background,
  * and roll back with a visible message if the save fails.
  */
-export function ReactionBar({ imageId, reactions, currentUserId, compact = false }: { imageId: string; reactions: ReactionRow[]; currentUserId?: string | null; compact?: boolean }) {
+export function ReactionBar({ imageId, reactions, currentUserId, people = {}, compact = false }: { imageId: string; reactions: ReactionRow[]; currentUserId?: string | null; people?: Record<string, Reactor>; compact?: boolean }) {
   const base = summarize(reactions, currentUserId);
   const [state, applyOptimistic] = useOptimistic(base, (current, toggle: Toggle) => {
     const mine = new Set(current.mine);
@@ -31,6 +32,16 @@ export function ReactionBar({ imageId, reactions, currentUserId, compact = false
   const [, startTransition] = useTransition();
   const [busy, setBusy] = useState<Set<string>>(() => new Set());
   const [message, setMessage] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
+  const burst = useBurst();
+  const countRefs = useRef(new Map<string, HTMLButtonElement>());
+
+  /** Who gave a reaction, newest first, with the signed-in member following their optimistic toggle. */
+  function reactorsFor(type: string): Reactor[] {
+    const ids = (reactions || []).filter((r) => r.reaction_type === type && r.user_id).map((r) => r.user_id as string).reverse();
+    let list = [...new Set(ids)].filter((id) => id !== currentUserId);
+    if (currentUserId && state.mine.has(type)) list = [currentUserId, ...list];
+    return list.map((id) => people[id] || { id, name: "Guild Member", avatarUrl: null, initials: "GM" });
+  }
 
   function toggle(type: string) {
     if (busy.has(type)) return;
@@ -53,22 +64,40 @@ export function ReactionBar({ imageId, reactions, currentUserId, compact = false
           <div className="flex flex-wrap gap-2">
             {group.types.map((type) => {
               const selected = state.mine.has(type);
+              const count = state.counts.get(type) || 0;
+              const label = labels.get(type) || type;
               return (
-                <button
-                  key={type}
-                  type="button"
-                  aria-pressed={selected}
-                  aria-label={`${labels.get(type) || type}, ${state.counts.get(type) || 0}${selected ? ", selected" : ""}`}
-                  disabled={busy.has(type)}
-                  aria-busy={busy.has(type)}
-                  onClick={() => toggle(type)}
-                  className={`mw-reaction-chip ${selected ? "mw-reaction-chip-active" : ""}`}
-                  title={selected ? `You reacted ${labels.get(type)}. Click to remove.` : `React ${labels.get(type)}`}
-                >
-                  <span className="text-[#f0bd66]">{REACTION_ICONS[type]}</span>
-                  {labels.get(type) || type}
-                  <span className="opacity-70">{state.counts.get(type) || 0}</span>
-                </button>
+                <span key={type} className="mw-reaction-pill" data-burst-type={type}>
+                  <button
+                    type="button"
+                    aria-pressed={selected}
+                    aria-label={`${label}, ${count}${selected ? ", selected" : ""}`}
+                    disabled={busy.has(type)}
+                    aria-busy={busy.has(type)}
+                    onClick={() => toggle(type)}
+                    className={`mw-reaction-chip ${selected ? "mw-reaction-chip-active" : ""}`}
+                    title={selected ? `You reacted ${label}. Click to remove.` : `React ${label}`}
+                  >
+                    <span className="text-[#f0bd66]">{REACTION_ICONS[type]}</span>
+                    {label}
+                    <span className="mw-reaction-count-space" aria-hidden="true">{count}</span>
+                  </button>
+                  <button
+                    type="button"
+                    ref={(el) => { if (el) countRefs.current.set(type, el); else countRefs.current.delete(type); }}
+                    className={`mw-reaction-count ${burst.open === type ? "is-open" : ""}`}
+                    disabled={!count}
+                    aria-expanded={burst.open === type}
+                    aria-label={count ? `See who reacted ${label}` : `No ${label} reactions yet`}
+                    title={count ? `See who reacted ${label}` : undefined}
+                    onPointerEnter={(e) => { if (count && e.pointerType === "mouse") burst.show(type); }}
+                    onPointerLeave={(e) => { if (e.pointerType === "mouse") burst.hide(); }}
+                    onClick={() => { burst.cancel(); burst.setOpen((o) => (o === type ? null : count ? type : null)); }}
+                  >{count}</button>
+                  {burst.open === type && count > 0 && countRefs.current.get(type) && (
+                    <ReactionBurst anchor={countRefs.current.get(type)!} people={reactorsFor(type)} total={count} label={label} icon={REACTION_ICONS[type]} onEnter={burst.cancel} onLeave={() => burst.hide()} />
+                  )}
+                </span>
               );
             })}
           </div>

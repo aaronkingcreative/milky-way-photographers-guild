@@ -15,7 +15,7 @@ import { badgeTone, type IotwBadge } from "@/lib/iotw-badges";
 const formatDate = (v: string) => new Date(v).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 const loc = (image: any) => ({ primary: [image.specific_location_name, image.state_or_province].filter(Boolean).join(", ") || image.state_or_province || "Location pending", country: image.country });
 
-export function ImageDetail({ image, authorStats, reactions, comments, canEditCandidate, from, currentUserId, currentAuthor, honors, edited, iotwBallot, iotwSchedule, iotwBadge }: { edited?: boolean; iotwBallot?: any; iotwBadge?: IotwBadge | null; iotwSchedule?: { entry: IotwScheduleWeek; voting: IotwScheduleWeek | null }; image: any; authorStats?: any; reactions: any[]; comments: CommentView[]; canEditCandidate: boolean; from?: string; currentUserId: string; currentAuthor: CommentAuthor; honors: HonorView[] }) {
+export function ImageDetail({ image, authorStats, reactions, comments, canEditCandidate, from, currentUserId, currentAuthor, honors, edited, iotwBallot, iotwSchedule, iotwBadge, people }: { people?: Record<string, CommentAuthor>; edited?: boolean; iotwBallot?: any; iotwBadge?: IotwBadge | null; iotwSchedule?: { entry: IotwScheduleWeek; voting: IotwScheduleWeek | null }; image: any; authorStats?: any; reactions: any[]; comments: CommentView[]; canEditCandidate: boolean; from?: string; currentUserId: string; currentAuthor: CommentAuthor; honors: HonorView[] }) {
   const location = loc(image);
   const badge: IotwBadge | null = iotwBadge || (image.is_weekly_candidate ? { label: iotwBallot ? `IOTW ${iotwWeekLabel(iotwBallot)} Contender` : "IOTW Contender", week: iotwBallot ? iotwWeekLabel(iotwBallot) : "", year: null, place: null, ballotId: iotwBallot?.id || null } : null);
   const placeWord = badge?.place === 1 ? "first" : badge?.place === 2 ? "second" : badge?.place === 3 ? "third" : "";
@@ -46,7 +46,7 @@ export function ImageDetail({ image, authorStats, reactions, comments, canEditCa
         <aside className="mw-report-side mw-report-left" aria-label="Reactions">
           <section className="mw-report-panel">
             <p className="mw-report-nudge">Give both. A quick reaction, and what you&apos;re praising.</p>
-            <ReactionBar imageId={image.id} reactions={reactions} currentUserId={currentUserId} compact />
+            <ReactionBar imageId={image.id} reactions={reactions} currentUserId={currentUserId} people={people} compact />
           </section>
         </aside>
         <aside className="mw-report-side mw-report-right" aria-label="Capture details and honors">

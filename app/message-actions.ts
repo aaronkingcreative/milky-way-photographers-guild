@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { requireAccess, requireAdmin } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-const MAX_MESSAGE = 1200;
+import { MESSAGE_MAX as MAX_MESSAGE } from "@/lib/guild-message";
 function value(formData: FormData, key: string) { return String(formData.get(key) || "").trim(); }
 
 /** Marks the current Message from Aaron as read for the signed-in member. Safe to call twice. */

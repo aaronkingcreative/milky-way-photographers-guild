@@ -5,7 +5,8 @@ import { requireAccess } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { EARNED_ACHIEVEMENT_STATUSES, getMemberStats } from "@/lib/member-stats";
 import { fullPhotographerRank, formatStreakBadge } from "@/lib/display";
-import { getAvatarDisplay } from "@/lib/avatar";
+import { getAvatarDisplay, resolveAvatarUrl } from "@/lib/avatar";
+import { ImageViewer } from "@/components/images/ImageViewer";
 import { ImageGrid } from "@/components/images/ImageGrid";
 import { HonorBadge } from "@/components/HonorBadge";
 
@@ -18,7 +19,7 @@ export default async function Page({ params }: { params: Promise<{ memberId: str
   const { memberId } = await params;
   if (!UUID.test(memberId)) notFound();
   const supabase = await createServerSupabaseClient();
-  const { data: profile } = await supabase.from("member_profiles").select("id,display_name,full_name,avatar_url,avatar_path,country,state_or_province,region,created_at").eq("id", memberId).maybeSingle();
+  const { data: profile } = await supabase.from("member_profiles").select("id,display_name,full_name,avatar_url,avatar_path,avatar_pill_path,avatar_original_path,country,state_or_province,region,created_at").eq("id", memberId).maybeSingle();
   if (!profile) notFound();
 
   const [stats, { data: earned }, { data: images }, { data: reports }] = await Promise.all([
@@ -53,7 +54,14 @@ export default async function Page({ params }: { params: Promise<{ memberId: str
     <section className="mw-page-wide">
       <div className="mw-prototype-eyebrow mb-4"><Image src="/launch/mwpg/MWPG_Logo_FAVICON.png" alt="" width={20} height={20} /><span>Guild Member</span></div>
       <div className="mw-member-hero">
-        <span className="mw-member-profile-avatar">{avatar.avatarUrl ? <img src={avatar.avatarUrl} alt="" /> : avatar.initials}</span>
+        {avatar.avatarUrl ? (
+          <ImageViewer
+            src={avatar.avatarUrl}
+            fullSrc={resolveAvatarUrl(profile.avatar_original_path) || resolveAvatarUrl(profile.avatar_pill_path) || avatar.avatarUrl}
+            alt={`${stats.display_name} portrait`}
+            triggerClassName="mw-member-profile-avatar mw-portrait-trigger"
+          />
+        ) : <span className="mw-member-profile-avatar">{avatar.initials}</span>}
         <div className="min-w-0">
           <h1 className="mw-prototype-title">{stats.display_name}</h1>
           <p className="mt-1 text-lg font-semibold text-[#f0bd66]">{fullPhotographerRank(stats.rank_short)}</p>
