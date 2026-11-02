@@ -30,7 +30,7 @@ export type SkyStarDef = { id: string; name: string; ra: number; dec: number; ma
 export type SkyConstellationDef = { id: string; name: string; takes: string[]; stars: SkyStarDef[]; lines: [string, string][]; layout: Record<SkyLayoutKey, SkyBox> };
 
 /** Panel coordinate spaces. Stars and lines use these units; the panel keeps the same aspect ratio in CSS. */
-export const SKY_VIEW: Record<SkyLayoutKey, { w: number; h: number }> = { desktop: { w: 1000, h: 720 }, mobile: { w: 1000, h: 2400 } };
+export const SKY_VIEW: Record<SkyLayoutKey, { w: number; h: number }> = { desktop: { w: 1000, h: 680 }, mobile: { w: 1000, h: 2280 } };
 
 export const SKY_CATEGORY_ORDER = ["monthly", "foreground", "technique", "seasonal", "special", "rank"];
 
@@ -56,7 +56,7 @@ export const SKY_CONSTELLATIONS: SkyConstellationDef[] = [
       { id: "lambda", name: "Shaula (λ Sco)", ra: hms(17, 33, 36), dec: dms(-37, 6), mag: 1.6 },
     ],
     lines: [["beta", "delta"], ["delta", "pi"], ["delta", "sigma"], ["sigma", "alpha"], ["alpha", "tau"], ["tau", "epsilon"], ["epsilon", "mu"], ["mu", "zeta"], ["zeta", "eta"], ["eta", "theta"], ["theta", "lambda"]],
-    layout: { desktop: { x: 540, y: 370, w: 270, h: 270, label: "below" }, mobile: { x: 560, y: 1080, w: 380, h: 520, label: "below" } },
+    layout: { desktop: { x: 545, y: 320, w: 250, h: 280, label: "below" }, mobile: { x: 590, y: 1130, w: 350, h: 520, label: "below" } },
   },
   {
     id: "big_dipper", name: "Big Dipper", takes: ["foregrounds"],
@@ -70,7 +70,7 @@ export const SKY_CONSTELLATIONS: SkyConstellationDef[] = [
       { id: "alkaid", name: "Alkaid (η UMa)", ra: hms(13, 47, 32), dec: dms(49, 19), mag: 1.9 },
     ],
     lines: [["dubhe", "merak"], ["merak", "phecda"], ["phecda", "megrez"], ["megrez", "dubhe"], ["megrez", "alioth"], ["alioth", "mizar"], ["mizar", "alkaid"]],
-    layout: { desktop: { x: 60, y: 50, w: 340, h: 190, label: "below" }, mobile: { x: 70, y: 90, w: 860, h: 310, label: "below" } },
+    layout: { desktop: { x: 130, y: 45, w: 340, h: 175, label: "below" }, mobile: { x: 70, y: 80, w: 860, h: 300, label: "below" } },
   },
   {
     id: "cassiopeia", name: "Cassiopeia", takes: ["foregrounds"],
@@ -82,7 +82,7 @@ export const SKY_CONSTELLATIONS: SkyConstellationDef[] = [
       { id: "segin", name: "Segin (ε Cas)", ra: hms(1, 54, 24), dec: dms(63, 40), mag: 3.4 },
     ],
     lines: [["caph", "schedar"], ["schedar", "navi"], ["navi", "ruchbah"], ["ruchbah", "segin"]],
-    layout: { desktop: { x: 30, y: 430, w: 210, h: 130, label: "below" }, mobile: { x: 60, y: 1880, w: 470, h: 250, label: "below" } },
+    layout: { desktop: { x: 30, y: 300, w: 200, h: 125, label: "below" }, mobile: { x: 50, y: 620, w: 400, h: 210, label: "below" } },
   },
   {
     id: "cygnus", name: "Cygnus", takes: ["seasons", "special"],
@@ -95,7 +95,7 @@ export const SKY_CONSTELLATIONS: SkyConstellationDef[] = [
       { id: "sadr", name: "Sadr (γ Cyg)", ra: hms(20, 22, 14), dec: dms(40, 15), mag: 2.2, takes: ["special"] },
     ],
     lines: [["deneb", "sadr"], ["sadr", "albireo"], ["delta", "sadr"], ["sadr", "gienah"]],
-    layout: { desktop: { x: 600, y: 30, w: 240, h: 260, label: "below" }, mobile: { x: 300, y: 520, w: 400, h: 440, label: "below" } },
+    layout: { desktop: { x: 680, y: 25, w: 220, h: 195, label: "below" }, mobile: { x: 540, y: 540, w: 400, h: 420, label: "below" } },
   },
   {
     id: "sagittarius", name: "Sagittarius (the Teapot)", takes: ["techniques"],
@@ -112,7 +112,7 @@ export const SKY_CONSTELLATIONS: SkyConstellationDef[] = [
       { id: "tau", name: "τ Sgr", ra: hms(19, 6, 56), dec: dms(-27, 40), mag: 3.3, takes: ["ranks"] },
     ],
     lines: [["gamma", "delta"], ["gamma", "epsilon"], ["delta", "epsilon"], ["delta", "lambda"], ["lambda", "phi"], ["delta", "phi"], ["phi", "zeta"], ["epsilon", "zeta"], ["phi", "sigma"], ["sigma", "tau"], ["tau", "zeta"]],
-    layout: { desktop: { x: 270, y: 420, w: 240, h: 200, rotate: -29, label: "below" }, mobile: { x: 40, y: 1150, w: 440, h: 330, rotate: -29, label: "below" } },
+    layout: { desktop: { x: 280, y: 325, w: 250, h: 210, rotate: -29, label: "below" }, mobile: { x: 50, y: 1150, w: 400, h: 300, rotate: -29, label: "below" } },
   },
   {
     id: "crux", name: "Crux (the Southern Cross)", takes: ["ranks"],
@@ -125,7 +125,7 @@ export const SKY_CONSTELLATIONS: SkyConstellationDef[] = [
       { id: "alpha", name: "Acrux (α Cru)", ra: hms(12, 26, 36), dec: dms(-63, 6), mag: 0.8 },
     ],
     lines: [["gamma", "alpha"], ["beta", "delta"]],
-    layout: { desktop: { x: 845, y: 470, w: 120, h: 150, label: "below" }, mobile: { x: 570, y: 1800, w: 260, h: 360, label: "below" } },
+    layout: { desktop: { x: 855, y: 430, w: 115, h: 150, label: "below" }, mobile: { x: 500, y: 1830, w: 300, h: 350, label: "below" } },
   },
 ];
 
