@@ -256,7 +256,8 @@ export async function adminAchievementClaimAction(formData: FormData): Promise<C
   if (!claim) return { ok: false, error: "That claim could not be found." };
   const { error } = await supabase.from("field_report_achievement_claims").update({ status: action, reviewed_at: new Date().toISOString(), reviewed_by: user.id, review_notes, member_seen_at: null }).eq("id", claim_id);
   if (error) return { ok: false, error: "The review did not save. Please try again." };
-  await supabase.from("user_achievements").update({ status: action, awarded_by: user.id, notes: review_notes }).eq("user_id", claim.user_id).eq("achievement_id", claim.achievement_id);
+  // The review note stays on the claim only (private to the member and admins); user_achievements is readable Guild-wide.
+  await supabase.from("user_achievements").update({ status: action, awarded_by: user.id }).eq("user_id", claim.user_id).eq("achievement_id", claim.achievement_id);
   revalidatePath("/admin/achievements"); revalidatePath("/admin"); revalidatePath("/field-desk"); revalidatePath("/guild-hall"); revalidatePath("/progress"); revalidatePath(`/members/${claim.user_id}`);
   return { ok: true };
 }
