@@ -2,8 +2,9 @@
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { addComment, type CommentState } from "@/app/actions";
+import { StreakPill } from "@/components/StreakPill";
 
-export type CommentAuthor = { id: string; name: string; avatarUrl: string | null; initials: string };
+export type CommentAuthor = { id: string; name: string; avatarUrl: string | null; initials: string; streak?: number };
 export type CommentSectionKey = "general" | "went_well" | "could_be_better";
 export type CommentView = { id: string; body: string; created_at: string; user_id: string; section?: CommentSectionKey | null; author: CommentAuthor };
 
@@ -21,7 +22,7 @@ function CommentItem({ c, fresh }: { c: CommentView; fresh?: boolean }) {
       <div className="flex gap-3">
         <Link href={`/members/${c.user_id}`} aria-label={`View ${c.author.name}'s profile`}><MemberAvatar author={c.author} /></Link>
         <div className="min-w-0">
-          <p className="mw-comment-author"><Link href={`/members/${c.user_id}`} className="mw-member-link">{c.author.name}</Link></p>
+          <p className="mw-comment-author"><Link href={`/members/${c.user_id}`} className="mw-member-link">{c.author.name}</Link><StreakPill length={c.author.streak} /></p>
           <p className="mt-1 whitespace-pre-wrap text-white/86">{c.body}</p>
           <p className="mt-2 mw-meta">{new Date(c.created_at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}</p>
         </div>
@@ -85,7 +86,7 @@ function ReplyItem({ c, fresh }: { c: CommentView; fresh?: boolean }) {
     <li id={`comment-${c.id}`} className={`mw-reply ${fresh ? "mw-comment-fresh" : ""}`}>
       <Link href={`/members/${c.user_id}`} aria-label={`View ${c.author.name}'s profile`}><MemberAvatar author={c.author} size="h-8 w-8" /></Link>
       <div className="min-w-0">
-        <p className="mw-reply-who"><Link href={`/members/${c.user_id}`} className="mw-member-link">{c.author.name}</Link><time dateTime={c.created_at}>{new Date(c.created_at).toLocaleDateString([], { month: "short", day: "numeric" })}</time></p>
+        <p className="mw-reply-who"><Link href={`/members/${c.user_id}`} className="mw-member-link">{c.author.name}</Link><StreakPill length={c.author.streak} short /><time dateTime={c.created_at}>{new Date(c.created_at).toLocaleDateString([], { month: "short", day: "numeric" })}</time></p>
         <p className="mw-reply-body">{c.body}</p>
       </div>
     </li>

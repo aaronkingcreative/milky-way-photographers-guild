@@ -1032,3 +1032,40 @@ html[data-list-loading] .mw-sort-list::before{content:"";position:absolute;z-ind
   .progress-sky .progress-star.mtip-up .progress-tooltip { top:auto; bottom:calc(100% + 8px); }
   .progress-tooltip { width:200px; }
 }
+
+/* Milky Way streak next to member names */
+.mw-comment-author { display:flex; flex-wrap:wrap; align-items:center; gap:.45rem; }
+.mw-feed-name { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; }
+.mw-feed-name .mw-streak-pill, .mw-comment-author .mw-streak-pill, .mw-reply-who .mw-streak-pill { font-size:11px; padding:1px 7px; font-weight:700; letter-spacing:.02em; text-transform:none; align-self:center; }
+.mw-reply-who { flex-wrap:wrap; }
+.mw-rail-streak { flex:none; font-size:.72rem; font-weight:700; color:#e79f2b; white-space:nowrap; }
+
+/* The Ascent achievement cloud: earned honors burst out around the 4x portrait (Ivy Hall badge-ring pattern) */
+@property --mw-orbit { syntax:"<length>"; inherits:true; initial-value:0px; }
+.mw-ascent-slot { position:relative; display:inline-grid; place-items:center; }
+.mw-ascent-cloud { position:absolute; left:50%; top:50%; width:0; height:0; pointer-events:none; z-index:61; --mw-orbit:0px; opacity:0; visibility:hidden; transition:--mw-orbit .3s cubic-bezier(.2,.9,.25,1.25), opacity .15s ease, visibility 0s linear .3s; }
+.mw-ascent-medal { position:absolute; left:-14px; top:-14px; width:28px; height:28px; display:grid; place-items:center; border-radius:999px; border:1px solid rgba(246,210,122,.85); background:radial-gradient(circle at 35% 30%, #2a3f5c, #0b1a2b 70%); color:#f6d27a; font-size:14px; line-height:1; box-shadow:0 2px 8px rgba(0,0,0,.55), 0 0 10px rgba(240,189,102,.25);
+  transform:rotate(var(--a)) translateY(calc(-1 * var(--mw-orbit))) rotate(calc(-1 * var(--a))); transition:transform .3s cubic-bezier(.2,.9,.25,1.25); transition-delay:calc(var(--i) * 14ms); }
+.mw-ascent-medal.is-more { font-family:var(--font-guild-display); font-size:11px; font-weight:800; color:#0b1a2b; background:#e79f2b; border-color:#f6d27a; }
+.mw-ascent-caption { position:absolute; left:50%; top:calc(var(--mw-orbit) - 6px); transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 12px 7px; border-radius:12px; border:1px solid rgba(231,159,43,.55); background:rgba(9,22,37,.96); box-shadow:0 10px 28px rgba(0,0,0,.55); white-space:nowrap; font-size:.74rem; color:rgba(255,255,255,.7); }
+.mw-ascent-caption b { font-size:.86rem; font-weight:800; color:#fff; }
+.mw-ascent-caption-streak { margin-top:2px; padding:1px 8px; border-radius:999px; border:1px solid rgba(231,159,43,.55); background:rgba(231,159,43,.14); color:#e79f2b; font-weight:700; }
+@media (hover:hover) and (pointer:fine){
+  .mw-ascent-slot:hover, .mw-ascent-slot:focus-within { z-index:60; }
+  .mw-ascent-slot:hover .mw-ascent-cloud, .mw-ascent-slot:focus-within .mw-ascent-cloud { --mw-orbit:104px; opacity:1; visibility:visible; transition:--mw-orbit .34s cubic-bezier(.2,.9,.25,1.25) .06s, opacity .12s ease .04s, visibility 0s; }
+}
+@media (prefers-reduced-motion: reduce){ .mw-ascent-cloud, .mw-ascent-medal { transition:none !important; } }
+
+/* Milky Way streak: years panel (profile + member page) and admin capture-date review */
+.mw-streak-section { margin-top:1.25rem; }
+.mw-years-panel .mw-streak-pill { font-size:14px; padding:3px 11px; text-transform:none; }
+.mw-member-stat-note { margin-top:.15rem; font-size:.8rem; color:rgba(255,255,255,.5); }
+.mw-member-years { list-style:none; margin:.9rem 0 0; padding:0; display:flex; flex-wrap:wrap; gap:.4rem; }
+.mw-member-years li { padding:2px 10px; border-radius:999px; border:1px solid rgba(231,159,43,.45); background:rgba(231,159,43,.1); color:#f0bd66; font-size:.85rem; font-weight:700; font-variant-numeric:tabular-nums; }
+.mw-member-years li.is-declared { border-style:dashed; }
+.mw-date-review { margin-top:1rem; padding:.85rem 1rem; border:1px dashed rgba(231,159,43,.45); border-radius:8px; font-size:.85rem; color:rgba(255,255,255,.75); }
+.mw-date-review form { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; margin-top:.5rem; }
+.mw-date-review input[type=date] { width:auto; padding:.35rem .5rem; }
+.mw-date-review button { padding:.4rem .75rem; font-size:.72rem; border:1px solid rgba(231,159,43,.55); color:#f0bd66; border-radius:6px; }
+.mw-burst-dot::after{white-space:pre;text-align:center;line-height:1.35}
+.mw-ascent-face{background:linear-gradient(rgba(231,159,43,.14),rgba(231,159,43,.14)),#0b1a2b}

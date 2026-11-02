@@ -4,6 +4,7 @@ import type React from "react";
 import Link from "next/link";
 import { getAvatarDisplay, MEMBER_NAME_FALLBACK, publicMemberName } from "@/lib/avatar";
 import { toggleWeeklyCandidate } from "@/app/actions";
+import { adminReviewCaptureDate } from "@/app/streak-actions";
 import { formatStreakBadge, fullPhotographerRank } from "@/lib/display";
 import { ReactionBar } from "./ReactionBar";
 import { CommentsSection, SectionReplyTray, type CommentAuthor, type CommentView } from "./Comments";
@@ -12,17 +13,21 @@ import { OpenVoteButton } from "./OpenVoteButton";
 import { HonorBadge, type HonorView } from "@/components/HonorBadge";
 import { badgeTone, type IotwBadge } from "@/lib/iotw-badges";
 
-const formatDate = (v: string) => new Date(v).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+// capture_date is a plain calendar date; format it in UTC so it never slips a day.
+const formatDate = (v: string) => new Date(v).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
 const loc = (image: any) => ({ primary: [image.specific_location_name, image.state_or_province].filter(Boolean).join(", ") || image.state_or_province || "Location pending", country: image.country });
 
-export function ImageDetail({ image, authorStats, reactions, comments, canEditCandidate, from, currentUserId, currentAuthor, honors, edited, iotwBallot, iotwSchedule, iotwBadge, people }: { people?: Record<string, CommentAuthor>; edited?: boolean; iotwBallot?: any; iotwBadge?: IotwBadge | null; iotwSchedule?: { entry: IotwScheduleWeek; voting: IotwScheduleWeek | null }; image: any; authorStats?: any; reactions: any[]; comments: CommentView[]; canEditCandidate: boolean; from?: string; currentUserId: string; currentAuthor: CommentAuthor; honors: HonorView[] }) {
+export type DateReview = { status: string; declared: string | null; reviewedAt: string | null; hasCoverage: boolean };
+
+export function ImageDetail({ dateReview, image, authorStats, reactions, comments, canEditCandidate, from, currentUserId, currentAuthor, honors, edited, iotwBallot, iotwSchedule, iotwBadge, people }: { dateReview?: DateReview | null; people?: Record<string, CommentAuthor>; edited?: boolean; iotwBallot?: any; iotwBadge?: IotwBadge | null; iotwSchedule?: { entry: IotwScheduleWeek; voting: IotwScheduleWeek | null }; image: any; authorStats?: any; reactions: any[]; comments: CommentView[]; canEditCandidate: boolean; from?: string; currentUserId: string; currentAuthor: CommentAuthor; honors: HonorView[] }) {
   const location = loc(image);
   const badge: IotwBadge | null = iotwBadge || (image.is_weekly_candidate ? { label: iotwBallot ? `IOTW ${iotwWeekLabel(iotwBallot)} Contender` : "IOTW Contender", week: iotwBallot ? iotwWeekLabel(iotwBallot) : "", year: null, place: null, ballotId: iotwBallot?.id || null } : null);
   const placeWord = badge?.place === 1 ? "first" : badge?.place === 2 ? "second" : badge?.place === 3 ? "third" : "";
   const name = publicMemberName(authorStats?.display_name, image.profiles?.display_name, image.profiles?.full_name, image.display_name, image.photographer_name);
   const avatar = getAvatarDisplay({ avatarPath: authorStats?.avatar_path || image.profiles?.avatar_path, avatarUrl: authorStats?.avatar_url || image.profiles?.avatar_url, displayName: name });
   const rank = fullPhotographerRank(authorStats?.rank_short);
-  const streak = authorStats?.year_streak ? formatStreakBadge(`${authorStats.year_streak} Year Streak`) : null;
+  const streak = authorStats?.year_streak ? formatStreakBadge(authorStats.year_streak) : null;
+  const streakTip = authorStats?.year_streak_from ? `Out under the Milky Way every year, ${authorStats.year_streak_from} to ${authorStats.year_streak_to}` : undefined;
   const back = from === "guild-hall" ? { href: "/guild-hall", label: "← Back to the Guild Hall" } : { href: "/feed", label: "← Back to the Gallery" };
   const memberHref = `/members/${image.user_id}`;
   const width = Number(image.image_width) || 0, height = Number(image.image_height) || 0;
@@ -57,6 +62,20 @@ export function ImageDetail({ image, authorStats, reactions, comments, canEditCa
               <div><dt className="mw-capture-label">Location</dt><dd><span className="block text-white">{location.primary}</span><span className="block text-white/55">{location.country}</span></dd></div>
               <div><dt className="mw-capture-label">Gear & Settings</dt><dd className="whitespace-pre-wrap">{image.gear_settings}</dd></div>
             </dl>
+            {dateReview && (
+              <div className="mw-date-review">
+                <p><strong className="text-[#f0bd66]">Admin · capture date</strong>{" "}
+                  {dateReview.status === "vetted" ? "Vetted." : dateReview.status === "corrected" ? `Corrected (declared ${dateReview.declared ? formatDate(dateReview.declared) : "unknown"}).` : "Declared by the member, not yet vetted."}
+                  {" "}It sets the year this image counts toward the streak.</p>
+                <form action={adminReviewCaptureDate}>
+                  <input type="hidden" name="image_id" value={image.id} />
+                  {dateReview.status !== "vetted" && dateReview.hasCoverage && <button name="mode" value="vet">Vet date</button>}
+                  <input type="date" name="capture_date" defaultValue={image.capture_date || ""} aria-label="Corrected capture date" />
+                  <button name="mode" value="correct">Correct date</button>
+                  {dateReview.status === "corrected" && <button name="mode" value="reset">Restore declared</button>}
+                </form>
+              </div>
+            )}
           </section>
           <section className="mw-report-panel mw-report-honors">
             <p className="mw-eyebrow">Honors This Image Earned</p>
@@ -75,7 +94,7 @@ export function ImageDetail({ image, authorStats, reactions, comments, canEditCa
           <div className="mt-4 flex items-center gap-3">
             <Link href={memberHref} aria-label={`View ${name}'s profile`} className="mw-avatar-circle grid h-12 w-12 place-items-center overflow-hidden rounded-full border border-[#e79f2b]/65 bg-[#e79f2b]/10 font-display text-[#f0bd66]">{avatar.avatarUrl ? <img src={avatar.avatarUrl} alt="" className="h-full w-full rounded-full object-cover" /> : avatar.initials}</Link>
             <div>
-              <p className="flex flex-wrap items-center gap-2 text-lg font-bold text-white"><Link href={memberHref} className="mw-member-link">{name}</Link>{streak && <span className="mw-streak-pill">{streak}</span>}</p>
+              <p className="flex flex-wrap items-center gap-2 text-lg font-bold text-white"><Link href={memberHref} className="mw-member-link">{name}</Link>{streak && <span className="mw-streak-pill" title={streakTip}>{streak}</span>}</p>
               <p className="mt-0.5 font-semibold text-[#e79f2b]">{rank}</p>
             </div>
           </div>

@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 
-export type Reactor = { id: string; name: string; avatarUrl: string | null; initials: string };
+export type Reactor = { id: string; name: string; avatarUrl: string | null; initials: string; streak?: number };
 
 const MAX_SHOWN = 48;
 const GOLDEN = Math.PI * (3 - Math.sqrt(5));
@@ -51,7 +51,7 @@ export function ReactionBurst({ anchor, people, total, label, icon, onEnter, onL
       <span className="mw-burst-glow" style={{ width: reach * 2, height: reach * 2 }} aria-hidden="true" onPointerDown={onLeave} />
       <span className="mw-burst-core"><b>{icon}</b>{total} {label}</span>
       {shown.map((p, i) => (
-        <Link key={p.id} href={`/members/${p.id}`} className="mw-burst-dot" data-name={p.name} aria-label={p.name}
+        <Link key={p.id} href={`/members/${p.id}`} className="mw-burst-dot" data-name={p.streak ? `${p.name}\n☄ ${p.streak}-yr Milky Way streak` : p.name} aria-label={p.name}
           style={{ width: size, height: size, ["--x" as any]: `${points[i].x}px`, ["--y" as any]: `${points[i].y}px`, animationDelay: `${Math.min(i * (n > 20 ? 9 : 28), 420)}ms` }}>
           {p.avatarUrl ? <img src={p.avatarUrl} alt="" /> : <span>{p.initials}</span>}
         </Link>
