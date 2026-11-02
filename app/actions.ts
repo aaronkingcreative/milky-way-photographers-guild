@@ -244,7 +244,22 @@ export async function savePortrait(input: { circlePath: string; pillPath: string
 }
 export async function adminImageAction(formData: FormData) { const { user }=await requireAdmin(); const supabase=await createServerSupabaseClient(); const image_id=value(formData,"image_id"), action=value(formData,"action"); const reason=value(formData,"moderation_reason")||null; const patch:any={moderation_reason:reason}; if(action==="hide") Object.assign(patch,{hidden_at:new Date().toISOString(),hidden_by:user.id,moderation_status:"hidden",status:"hidden"}); if(action==="unhide") Object.assign(patch,{hidden_at:null,hidden_by:null,moderation_status:"visible",status:"published"}); if(action==="delete") Object.assign(patch,{deleted_at:new Date().toISOString(),deleted_by:user.id,moderation_status:"deleted",status:"removed"}); if(action==="blur") Object.assign(patch,{moderation_blur_required:true,moderation_status:"blurred"}); if(action==="unblur") Object.assign(patch,{moderation_blur_required:false,moderation_status:"visible"}); if(action==="review") Object.assign(patch,{moderation_reviewed_by:user.id,moderation_reviewed_at:new Date().toISOString()}); await supabase.from("guild_images").update(patch).eq("id",image_id); revalidatePath("/admin/images"); }
 
-export async function adminAchievementClaimAction(formData: FormData) { const { user }=await requireAdmin(); const supabase=await createServerSupabaseClient(); const claim_id=value(formData,"claim_id"), action=value(formData,"action"), review_notes=value(formData,"review_notes")||null; if(!["verified","rejected","revoked"].includes(action)) return; const { data: claim }=await supabase.from("field_report_achievement_claims").select("user_id,achievement_id").eq("id",claim_id).maybeSingle(); if(!claim) return; await supabase.from("field_report_achievement_claims").update({status:action,reviewed_at:new Date().toISOString(),reviewed_by:user.id,review_notes}).eq("id",claim_id); await supabase.from("user_achievements").update({status:action,awarded_by:user.id,notes:review_notes}).eq("user_id",claim.user_id).eq("achievement_id",claim.achievement_id); revalidatePath("/admin/achievements"); revalidatePath("/field-desk"); revalidatePath("/guild-hall"); revalidatePath("/progress"); }
+export type ClaimReviewResult = { ok: boolean; error?: string };
+
+// Review notes are optional: an empty note is stored as null.
+export async function adminAchievementClaimAction(formData: FormData): Promise<ClaimReviewResult> {
+  const { user } = await requireAdmin();
+  const supabase = await createServerSupabaseClient();
+  const claim_id = value(formData, "claim_id"), action = value(formData, "action"), review_notes = value(formData, "review_notes") || null;
+  if (!["verified", "rejected", "revoked"].includes(action)) return { ok: false, error: "Unknown review action." };
+  const { data: claim } = await supabase.from("field_report_achievement_claims").select("user_id,achievement_id").eq("id", claim_id).maybeSingle();
+  if (!claim) return { ok: false, error: "That claim could not be found." };
+  const { error } = await supabase.from("field_report_achievement_claims").update({ status: action, reviewed_at: new Date().toISOString(), reviewed_by: user.id, review_notes }).eq("id", claim_id);
+  if (error) return { ok: false, error: "The review did not save. Please try again." };
+  await supabase.from("user_achievements").update({ status: action, awarded_by: user.id, notes: review_notes }).eq("user_id", claim.user_id).eq("achievement_id", claim.achievement_id);
+  revalidatePath("/admin/achievements"); revalidatePath("/field-desk"); revalidatePath("/guild-hall"); revalidatePath("/progress"); revalidatePath(`/members/${claim.user_id}`);
+  return { ok: true };
+}
 
 export type EditReportState = { ok?: boolean; error?: string };
 

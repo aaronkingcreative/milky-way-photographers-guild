@@ -1,48 +1,70 @@
-import Image from "next/image";
 import Link from "next/link";
-import { adminAchievementClaimAction } from "@/app/actions";
 import { requireAdmin } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getAvatarDisplay, publicMemberName } from "@/lib/avatar";
+import { FIELD_REPORT_IMAGE_BUCKET, storagePublicUrl } from "@/lib/storage";
+import { ImageViewer } from "@/components/images/ImageViewer";
+import { ClaimDesk, type DeskClaim } from "@/components/admin/ClaimDesk";
+
+const PENDING = "auto_awarded_pending_review";
+const SELECT = "id,status,claimed_at,reviewed_at,review_notes,user_id,achievement_id,achievement_definitions(name,glyph),profiles(display_name,full_name,email,avatar_url,avatar_path),field_reports(id,title,capture_date,gear,story,guild_image_id,image_bucket,image_original_path,guild_images(image_url,image_bucket,image_original_path,image_width,image_height,country,state_or_province,specific_location_name),user_field_coverage(capture_year,capture_month,capture_season))";
+
+// Claimed images live in the public field-report bucket. They are shown with a plain <img>
+// (via ImageViewer) rather than next/image, whose optimizer only allows the logo path.
+function claimImageUrl(report: any): string | null {
+  const image = report?.guild_images;
+  if (image?.image_url) return image.image_url;
+  const path = image?.image_original_path || report?.image_original_path;
+  return path ? storagePublicUrl(image?.image_bucket || report?.image_bucket || FIELD_REPORT_IMAGE_BUCKET, path) : null;
+}
+
+function toDeskClaim(claim: any): DeskClaim {
+  const report = claim.field_reports;
+  const image = report?.guild_images;
+  const coverage = Array.isArray(report?.user_field_coverage) ? report.user_field_coverage[0] : report?.user_field_coverage;
+  const name = publicMemberName(claim.profiles?.display_name, claim.profiles?.full_name);
+  const honor = claim.achievement_definitions?.name || "Field Honor";
+  const src = claimImageUrl(report);
+  const avatar = getAvatarDisplay({ avatarPath: claim.profiles?.avatar_path, avatarUrl: claim.profiles?.avatar_url, displayName: claim.profiles?.display_name || claim.profiles?.full_name, email: claim.profiles?.email });
+  const status = claim.status === PENDING ? "Pending review" : `${claim.status}${claim.review_notes ? ` · “${claim.review_notes}”` : ""}`;
+  const body = <div className="grid gap-5 md:grid-cols-[minmax(0,440px)_minmax(0,1fr)]">
+    <div className="mw-claim-image">
+      {src ? <ImageViewer src={src} alt={report?.title || "Field report image"} width={image?.image_width} height={image?.image_height} className="mw-claim-img" /> : <p className="p-6 text-sm text-white/55">No image on this field report.</p>}
+      {src && <p className="mt-1 text-xs text-white/45">Click to view full screen</p>}
+    </div>
+    <div>
+      <div className="flex items-center gap-3"><span className="mw-avatar-circle grid h-10 w-10 place-items-center overflow-hidden rounded-full border border-[#e79f2b]/65 bg-[#e79f2b]/10 font-display text-[#f0bd66]">{avatar.avatarUrl ? <img src={avatar.avatarUrl} alt="" className="h-full w-full object-cover" /> : avatar.initials}</span><div><p className="font-bold text-white">{name}</p><p className="text-sm text-white/50">{status}</p></div></div>
+      <p className="mt-4 font-display text-xl uppercase tracking-[.12em] text-[#f0bd66]">{claim.achievement_definitions?.glyph} {honor}</p>
+      <h2 className="mt-2 font-display text-3xl uppercase text-white">{report?.title}</h2>
+      <p className="mt-1 text-sm text-white/58">Captured {report?.capture_date} · {image?.country}, {image?.state_or_province} {image?.specific_location_name ? `· ${image.specific_location_name}` : ""}</p>
+      <div className="mt-4 grid gap-2 text-sm text-white/70"><p><strong>Automatic coverage:</strong> {coverage ? `${coverage.capture_season} ${coverage.capture_year}, month ${coverage.capture_month}` : "No coverage row found"}</p><p><strong>Gear:</strong> {report?.gear}</p></div>
+      {report?.story && <p className="mt-4 line-clamp-5 text-white/72">{report.story}</p>}
+      {report?.guild_image_id && <Link href={`/images/${report.guild_image_id}`} className="mt-4 inline-block font-display uppercase tracking-[.12em] text-[#f0bd66]">Open field report</Link>}
+    </div>
+  </div>;
+  return { id: claim.id, label: `${name} · ${honor}`, notes: claim.review_notes, body };
+}
 
 export default async function Page() {
   await requireAdmin();
   const supabase = await createServerSupabaseClient();
-  const { data: claims } = await supabase
-    .from("field_report_achievement_claims")
-    .select("id,status,claimed_at,review_notes,user_id,achievement_id,achievement_definitions(name,glyph),profiles(display_name,full_name,email,avatar_url,avatar_path),field_reports(id,title,capture_date,gear,story,went_well,could_have_gone_better,guild_image_id,guild_images(image_url,image_original_path,country,state_or_province,specific_location_name),user_field_coverage(capture_year,capture_month,capture_season))")
-    .order("claimed_at", { ascending: false })
-    .limit(100);
+  const [{ data: pending }, { data: reviewed }] = await Promise.all([
+    supabase.from("field_report_achievement_claims").select(SELECT).eq("status", PENDING).order("claimed_at", { ascending: true }).limit(100),
+    supabase.from("field_report_achievement_claims").select(SELECT).neq("status", PENDING).order("reviewed_at", { ascending: false, nullsFirst: false }).limit(20),
+  ]);
+  const pendingClaims = (pending || []).map(toDeskClaim);
+  const reviewedClaims = (reviewed || []).map(toDeskClaim);
   return <section className="mx-auto max-w-7xl px-5 py-14">
     <Link href="/admin" className="font-display uppercase tracking-[.16em] text-[#f0bd66]">← Admin</Link>
     <p className="eyebrow mt-6">Verification Desk</p>
     <h1 className="mt-2 font-display text-5xl uppercase">Achievement Claims</h1>
-    <p className="mt-3 max-w-3xl text-white/68">Review the one Field Honor selected for each field report. Coverage details are shown for context and do not count as extra manual honors.</p>
-    <div className="mt-8 grid gap-5">
-      {(claims || []).map((claim: any) => {
-        const report = claim.field_reports;
-        const image = report?.guild_images;
-        const coverage = Array.isArray(report?.user_field_coverage) ? report.user_field_coverage[0] : report?.user_field_coverage;
-        return <article key={claim.id} className="mw-admin-card overflow-hidden p-5">
-          <div className="grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)_280px]">
-            <div>{image?.image_url && <Image src={image.image_url} alt={report?.title || "Field report image"} width={440} height={280} className="h-44 w-full rounded object-cover" />}</div>
-            <div>
-              <div className="flex items-center gap-3">{(() => { const avatar = getAvatarDisplay({ avatarPath: claim.profiles?.avatar_path, avatarUrl: claim.profiles?.avatar_url, displayName: claim.profiles?.display_name || claim.profiles?.full_name, email: claim.profiles?.email }); return <span className="mw-avatar-circle grid h-10 w-10 place-items-center overflow-hidden rounded-full border border-[#e79f2b]/65 bg-[#e79f2b]/10 font-display text-[#f0bd66]">{avatar.avatarUrl ? <img src={avatar.avatarUrl} alt="" className="h-full w-full object-cover" /> : avatar.initials}</span>; })()}<div><p className="font-bold text-white">{publicMemberName(claim.profiles?.display_name, claim.profiles?.full_name)}</p><p className="text-sm text-white/50">{claim.status}</p></div></div>
-              <h2 className="mt-4 font-display text-3xl uppercase text-white">{report?.title}</h2>
-              <p className="mt-1 text-sm text-white/58">Captured {report?.capture_date} · {image?.country}, {image?.state_or_province} {image?.specific_location_name ? `· ${image.specific_location_name}` : ""}</p>
-              <p className="mt-4 font-display uppercase tracking-[.12em] text-[#f0bd66]">{claim.achievement_definitions?.glyph} {claim.achievement_definitions?.name}</p>
-              <div className="mt-4 grid gap-3 text-sm text-white/70 md:grid-cols-2"><p><strong>Automatic coverage:</strong> {coverage ? `${coverage.capture_season} ${coverage.capture_year}, month ${coverage.capture_month}` : "No coverage row found"}</p><p><strong>Gear:</strong> {report?.gear}</p></div>
-              {report?.story && <p className="mt-4 text-white/72">{report.story}</p>}
-              <Link href={report?.guild_image_id ? `/images/${report.guild_image_id}` : "#"} className="mt-4 inline-block font-display uppercase tracking-[.12em] text-[#f0bd66]">Open field report</Link>
-            </div>
-            <form action={adminAchievementClaimAction} className="space-y-3 rounded border border-white/10 bg-white/[.03] p-4">
-              <input type="hidden" name="claim_id" value={claim.id} />
-              <label className="block text-sm font-bold text-white/80">Review notes<textarea name="review_notes" defaultValue={claim.review_notes || ""} className="mw-input mt-2 min-h-28" /></label>
-              <div className="flex flex-wrap gap-2">{["verified", "rejected", "revoked"].map((action) => <button key={action} name="action" value={action} className="mw-btn-ghost px-3 py-2 text-xs">{action}</button>)}</div>
-            </form>
-          </div>
-        </article>;
-      })}
-    </div>
+    <p className="mt-3 max-w-3xl text-white/68">Compare each image with the Field Honor claimed for it. Notes are optional. Verify or reject, and the claim leaves this list. Capture dates are on the honor system.</p>
+    <h2 className="mt-8 font-display text-2xl uppercase text-white">Pending review <span className="text-[#f0bd66]">({pendingClaims.length})</span></h2>
+    <ClaimDesk claims={pendingClaims} actions={["verified", "rejected"]} emptyText="All caught up. No claims are waiting for review." />
+    {reviewedClaims.length > 0 && <details className="mt-12">
+      <summary className="cursor-pointer font-display text-xl uppercase text-white/70">Recently reviewed ({reviewedClaims.length})</summary>
+      <p className="mt-2 text-sm text-white/55">Change a past decision here if needed.</p>
+      <ClaimDesk claims={reviewedClaims} actions={["verified", "rejected", "revoked"]} emptyText="Nothing reviewed yet." />
+    </details>}
   </section>;
 }
