@@ -986,7 +986,7 @@ html[data-list-loading] .mw-sort-list::before{content:"";position:absolute;z-ind
 .mw-viewer-trigger.mw-portrait-trigger img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 
 /* Constellation of Honors: real constellation map (lib/sky-constellations.ts) */
-.progress-sky { height:auto; aspect-ratio:1000 / 720; background:radial-gradient(1300px 900px at 50% -5%,rgba(47,68,93,.5),rgba(6,14,25,.97) 76%); }
+.progress-sky { height:auto; aspect-ratio:1000 / 680; background:radial-gradient(1300px 900px at 50% -5%,rgba(47,68,93,.5),rgba(6,14,25,.97) 76%); }
 .progress-sky svg.progress-sky-lines { position:absolute; inset:0; width:100%; height:100%; }
 .progress-sky .progress-sky-mobile { display:none; }
 .progress-sky line { stroke:rgba(110,140,178,.42); stroke-width:1.4px; }
@@ -1013,7 +1013,7 @@ html[data-list-loading] .mw-sort-list::before{content:"";position:absolute;z-ind
 .progress-legend i.future { width:12px; height:12px; background:rgba(120,145,180,.3); }
 @media (max-width: 1000px) { .progress-sky { height:auto; } }
 @media (max-width: 640px) {
-  .progress-sky { aspect-ratio:1000 / 2400; }
+  .progress-sky { aspect-ratio:1000 / 2280; }
   .progress-sky .progress-sky-desktop { display:none; }
   .progress-sky .progress-sky-mobile { display:block; }
   .progress-sky-label { left:var(--mx); top:var(--my); font-size:.6rem; letter-spacing:.18em; }
