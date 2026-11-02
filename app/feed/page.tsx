@@ -71,7 +71,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ f
           <p className="mw-prototype-subtitle">Every image is a night under the Milky Way.</p>
           <nav className="mt-6 flex flex-wrap gap-2.5" aria-label="Filter the gallery">
             {filters.map(([key, label]) => (
-              <Link key={key} href={key === "all" ? "/feed" : `/feed?filter=${key}`} aria-current={filter === key ? "page" : undefined} className={`mw-filter-chip px-4 py-2 ${filter === key ? "is-active" : ""}`}>
+              <Link key={key} href={key === "all" ? "/feed" : `/feed?filter=${key}`} scroll={false} data-list-sort aria-current={filter === key ? "page" : undefined} className={`mw-filter-chip px-4 py-2 ${filter === key ? "is-active" : ""}`}>
                 {label}
               </Link>
             ))}
@@ -81,7 +81,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ f
           + New Field Report
         </Link>
       </div>
-      <ImageGrid images={decorated} reactions={reactions || []} emptyLabel={filter === "all" ? undefined : filter === "contenders" && !schedule?.voting ? (schedule?.entry ? `No IOTW week is open for voting yet. IOTW ${schedule.entry.label} voting opens ${formatMountainShort(schedule.entry.voting_opens_at)}. See IOTW Entries for everything entered so far.` : "No IOTW week is open for voting yet.") : "Nothing here yet. Try another filter."} />
+      <div className="mw-sort-list"><ImageGrid images={decorated} reactions={reactions || []} emptyLabel={filter === "all" ? undefined : filter === "contenders" && !schedule?.voting ? (schedule?.entry ? `No IOTW week is open for voting yet. IOTW ${schedule.entry.label} voting opens ${formatMountainShort(schedule.entry.voting_opens_at)}. See IOTW Entries for everything entered so far.` : "No IOTW week is open for voting yet.") : "Nothing here yet. Try another filter."} /></div>
     </section>
   );
 }

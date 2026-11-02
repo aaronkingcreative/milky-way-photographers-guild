@@ -25,7 +25,7 @@ function canUseFullscreen() {
  * Click opens it full screen (Fullscreen API, or a fixed overlay where that is missing, like iPhone Safari).
  * In full screen, click flips between fitted and actual size. Esc, the X or the black backdrop closes it.
  */
-export function ImageViewer({ src, alt, className, width, height, blurred = false }: { src: string; alt: string; className?: string; width?: number | null; height?: number | null; blurred?: boolean }) {
+export function ImageViewer({ src, fullSrc, alt, className, triggerClassName, width, height, blurred = false }: { src: string; fullSrc?: string | null; alt: string; className?: string; triggerClassName?: string; width?: number | null; height?: number | null; blurred?: boolean }) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const [open, setOpen] = useState(false);
@@ -112,7 +112,7 @@ export function ImageViewer({ src, alt, className, width, height, blurred = fals
 
   return (
     <>
-      <button type="button" className="mw-viewer-trigger" onClick={openViewer} aria-label={`View ${alt || "image"} full screen`} disabled={blurred}>
+      <button type="button" className={`mw-viewer-trigger ${triggerClassName || ""}`} onClick={openViewer} aria-label={`View ${alt || "image"} full screen`} disabled={blurred}>
         <img src={src} alt={alt} width={width || undefined} height={height || undefined} className={className} />
       </button>
       <div
@@ -128,7 +128,7 @@ export function ImageViewer({ src, alt, className, width, height, blurred = fals
           <>
             <img
               ref={imgRef}
-              src={src}
+              src={fullSrc || src}
               alt={alt}
               draggable={false}
               onPointerDown={onImagePointerDown}
