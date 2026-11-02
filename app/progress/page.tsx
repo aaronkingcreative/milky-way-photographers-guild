@@ -3,18 +3,12 @@ import { requireLogin } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { AchievementDefinition, AchievementLibraryCategory, UserAchievement, achievementLibraryCategoryDetails, seededAchievementDefinitions, trackingAchievementDefinitions } from "@/lib/achievements";
 import { getMemberStats, initialsForName, EARNED_ACHIEVEMENT_STATUSES } from "@/lib/member-stats";
+import { SKY_VIEW, SkyLayoutKey, buildSkyMap } from "@/lib/sky-constellations";
 
 const favicon = "/launch/mwpg/MWPG_Logo_FAVICON.png";
 const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const seasonIds = ["seasonal_winter", "seasonal_spring", "seasonal_summer", "seasonal_fall"];
 const seasonLabels = ["Winter", "Spring", "Summer", "Fall"];
-const starPositions = [
-  [8, 70], [11, 65], [17, 62], [21, 56], [28, 63], [36, 58], [45, 57], [53, 57], [61, 58], [69, 60], [77, 62], [82, 60],
-  [16, 22], [33, 15], [50, 20], [67, 14], [84, 22], [24, 35], [54, 38], [73, 36], [90, 54], [6, 54], [30, 48], [88, 68],
-  [39, 80], [49, 70], [59, 80], [49, 88], [40, 40], [66, 68], [80, 47], [14, 52], [34, 48], [70, 52], [92, 70], [5, 78], [75, 74], [58, 28], [22, 74], [82, 82],
-];
-const constellationLinks = [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],[9,10],[10,11],[12,13],[13,14],[14,15],[15,16],[17,21],[17,22],[18,19],[19,20],[24,25],[25,26],[26,27],[27,24],[28,29],[29,30],[31,32],[32,33],[34,35],[35,36]];
-
 type DbAchievement = { id: string; name: string; category: AchievementDefinition["category"]; reward_type: AchievementDefinition["rewardType"]; glyph: string; description: string; requirement: string; constellation: string | null; sort_order: number; is_active: boolean; metadata: Record<string, unknown> | null; is_manual_claimable?: boolean | null; is_automatic?: boolean | null; counts_toward_rank?: boolean | null; allow_repeat?: boolean | null };
 type DbUserAchievement = { user_id: string; achievement_id: string; earned_at: string | null; source_submission_id: string | null; awarded_by: string | null; notes: string | null; metadata: Record<string, unknown> | null; status?: string | null };
 
@@ -49,7 +43,17 @@ export default async function Page() {
   const monthStreak = stats.month_streak;
   const monthly = definitions.filter((item) => item.category === "monthly");
   const yearAchievements = definitions.filter((item) => item.category === "special" && earnedById.has(item.id));
-  const stars = definitions.map((definition, index) => ({ definition, pos: starPositions[index % starPositions.length], earned: earnedById.has(definition.id), record: earnedById.get(definition.id) }));
+  const sky = buildSkyMap(definitions);
+  const starByKey = new Map(sky.stars.map((star) => [star.key, star]));
+  const isEarnedStar = (key: string) => { const achievement = starByKey.get(key)?.achievement; return Boolean(achievement && earnedById.has(achievement.id)); };
+  const completeConstellations = new Set(sky.constellations.filter((constellation) => {
+    const honors = sky.stars.filter((star) => star.constellationId === constellation.id && star.achievement);
+    return honors.length > 0 && honors.every((star) => isEarnedStar(star.key));
+  }).map((constellation) => constellation.id));
+  const pct = (value: number, layout: SkyLayoutKey, axis: "w" | "h") => `${((value / SKY_VIEW[layout][axis]) * 100).toFixed(2)}%`;
+  const starSize = (mag: number) => Math.max(0.78, Math.min(1.18, 1.3 - 0.16 * mag)).toFixed(2);
+  const tipClass = (x: number, y: number) => [x < 160 ? "tip-left" : x > 840 ? "tip-right" : "", y > 560 ? "tip-up" : ""].join(" ").trim();
+  const tipClassMobile = (x: number, y: number) => [x < 300 ? "mtip-left" : x > 700 ? "mtip-right" : "", y > 2050 ? "mtip-up" : ""].join(" ").trim();
 
   const categoryOrder: AchievementLibraryCategory[] = ["monthly", "seasonal", "foreground", "technique", "special", "rank", "tracking"];
   const libraryDefinitions = definitions.filter((item) => !item.id.startsWith("year_"));
@@ -75,7 +79,7 @@ export default async function Page() {
     <h1 className="progress-title">Your Climb to Master</h1>
     <section className="progress-top-grid">
       <div className="progress-member-card">
-        {stats.avatar_url ? <Image src={stats.avatar_url} alt="" width={120} height={120} className="progress-avatar" /> : <div className="progress-avatar progress-avatar-initials">{initials}</div>}
+        {stats.avatar_url ? <Image src={stats.avatar_url} alt="" width={120} height={120} unoptimized className="progress-avatar" /> : <div className="progress-avatar progress-avatar-initials">{initials}</div>}
         <div><p className="progress-panel-label">Member Standing</p><h2>{name}</h2><div className="progress-pills"><span>{rank.short}</span>{yearStreak > 0 && <span>☄ {yearStreak} Year Streak</span>}</div><p className="progress-muted">{earnedCount} field honors earned, {rank.full}</p></div>
       </div>
       <div className="progress-streak-card"><strong>{yearStreak}</strong><span>Year Streak</span><p>A new Milky Way in each earned year</p></div>
@@ -86,10 +90,23 @@ export default async function Page() {
     <section className="progress-panel progress-decade"><div className="progress-section-head"><h2>❖ A Decade Under the Stars</h2><p>Credibility bonus for Milky Way images captured across different years.</p></div>{yearAchievements.length ? <div className="progress-year-chips">{yearAchievements.map((achievement) => <span key={achievement.id}>{String(achievement.metadata?.year ?? achievement.name.replace(/\D/g, ""))}</span>)}</div> : <p className="progress-empty">No earned year honors yet.</p>}</section>
     <section className="progress-constellation-head"><h2>The Constellation of Honors</h2><p>Hover any star for details, a fully earned cluster lights its constellation gold</p></section>
     <section className="progress-sky">
-      <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">{constellationLinks.map(([a, b]) => <line key={`${a}-${b}`} x1={starPositions[a][0]} y1={starPositions[a][1]} x2={starPositions[b][0]} y2={starPositions[b][1]} className={stars[a]?.earned && stars[b]?.earned ? "complete" : undefined} />)}</svg>
-      {stars.map(({ definition, pos, earned, record }) => <button key={definition.id} type="button" className={`progress-star ${earned ? "earned" : "locked"}`} style={{ left: `${pos[0]}%`, top: `${pos[1]}%` }}><span className="progress-star-shape"><span>{definition.glyph}</span></span><span className="progress-tooltip"><strong>{definition.name}</strong><em>{definition.requirement}</em><b>{earned ? (record?.earnedAt ? `✓ Earned ${earnedDate(record.earnedAt)}` : "✓ Earned") : "Locked"}</b></span></button>)}
+      {(["desktop", "mobile"] as const).map((layout) => <svg key={layout} className={`progress-sky-lines progress-sky-${layout}`} viewBox={`0 0 ${SKY_VIEW[layout].w} ${SKY_VIEW[layout].h}`} preserveAspectRatio="none" aria-hidden="true">
+        {sky.constellations.map((constellation) => <g key={constellation.id} className={completeConstellations.has(constellation.id) ? "progress-sky-figure complete" : "progress-sky-figure"}>
+          {constellation.lines.map(({ a, b }) => { const from = starByKey.get(a); const to = starByKey.get(b); if (!from || !to) return null; return <line key={`${a}-${b}`} vectorEffect="non-scaling-stroke" x1={from.pos[layout].x} y1={from.pos[layout].y} x2={to.pos[layout].x} y2={to.pos[layout].y} className={isEarnedStar(a) && isEarnedStar(b) ? "complete" : !from.achievement || !to.achievement ? "future" : undefined} />; })}
+        </g>)}
+      </svg>)}
+      {sky.constellations.map((constellation) => <span key={constellation.id} className={`progress-sky-label anchor-${constellation.label.desktop.anchor} manchor-${constellation.label.mobile.anchor}${completeConstellations.has(constellation.id) ? " complete" : ""}`} style={{ "--dx": pct(constellation.label.desktop.x, "desktop", "w"), "--dy": pct(constellation.label.desktop.y, "desktop", "h"), "--mx": pct(constellation.label.mobile.x, "mobile", "w"), "--my": pct(constellation.label.mobile.y, "mobile", "h") } as React.CSSProperties}>{constellation.name}</span>)}
+      {sky.stars.map((star) => {
+        const definition = star.achievement;
+        const record = definition ? earnedById.get(definition.id) : undefined;
+        const earned = Boolean(record);
+        const style = { "--dx": pct(star.pos.desktop.x, "desktop", "w"), "--dy": pct(star.pos.desktop.y, "desktop", "h"), "--mx": pct(star.pos.mobile.x, "mobile", "w"), "--my": pct(star.pos.mobile.y, "mobile", "h"), "--star": starSize(star.mag) } as React.CSSProperties;
+        const tips = `${tipClass(star.pos.desktop.x, star.pos.desktop.y)} ${tipClassMobile(star.pos.mobile.x, star.pos.mobile.y)}`.trim();
+        if (!definition) return <button key={star.key} type="button" className={`progress-star future ${tips}`} style={style} aria-label={`Future honor, ${star.starName}`}><span className="progress-star-shape" /><span className="progress-tooltip"><strong>Future honor</strong><em>Reserved for an honor the Guild has not added yet.</em><small>{star.starName}, {star.constellationName}</small></span></button>;
+        return <button key={star.key} type="button" className={`progress-star ${earned ? "earned" : "locked"}${completeConstellations.has(star.constellationId) ? " in-complete" : ""} ${tips}`} style={style}><span className="progress-star-shape"><span>{definition.glyph}</span></span><span className="progress-tooltip"><strong>{definition.name}</strong><em>{definition.requirement}</em><b>{earned ? (record?.earnedAt ? `✓ Earned ${earnedDate(record.earnedAt)}` : "✓ Earned") : "Locked"}</b><small>{star.starName}, {star.constellationName}</small></span></button>;
+      })}
     </section>
-    <div className="progress-legend"><span><i className="earned" />Earned honor</span><span><i />Locked, not yet earned</span><span><i className="line" />Gold line means complete constellation</span></div>
+    <div className="progress-legend"><span><i className="earned" />Earned honor</span><span><i />Locked, not yet earned</span><span><i className="future" />Future honor</span><span><i className="line" />Gold line joins two earned honors, a fully earned constellation glows gold</span></div>
 
     <section className="progress-achievement-library" aria-labelledby="achievement-library-title">
       <div className="progress-library-heading">

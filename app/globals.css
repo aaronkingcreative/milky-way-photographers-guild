@@ -984,3 +984,51 @@ html[data-list-loading] .mw-sort-list::before{content:"";position:absolute;z-ind
 .mw-viewer-trigger.mw-portrait-trigger:hover{transform:scale(1.04);box-shadow:0 0 0 3px rgba(240,189,102,.35),0 0 22px rgba(240,189,102,.35)}
 .mw-viewer-trigger.mw-portrait-trigger:focus-visible{outline:2px solid #f0bd66;outline-offset:3px}
 .mw-viewer-trigger.mw-portrait-trigger img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+
+/* Constellation of Honors: real constellation map (lib/sky-constellations.ts) */
+.progress-sky { height:auto; aspect-ratio:1000 / 720; background:radial-gradient(1300px 900px at 50% -5%,rgba(47,68,93,.5),rgba(6,14,25,.97) 76%); }
+.progress-sky svg.progress-sky-lines { position:absolute; inset:0; width:100%; height:100%; }
+.progress-sky .progress-sky-mobile { display:none; }
+.progress-sky line { stroke:rgba(110,140,178,.42); stroke-width:1.4px; }
+.progress-sky line.future { stroke:rgba(110,140,178,.3); stroke-dasharray:3 5; }
+.progress-sky line.complete { stroke:rgba(231,159,43,.7); stroke-width:1.8px; }
+.progress-sky .progress-sky-figure.complete line { stroke:rgba(243,198,116,.95); stroke-width:2.4px; filter:drop-shadow(0 0 4px rgba(231,159,43,.85)); }
+.progress-sky .progress-sky-figure.complete line.future { stroke:rgba(140,165,200,.3); stroke-width:1.4px; filter:none; }
+.progress-sky-label { position:absolute; z-index:2; left:var(--dx); top:var(--dy); transform:translate(-50%,-50%); white-space:nowrap; pointer-events:none; font-family:var(--font-guild-display); font-size:.7rem; font-weight:700; letter-spacing:.22em; text-transform:uppercase; color:rgba(170,195,225,.38); }
+.progress-sky-label.anchor-start { transform:translate(0,-50%); }
+.progress-sky-label.anchor-end { transform:translate(-100%,-50%); }
+.progress-sky-label.complete { color:rgba(243,198,116,.9); text-shadow:0 0 12px rgba(231,159,43,.6); }
+.progress-sky .progress-star { left:var(--dx); top:var(--dy); width:calc(46px * var(--star, 1)); height:calc(46px * var(--star, 1)); }
+.progress-sky .progress-star-shape { font-size:calc(15px * var(--star, 1)); }
+.progress-sky .progress-star.in-complete::before { content:""; position:absolute; inset:-28%; z-index:-1; border-radius:50%; background:radial-gradient(circle, rgba(231,159,43,.5), rgba(231,159,43,0) 62%); pointer-events:none; }
+.progress-sky .progress-star.future { width:20px; height:20px; opacity:1; }
+.progress-sky .progress-star.future .progress-star-shape { background:rgba(120,145,180,.22); }
+.progress-sky .progress-star.future:hover .progress-star-shape, .progress-sky .progress-star.future:focus-visible .progress-star-shape { background:rgba(150,175,210,.42); }
+.progress-tooltip small { display:block; margin-top:.45rem; color:rgba(170,195,225,.6); font-size:.74rem; letter-spacing:.02em; }
+.progress-star.future .progress-tooltip strong { color:rgba(255,255,255,.82); }
+.progress-sky .progress-star.tip-left .progress-tooltip { left:0; transform:translate(0,4px); }
+.progress-sky .progress-star.tip-right .progress-tooltip { left:auto; right:0; transform:translate(0,4px); }
+.progress-sky .progress-star.tip-left:is(:hover,:focus,:focus-visible) .progress-tooltip, .progress-sky .progress-star.tip-right:is(:hover,:focus,:focus-visible) .progress-tooltip { transform:translate(0,0); }
+.progress-sky .progress-star.tip-up .progress-tooltip { top:auto; bottom:calc(100% + 8px); }
+.progress-legend i.future { width:12px; height:12px; background:rgba(120,145,180,.3); }
+@media (max-width: 1000px) { .progress-sky { height:auto; } }
+@media (max-width: 640px) {
+  .progress-sky { aspect-ratio:1000 / 2400; }
+  .progress-sky .progress-sky-desktop { display:none; }
+  .progress-sky .progress-sky-mobile { display:block; }
+  .progress-sky-label { left:var(--mx); top:var(--my); font-size:.6rem; letter-spacing:.18em; }
+  .progress-sky-label.anchor-start, .progress-sky-label.anchor-end { transform:translate(-50%,-50%); }
+  .progress-sky-label.manchor-start { transform:translate(0,-50%); }
+  .progress-sky-label.manchor-end { transform:translate(-100%,-50%); }
+  .progress-sky .progress-star { left:var(--mx); top:var(--my); width:calc(31px * var(--star, 1)); height:calc(31px * var(--star, 1)); }
+  .progress-sky .progress-star-shape { font-size:calc(11px * var(--star, 1)); }
+  .progress-sky .progress-star.future { width:16px; height:16px; }
+  .progress-sky .progress-star.tip-left .progress-tooltip, .progress-sky .progress-star.tip-right .progress-tooltip { left:50%; right:auto; transform:translate(-50%,4px); }
+  .progress-sky .progress-star.tip-left:is(:hover,:focus,:focus-visible) .progress-tooltip, .progress-sky .progress-star.tip-right:is(:hover,:focus,:focus-visible) .progress-tooltip { transform:translate(-50%,0); }
+  .progress-sky .progress-star.tip-up .progress-tooltip { top:calc(100% + 8px); bottom:auto; }
+  .progress-sky .progress-star.mtip-left .progress-tooltip { left:0; right:auto; transform:translate(0,4px); }
+  .progress-sky .progress-star.mtip-right .progress-tooltip { left:auto; right:0; transform:translate(0,4px); }
+  .progress-sky .progress-star.mtip-left:is(:hover,:focus,:focus-visible) .progress-tooltip, .progress-sky .progress-star.mtip-right:is(:hover,:focus,:focus-visible) .progress-tooltip { transform:translate(0,0); }
+  .progress-sky .progress-star.mtip-up .progress-tooltip { top:auto; bottom:calc(100% + 8px); }
+  .progress-tooltip { width:200px; }
+}
