@@ -1,6 +1,7 @@
 import { nextRankForCount, rankForCount } from "@/lib/achievements";
 import { consecutiveMonthStreakFromCoverage } from "@/lib/coverage";
 import { isPublicName, publicMemberName, resolveAvatarUrl } from "@/lib/avatar";
+import { fetchMilkyWayYears, milkyWayStreak } from "@/lib/streak";
 
 export const EARNED_ACHIEVEMENT_STATUSES = ["auto_awarded_pending_review", "verified"];
 
@@ -25,7 +26,10 @@ export type MemberStats = {
   rank_short: string;
   next_rank: string | null;
   honors_to_next_rank: number;
+  /** Consecutive Milky Way years ending this year or last year (lib/streak.ts). */
   year_streak: number;
+  year_streak_from: number | null;
+  year_streak_to: number | null;
   month_streak: number;
   country: string | null;
   region: string | null;
@@ -58,15 +62,16 @@ async function loadProfile(supabase: SupabaseClient, id: string) {
 }
 
 export async function getMemberStats(supabase: SupabaseClient, user: AuthUser): Promise<MemberStats> {
-  const [{ data: profile }, { data: achievements }, { data: coverage }] = await Promise.all([
+  const [{ data: profile }, { data: achievements }, { data: coverage }, milkyWayYears] = await Promise.all([
     loadProfile(supabase, user.id),
     supabase.from("user_achievements").select("achievement_id,status,achievement_definitions(counts_toward_rank)").eq("user_id", user.id).in("status", EARNED_ACHIEVEMENT_STATUSES),
     supabase.from("user_field_coverage").select("capture_year,capture_month").eq("user_id", user.id),
+    fetchMilkyWayYears(supabase, [user.id]),
   ]);
   const earned = new Set((achievements || []).filter((row: any) => row.achievement_definitions?.counts_toward_rank !== false && !String(row.achievement_id || "").startsWith("rank_")).map((row: any) => row.achievement_id)).size;
   const rank = rankForCount(earned);
   const nextRank = nextRankForCount(earned);
-  const years = new Set((coverage || []).map((row: any) => row.capture_year).filter((year: number) => !Number.isNaN(year)));
+  const streak = milkyWayStreak((milkyWayYears.get(user.id) || []).map((row) => row.year));
   const display_name = displayNameFromSources(profile, user);
   const avatar_path = profile?.avatar_path || null;
   return {
@@ -81,7 +86,9 @@ export async function getMemberStats(supabase: SupabaseClient, user: AuthUser): 
     rank_short: rank.short,
     next_rank: nextRank?.short || null,
     honors_to_next_rank: nextRank ? Math.max(0, nextRank.min - earned) : 0,
-    year_streak: years.size,
+    year_streak: streak.length,
+    year_streak_from: streak.from,
+    year_streak_to: streak.to,
     month_streak: consecutiveMonthStreakFromCoverage(coverage || []),
     country: profile?.country || null,
     region: profile?.region || null,

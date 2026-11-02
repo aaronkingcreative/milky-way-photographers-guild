@@ -7,7 +7,7 @@ export function titleCaseLabel(label?: string | null, fallback = "Veteran") {
 export function formatStreakBadge(value?: string | number | null) {
   if (value === null || value === undefined || value === "") return null;
   const match = String(value).match(/\d+/);
-  return match ? `☄ ${match[0]} y` : null;
+  return match && Number(match[0]) > 0 ? `☄ ${match[0]}-yr Milky Way streak` : null;
 }
 
 export function fullPhotographerRank(rank?: string | null) {

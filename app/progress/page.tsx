@@ -80,9 +80,9 @@ export default async function Page() {
     <section className="progress-top-grid">
       <div className="progress-member-card">
         {stats.avatar_url ? <Image src={stats.avatar_url} alt="" width={120} height={120} unoptimized className="progress-avatar" /> : <div className="progress-avatar progress-avatar-initials">{initials}</div>}
-        <div><p className="progress-panel-label">Member Standing</p><h2>{name}</h2><div className="progress-pills"><span>{rank.short}</span>{yearStreak > 0 && <span>☄ {yearStreak} Year Streak</span>}</div><p className="progress-muted">{earnedCount} field honors earned, {rank.full}</p></div>
+        <div><p className="progress-panel-label">Member Standing</p><h2>{name}</h2><div className="progress-pills"><span>{rank.short}</span>{yearStreak > 0 && <span>☄ {yearStreak}-yr Milky Way streak</span>}</div><p className="progress-muted">{earnedCount} field honors earned, {rank.full}</p></div>
       </div>
-      <div className="progress-streak-card"><strong>{yearStreak}</strong><span>Year Streak</span><p>A new Milky Way in each earned year</p></div>
+      <div className="progress-streak-card"><strong>{yearStreak}</strong><span>Year Streak</span><p>Upload a Milky Way image from a year and declare when you shot it. Each consecutive year adds to your streak. <a href="/profile#streak" className="underline">See your years</a></p></div>
       <div className="progress-streak-card progress-streak-card-cool"><strong>{monthStreak}</strong><span>Month Streak</span><p>Earned calendar month honors</p></div>
     </section>
     <section className="progress-panel progress-rank-panel"><div><h2>Progress to {nextRank?.short ?? "Master"}</h2><p>{nextRank ? `${Math.max(0, nextRank.min - earnedCount)} more honors to rank up` : "Master rank reached"}</p></div><div className="progress-bar"><span style={{ width: `${progressPct}%` }} /></div></section>

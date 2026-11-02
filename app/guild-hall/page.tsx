@@ -3,7 +3,10 @@ import Link from "next/link";
 import { AccessNeededPanel } from "@/components/Cards";
 import { requireLogin } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { formatStreakBadge, fullPhotographerRank } from "@/lib/display";
+import { fullPhotographerRank } from "@/lib/display";
+import { StreakPill } from "@/components/StreakPill";
+import { AscentFace, type CloudHonor } from "@/components/hall/AscentFace";
+import { fetchStreaks, type MilkyWayStreak } from "@/lib/streak";
 import { EARNED_ACHIEVEMENT_STATUSES } from "@/lib/member-stats";
 import { getAvatarDisplay, MEMBER_NAME_FALLBACK, publicMemberName } from "@/lib/avatar";
 import { ReactionBar } from "@/components/images/ReactionBar";
@@ -88,7 +91,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
   let message: { id: string; body: string; created_at: string } | null = null;
   let messageRead = false;
   let recentComments: any[] = [];
-  const commenters = new Map<string, { name: string }>();
+  const commenters = new Map<string, { name: string; streak?: number }>();
 
   if (hasAccess) {
     const visible = () => supabase.from("guild_images").select(IMAGE_SELECT).is("hidden_at", null).is("deleted_at", null).not("moderation_status", "in", '("hidden","deleted")');
@@ -137,10 +140,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
     }
     recentComments = (cmts || []).filter((c: any) => c.guild_images && !["hidden", "deleted"].includes(c.guild_images.moderation_status));
     const people = await fetchMembers(supabase, recentComments.map((c: any) => c.user_id));
-    people.forEach((m, id) => commenters.set(id, { name: m.name }));
+    people.forEach((m, id) => commenters.set(id, { name: m.name, streak: m.streak }));
   }
   const userIds = [...new Set(images.map((image) => image.user_id).filter(Boolean))];
   const achievementCounts = new Map<string, number>();
+  const posterStreaks: Map<string, MilkyWayStreak> = userIds.length ? await fetchStreaks(supabase, userIds as string[]).catch(() => new Map()) : new Map();
   if (userIds.length) {
     const { data: earnedRows } = await supabase.from("user_achievements").select("user_id,achievement_id,status").in("user_id", userIds).in("status", EARNED_ACHIEVEMENT_STATUSES);
     const earnedByUser = new Map<string, Set<string>>();
@@ -151,14 +155,28 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
     earnedByUser.forEach((ids, userId) => achievementCounts.set(userId, ids.size));
   }
 
-  const ascent = new Map<string, { id: string; name: string; avatarUrl: string | null; initials: string; count: number }[]>();
+  const ascent = new Map<string, { id: string; name: string; avatarUrl: string | null; initials: string; streak?: number; count: number }[]>();
+  const cloudHonors = new Map<string, CloudHonor[]>();
   if (hasAccess) {
     const [{ data: posters }, allCounts] = await Promise.all([
       supabase.from("guild_images").select("user_id").is("deleted_at", null).is("hidden_at", null).limit(2000),
       fetchHonorCounts(supabase),
     ]);
     const climberIds = [...new Set([...(posters || []).map((row: any) => row.user_id), ...allCounts.keys()].filter(Boolean))] as string[];
-    const climbers = await fetchMembers(supabase, climberIds);
+    const [climbers, { data: climberHonors }, { data: honorDefs }] = await Promise.all([
+      fetchMembers(supabase, climberIds),
+      climberIds.length ? supabase.from("user_achievements").select("user_id,achievement_id,earned_at").in("user_id", climberIds).in("status", EARNED_ACHIEVEMENT_STATUSES).order("earned_at", { ascending: false }) : Promise.resolve({ data: [] as any[] }),
+      supabase.from("achievement_definitions").select("id,name,glyph"),
+    ]);
+    // Earned honors for the hover cloud around each Ascent portrait, newest first. Rank markers are not honors.
+    const defById = new Map((honorDefs || []).map((d: any) => [d.id, d]));
+    (climberHonors || []).forEach((row: any) => {
+      const def: any = defById.get(row.achievement_id);
+      if (!def || String(row.achievement_id).startsWith("rank_")) return;
+      if (!cloudHonors.has(row.user_id)) cloudHonors.set(row.user_id, []);
+      const list = cloudHonors.get(row.user_id)!;
+      if (!list.some((h) => h.id === row.achievement_id)) list.push({ id: row.achievement_id, name: def.name, glyph: def.glyph || "✦" });
+    });
     climberIds
       .map((id) => ({ ...(climbers.get(id) || { id, name: MEMBER_NAME_FALLBACK, avatarUrl: null, initials: "GM" }), count: allCounts.get(id) || 0 }))
       .sort((x, y) => Number(Boolean(y.avatarUrl)) - Number(Boolean(x.avatarUrl)) || y.count - x.count)
@@ -190,9 +208,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
                     <div className="mw-ascent-node"><span className="mw-ascent-dot" /><span className="mw-ascent-rank">{rank.label}</span><span className="mw-ascent-range">{rank.range}</span></div>
                     <div className="mw-ascent-faces">
                       {shown.map((member) => (
-                        <Link key={member.id} href={`/members/${member.id}`} className="mw-ascent-face" title={`${member.name}, ${member.count} ${member.count === 1 ? "honor" : "honors"}`} aria-label={`${member.name}, ${rank.label}, ${member.count} honors`}>
-                          {member.avatarUrl ? <img src={member.avatarUrl} alt="" /> : <span>{member.initials}</span>}
-                        </Link>
+                        <AscentFace key={member.id} member={member} rankLabel={rank.label} honors={cloudHonors.get(member.id) || []} />
                       ))}
                       {climbers.length > shown.length && <span className="mw-ascent-more">+{climbers.length - shown.length}</span>}
                       {!climbers.length && <span className="mw-ascent-open">Open</span>}
@@ -222,7 +238,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
                       <header className="mw-feed-card-head">
                         <Link href={`/members/${image.user_id}`} aria-label={`View ${name}'s profile`} className="mw-feed-avatar">{avatar.avatarUrl ? <img src={avatar.avatarUrl} alt="" /> : <span>{avatar.initials}</span>}</Link>
                         <div className="min-w-0">
-                          <h3 className="mw-feed-name"><Link href={`/members/${image.user_id}`} className="mw-member-link">{name}</Link></h3>
+                          <h3 className="mw-feed-name"><Link href={`/members/${image.user_id}`} className="mw-member-link">{name}</Link><StreakPill length={posterStreaks.get(image.user_id)?.length} /></h3>
                           <p className="mw-feed-rank">{fullPhotographerRank(rank)}</p>
                           <p className="mw-feed-meta">{postTime(image.created_at)} · {place}</p>
                         </div>
@@ -259,11 +275,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
                   <ol className="mw-rail-comment-list">
                     {recentComments.map((c: any) => {
                       const who = commenters.get(c.user_id)?.name || MEMBER_NAME_FALLBACK;
+                      const whoStreak = commenters.get(c.user_id)?.streak || 0;
                       return (
                         <li key={c.id}>
                           <Link href={`/images/${c.image_id}?from=guild-hall#comment-${c.id}`} className="mw-rail-comment" title={`${who} on ${c.guild_images?.title || "a field report"}`}>
                             <span className="mw-rail-comment-text">
-                              <span className="mw-rail-comment-who"><b>{who}</b><time dateTime={c.created_at}>{shortAgo(c.created_at)}</time></span>
+                              <span className="mw-rail-comment-who"><b>{who}</b>{whoStreak > 0 && <span className="mw-rail-streak" title={`${whoStreak}-yr Milky Way streak`}>☄ {whoStreak}-yr</span>}<time dateTime={c.created_at}>{shortAgo(c.created_at)}</time></span>
                               {c.section === "went_well" && <span className="mw-rail-comment-tag is-good">On what went well</span>}
                               {c.section === "could_be_better" && <span className="mw-rail-comment-tag is-better">On what could have gone better</span>}
                               <span className="mw-rail-comment-body">{snippet(c.body)}</span>

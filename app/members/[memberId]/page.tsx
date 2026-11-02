@@ -9,6 +9,8 @@ import { getAvatarDisplay, resolveAvatarUrl } from "@/lib/avatar";
 import { ImageViewer } from "@/components/images/ImageViewer";
 import { ImageGrid } from "@/components/images/ImageGrid";
 import { HonorBadge } from "@/components/HonorBadge";
+import { fetchMilkyWayYears, type MilkyWayYear } from "@/lib/streak";
+import { MilkyWayYearsPanel } from "@/components/MilkyWayYearsPanel";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const fmt = (v?: string | null) => (v ? new Date(v).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "America/Denver" }) : "");
@@ -22,12 +24,14 @@ export default async function Page({ params }: { params: Promise<{ memberId: str
   const { data: profile } = await supabase.from("member_profiles").select("id,display_name,full_name,avatar_url,avatar_path,avatar_pill_path,avatar_original_path,country,state_or_province,region,created_at").eq("id", memberId).maybeSingle();
   if (!profile) notFound();
 
-  const [stats, { data: earned }, { data: images }, { data: reports }] = await Promise.all([
+  const [stats, { data: earned }, { data: images }, { data: reports }, milkyWayYears] = await Promise.all([
     getMemberStats(supabase, { id: memberId, user_metadata: { full_name: profile.full_name, name: profile.display_name } }),
     supabase.from("user_achievements").select("achievement_id,status,earned_at,achievement_definitions(id,name,glyph,description,category,sort_order)").eq("user_id", memberId).in("status", EARNED_ACHIEVEMENT_STATUSES).order("earned_at", { ascending: false }),
     supabase.from("guild_images").select("*, profiles:member_profiles(display_name,full_name,avatar_url,avatar_path)").eq("user_id", memberId).is("hidden_at", null).is("deleted_at", null).not("moderation_status", "in", '("hidden","deleted")').order("created_at", { ascending: false }).limit(48),
     supabase.from("field_reports").select("id,guild_image_id,title").eq("user_id", memberId),
+    fetchMilkyWayYears(supabase, [memberId]).catch(() => new Map()),
   ]);
+  const mwYears: MilkyWayYear[] = milkyWayYears.get(memberId) || [];
   const reportIds = (reports || []).map((r: any) => r.id);
   const imageIds = (images || []).map((i: any) => i.id);
   const [{ data: ballots }, { data: reactions }] = await Promise.all([
@@ -66,7 +70,7 @@ export default async function Page({ params }: { params: Promise<{ memberId: str
           <h1 className="mw-prototype-title">{stats.display_name}</h1>
           <p className="mt-1 text-lg font-semibold text-[#f0bd66]">{fullPhotographerRank(stats.rank_short)}</p>
           <p className="mt-1 text-sm text-white/60">{[place, profile.created_at ? `Member since ${new Date(profile.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" })}` : ""].filter(Boolean).join(" · ")}</p>
-          {stats.year_streak > 0 && <p className="mt-3"><span className="mw-streak-pill">{formatStreakBadge(`${stats.year_streak} Year Streak`)}</span></p>}
+          {stats.year_streak > 0 && <p className="mt-3"><span className="mw-streak-pill" title={`Out under the Milky Way every year, ${stats.year_streak_from} to ${stats.year_streak_to}`}>{formatStreakBadge(stats.year_streak)}</span></p>}
           {isMe && <Link href="/profile" className="mt-4 inline-block text-sm text-[#f0bd66] hover:underline">Edit your profile →</Link>}
         </div>
       </div>
@@ -74,9 +78,11 @@ export default async function Page({ params }: { params: Promise<{ memberId: str
       <div className="mw-member-stats">
         <div className="mw-card-soft p-4"><p className="mw-section-label">Field Reports</p><p className="mw-member-stat">{images?.length || 0}</p></div>
         <div className="mw-card-soft p-4"><p className="mw-section-label">Field Honors</p><p className="mw-member-stat">{stats.earned_honor_count}</p></div>
-        <div className="mw-card-soft p-4"><p className="mw-section-label">Year Streak</p><p className="mw-member-stat">{stats.year_streak}</p></div>
+        <div className="mw-card-soft p-4"><p className="mw-section-label">Year Streak</p><p className="mw-member-stat">{stats.year_streak}</p>{stats.year_streak > 0 && <p className="mw-member-stat-note">{stats.year_streak_from === stats.year_streak_to ? stats.year_streak_from : `${stats.year_streak_from} to ${stats.year_streak_to}`}</p>}</div>
         <div className="mw-card-soft p-4"><p className="mw-section-label">Awards</p><p className="mw-member-stat">{awards.length}</p></div>
       </div>
+
+      <div className="mt-8"><MilkyWayYearsPanel years={mwYears} isMe={isMe} /></div>
 
       <div className="mt-8 grid gap-5 lg:grid-cols-2">
         <section className="mw-card-gold rounded-lg p-5">

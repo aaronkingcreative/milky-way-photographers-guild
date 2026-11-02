@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { signOut } from "@/app/actions";
-import { formatStreakBadge, titleCaseLabel } from "@/lib/display";
+import { titleCaseLabel } from "@/lib/display";
 import { IotwVotingModal } from "@/components/iotw/IotwVotingModal";
 import { ProfileNudge } from "@/components/ProfileNudge";
 
@@ -67,7 +67,8 @@ export function HeaderClient({
     .map((part) => part.charAt(0).toUpperCase())
     .join("") || "GM";
   const displayRank = titleCaseLabel(rankLabel);
-  const displayStreak = formatStreakBadge(streakLabel);
+  const streakYears = Number(String(streakLabel || "").match(/\d+/)?.[0] || 0);
+  const displayStreak = streakYears > 0 ? `☄ ${streakYears}-yr streak` : null;
   // The profile prompt waits until the mandatory Image of the Week vote is done, and stays off the profile page itself.
   const voteGateBlocking = Boolean(iotw?.mustVote) && voteGateApplies(pathname);
   const showProfileNudge = user && needsProfile && Boolean(userId) && !voteGateBlocking && voteGateApplies(pathname) && !pathname.startsWith("/profile");
@@ -106,7 +107,7 @@ export function HeaderClient({
                     <span className="mw-member-name">{name}</span>
                     <span className="mw-member-meta-row">
                       <span className="mw-member-rank">{displayRank}</span>
-                      {displayStreak && <span className="mw-streak-pill">{displayStreak}</span>}
+                      {displayStreak && <span className="mw-streak-pill" title={`${streakYears}-yr Milky Way streak`}>{displayStreak}</span>}
                     </span>
                   </span>
                 </Link>

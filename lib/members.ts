@@ -1,8 +1,10 @@
 import { getAvatarDisplay, MEMBER_NAME_FALLBACK, publicMemberName } from "@/lib/avatar";
 import { EARNED_ACHIEVEMENT_STATUSES } from "@/lib/member-stats";
+import { fetchStreaks } from "@/lib/streak";
 
 type SupabaseClient = any;
-export type MemberLite = { id: string; name: string; avatarUrl: string | null; initials: string };
+/** streak: consecutive Milky Way years (lib/streak.ts), 0 for none. */
+export type MemberLite = { id: string; name: string; avatarUrl: string | null; initials: string; streak?: number };
 
 export function memberFromProfile(id: string, profile: any, fallbackName?: string | null): MemberLite {
   const name = publicMemberName(profile?.display_name, profile?.full_name, fallbackName);
@@ -14,9 +16,12 @@ export async function fetchMembers(supabase: SupabaseClient, ids: string[]): Pro
   const unique = [...new Set(ids.filter(Boolean))];
   const map = new Map<string, MemberLite>();
   if (!unique.length) return map;
-  const { data } = await supabase.from("member_profiles").select("id,display_name,full_name,avatar_url,avatar_path").in("id", unique);
-  (data || []).forEach((p: any) => map.set(p.id, memberFromProfile(p.id, p)));
-  unique.forEach((id) => { if (!map.has(id)) map.set(id, { id, name: MEMBER_NAME_FALLBACK, avatarUrl: null, initials: "GM" }); });
+  const [{ data }, streaks] = await Promise.all([
+    supabase.from("member_profiles").select("id,display_name,full_name,avatar_url,avatar_path").in("id", unique),
+    fetchStreaks(supabase, unique).catch(() => new Map()),
+  ]);
+  (data || []).forEach((p: any) => map.set(p.id, { ...memberFromProfile(p.id, p), streak: streaks.get(p.id)?.length || 0 }));
+  unique.forEach((id) => { if (!map.has(id)) map.set(id, { id, name: MEMBER_NAME_FALLBACK, avatarUrl: null, initials: "GM", streak: 0 }); });
   return map;
 }
 
