@@ -7,7 +7,7 @@ import { rankForCount } from "@/lib/achievements";
 import { ALLOWED_IMAGE_TYPES, FIELD_REPORT_IMAGE_BUCKET, fieldReportOriginalPath, MAX_UPLOAD_BYTES, storagePublicUrl } from "@/lib/storage";
 import { LocationSelects } from "./LocationSelects";
 
-type AchievementOption = { id: string; name: string; category: string; glyph?: string; requirement?: string; allow_repeat?: boolean };
+type AchievementOption = { id: string; name: string; category: string; glyph?: string; requirement?: string; allow_repeat?: boolean; is_manual_claimable?: boolean | null };
 
 type SubmitState = { error?: string };
 
@@ -32,10 +32,10 @@ function AchievementWidget({ achievements, earnedIds, selectedId, setSelectedId,
           {group.items.map((achievement) => {
             const earned = earnedIds.includes(achievement.id) && !achievement.allow_repeat;
             const selected = selectedId === achievement.id;
-            const locked = achievement.category === "special";
+            const locked = achievement.category === "special" || achievement.is_manual_claimable === false;
             return <button key={achievement.id} type="button" disabled={earned || locked} onClick={() => setSelectedId(selected ? "" : achievement.id)} className={`mw-achievement-choice ${selected ? "is-selected" : ""} ${earned ? "is-earned" : ""} ${locked ? "is-locked" : ""}`}>
               <span className="glyph">{selected ? "✓" : achievement.glyph || "✦"}</span>
-              <span className="min-w-0 flex-1"><span className="block truncate">{achievement.name}</span><span className="state">{selected ? "Selected" : earned ? "Already earned" : locked ? "Locked" : "Available"}</span></span>
+              <span className="min-w-0 flex-1"><span className="block truncate">{achievement.name}</span><span className="state">{selected ? "Selected" : earned ? "Already earned" : locked ? (achievement.category === "seasonal" ? "Earned from its 3 months" : "Locked") : "Available"}</span></span>
             </button>;
           })}
         </div>

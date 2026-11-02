@@ -1093,3 +1093,55 @@ html[data-list-loading] .mw-sort-list::before{content:"";position:absolute;z-ind
 .progress-review-head{font-weight:800;color:#fff}
 .progress-review-new{margin-left:.5rem;font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;background:#f0bd66;color:#081321;border-radius:999px;padding:.1rem .45rem;vertical-align:middle}
 .progress-review-note blockquote{margin-top:.4rem;color:#f8e3bd;font-style:italic}
+
+/* ---- Field Year punch card, Milky Way Calendar, leagues (Nov 2026) ---- */
+@keyframes mw-gold-shimmer { 0% { background-position: -160% 0; } 60%, 100% { background-position: 260% 0; } }
+@keyframes mw-gold-breathe { 0%, 100% { box-shadow: 0 0 14px rgba(240,189,102,.35), inset 0 0 12px rgba(240,189,102,.18); } 50% { box-shadow: 0 0 24px rgba(255,214,128,.6), inset 0 0 16px rgba(255,214,128,.28); } }
+@keyframes mw-flourish-spin { from { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.18); } to { transform: rotate(360deg) scale(1); } }
+.progress-punch-grid { display:grid; grid-template-columns:repeat(12,1fr); gap:.5rem; }
+.progress-punch-hole, .progress-calendar-month { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.2rem; min-height:4.1rem; border-radius:6px; font-family:var(--font-guild-display); font-weight:700; letter-spacing:.06em; text-transform:uppercase; outline:none; }
+.progress-punch-hole.open, .progress-calendar-month.open { border:1px dashed rgba(240,189,102,.32); background:transparent; color:rgba(240,214,160,.55); }
+.progress-punch-hole.open:hover, .progress-calendar-month.open:hover { border-color:rgba(240,189,102,.6); color:rgba(240,214,160,.85); }
+.progress-punch-hole.earned, .progress-calendar-month.earned { border:1px solid rgba(255,214,128,.85); color:#ffe2a3; text-shadow:0 0 8px rgba(255,200,100,.7);
+  background: linear-gradient(110deg, rgba(231,159,43,.20) 0%, rgba(231,159,43,.20) 38%, rgba(255,236,190,.55) 50%, rgba(231,159,43,.20) 62%, rgba(231,159,43,.20) 100%), radial-gradient(circle at 50% 30%, rgba(255,214,128,.30), rgba(120,70,10,.25));
+  background-size: 260% 100%, 100% 100%; animation: mw-gold-shimmer 4.5s ease-in-out infinite, mw-gold-breathe 3.2s ease-in-out infinite; }
+.progress-punch-mark, .progress-calendar-month i { font-style:normal; color:#fff1c9; font-size:1.05rem; filter:drop-shadow(0 0 6px rgba(255,210,120,.95)); }
+.progress-calendar-month.pending { border-style:solid; opacity:.88; }
+.progress-calendar-month.pending::after { content:"pending"; position:absolute; bottom:.2rem; font-size:.55rem; letter-spacing:.1em; color:rgba(255,226,163,.75); }
+.progress-hover-card { pointer-events:none; position:absolute; z-index:30; bottom:calc(100% + .55rem); left:50%; transform:translate(-50%, 4px); min-width:16rem; max-width:22rem; display:flex; flex-direction:column; gap:.25rem; padding:.65rem .8rem; border:1px solid rgba(240,189,102,.45); border-radius:6px; background:rgba(8,13,24,.97); box-shadow:0 10px 30px rgba(0,0,0,.55); color:#fff; text-align:left; text-transform:none; letter-spacing:0; font-family:inherit; font-weight:400; opacity:0; transition:opacity .15s, transform .15s; }
+.progress-hover-card strong { color:#f0bd66; font-size:.85rem; text-shadow:none; }
+.progress-hover-card em { font-style:normal; font-size:.8rem; color:rgba(255,255,255,.85); text-shadow:none; overflow-wrap:anywhere; }
+.progress-hover-card small { font-size:.72rem; color:rgba(255,255,255,.55); }
+.progress-punch-hole:hover .progress-hover-card, .progress-punch-hole:focus .progress-hover-card, .progress-calendar-month:hover .progress-hover-card, .progress-calendar-month:focus .progress-hover-card, .progress-calendar-season-head:hover .progress-hover-card, .progress-calendar-season-head:focus .progress-hover-card { opacity:1; transform:translate(-50%, 0); }
+.progress-league-line { margin-top:1.1rem; display:flex; flex-direction:column; gap:.6rem; }
+.progress-league-line strong { color:#f0bd66; }
+.progress-league-bar { position:relative; height:.55rem; border-radius:99px; background:rgba(255,255,255,.07); border:1px solid rgba(240,189,102,.22); }
+.progress-league-bar span { position:absolute; inset:0 auto 0 0; border-radius:99px; background:linear-gradient(90deg, #b8792a, #f0bd66, #fff0c4); box-shadow:0 0 12px rgba(240,189,102,.6); }
+.progress-league-bar i { position:absolute; top:-3px; width:2px; height:calc(100% + 6px); margin-left:-1px; background:rgba(240,214,160,.35); }
+.progress-league-bar i.reached { background:#fff0c4; box-shadow:0 0 6px rgba(255,220,140,.9); }
+.progress-league-badges { display:flex; flex-wrap:wrap; gap:.45rem; }
+.league-badge { display:inline-flex; align-items:center; gap:.35rem; padding:.28rem .7rem; border-radius:99px; font-family:var(--font-guild-display); font-size:.78rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; border:1px solid; }
+.league-badge::before { content:"◆"; font-size:.7rem; }
+.league-badge.on-track { border-style:dashed; opacity:.85; }
+.league-bronze { color:#e3a77a; border-color:rgba(205,127,50,.7); background:rgba(205,127,50,.14); }
+.league-silver { color:#e4e9f0; border-color:rgba(200,210,225,.7); background:rgba(200,210,225,.12); }
+.league-gold { color:#ffd772; border-color:rgba(240,189,102,.85); background:rgba(240,189,102,.16); box-shadow:0 0 10px rgba(240,189,102,.35); }
+.league-platinum { color:#d9f3ff; border-color:rgba(170,225,245,.8); background:rgba(170,225,245,.12); box-shadow:0 0 10px rgba(170,225,245,.3); }
+.league-diamond { color:#f3fbff; border-color:rgba(190,235,255,.95); background:linear-gradient(110deg, rgba(150,220,255,.18), rgba(255,255,255,.35), rgba(200,160,255,.2)); background-size:260% 100%; animation:mw-gold-shimmer 4s ease-in-out infinite; box-shadow:0 0 14px rgba(190,235,255,.5); }
+.progress-calendar-seasons { display:grid; grid-template-columns:repeat(4,1fr); gap:.9rem; }
+.progress-calendar-season { position:relative; display:flex; flex-direction:column; gap:.55rem; padding:.7rem; border-radius:8px; border:1px solid rgba(240,189,102,.16); background:rgba(255,255,255,.015); }
+.progress-calendar-season-head { position:relative; display:flex; align-items:baseline; gap:.45rem; outline:none; cursor:default; }
+.progress-calendar-season-head strong { font-family:var(--font-guild-display); text-transform:uppercase; letter-spacing:.12em; color:rgba(240,214,160,.7); }
+.progress-calendar-season-head small { margin-left:auto; font-size:.72rem; color:rgba(255,255,255,.5); }
+.progress-season-flourish { color:rgba(240,189,102,.35); }
+.progress-calendar-months { display:grid; grid-template-columns:repeat(3,1fr); gap:.4rem; }
+.progress-calendar-season.earned { border-color:rgba(255,214,128,.75); background:radial-gradient(ellipse at 50% 0%, rgba(255,214,128,.16), rgba(0,0,0,0) 70%); box-shadow:0 0 22px rgba(240,189,102,.28), inset 0 0 18px rgba(240,189,102,.08); }
+.progress-calendar-season.earned .progress-calendar-season-head strong { color:#ffe2a3; text-shadow:0 0 10px rgba(255,200,100,.75); }
+.progress-calendar-season.earned .progress-calendar-season-head small { color:#f0bd66; }
+.progress-calendar-season.earned .progress-season-flourish { display:inline-block; color:#fff0c4; filter:drop-shadow(0 0 8px rgba(255,210,120,1)); animation:mw-flourish-spin 6s ease-in-out infinite; }
+.progress-calendar-season.earned::before, .progress-calendar-season.earned::after { content:"✦"; position:absolute; color:#ffe2a3; font-size:.7rem; filter:drop-shadow(0 0 5px rgba(255,210,120,.95)); }
+.progress-calendar-season.earned::before { top:-.45rem; left:-.35rem; }
+.progress-calendar-season.earned::after { bottom:-.45rem; right:-.35rem; }
+@media (prefers-reduced-motion: reduce) { .progress-punch-hole.earned, .progress-calendar-month.earned, .league-diamond, .progress-calendar-season.earned .progress-season-flourish { animation:none; } }
+@media (max-width: 1000px) { .progress-punch-grid { grid-template-columns:repeat(6,1fr); } .progress-calendar-seasons { grid-template-columns:repeat(2,1fr); } }
+@media (max-width: 640px) { .progress-punch-grid { grid-template-columns:repeat(4,1fr); } .progress-calendar-seasons { grid-template-columns:1fr; } }

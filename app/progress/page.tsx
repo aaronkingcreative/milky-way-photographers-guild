@@ -4,12 +4,20 @@ import { withReviewNotes } from "@/lib/review-notes";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { AchievementDefinition, AchievementLibraryCategory, DECADE_BADGE_LABEL, isDecadeAchievement, UserAchievement, achievementLibraryCategoryDetails, seededAchievementDefinitions, trackingAchievementDefinitions } from "@/lib/achievements";
 import { getMemberStats, initialsForName, EARNED_ACHIEVEMENT_STATUSES } from "@/lib/member-stats";
+import { fetchFieldYearCoverage, fetchHonorEvidence, formatEvidenceDate, type HonorEvidence } from "@/lib/field-year";
+import { finishedLeagueYears, leagueForMonths, nextLeagueForMonths } from "@/lib/leagues";
 import { SKY_VIEW, SkyLayoutKey, buildSkyMap } from "@/lib/sky-constellations";
 
 const favicon = "/launch/mwpg/MWPG_Logo_FAVICON.png";
 const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const seasonIds = ["seasonal_winter", "seasonal_spring", "seasonal_summer", "seasonal_fall"];
-const seasonLabels = ["Winter", "Spring", "Summer", "Fall"];
+const monthNames = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
+// Milky Way Calendar order: seasons start with December.
+const calendarSeasons = [
+  { id: "seasonal_winter", label: "Winter", months: [12, 1, 2] },
+  { id: "seasonal_spring", label: "Spring", months: [3, 4, 5] },
+  { id: "seasonal_summer", label: "Summer", months: [6, 7, 8] },
+  { id: "seasonal_fall", label: "Fall", months: [9, 10, 11] },
+];
 type DbAchievement = { id: string; name: string; category: AchievementDefinition["category"]; reward_type: AchievementDefinition["rewardType"]; glyph: string; description: string; requirement: string; constellation: string | null; sort_order: number; is_active: boolean; metadata: Record<string, unknown> | null; is_manual_claimable?: boolean | null; is_automatic?: boolean | null; counts_toward_rank?: boolean | null; allow_repeat?: boolean | null };
 type DbUserAchievement = { user_id: string; achievement_id: string; earned_at: string | null; source_submission_id: string | null; awarded_by: string | null; notes: string | null; metadata: Record<string, unknown> | null; status?: string | null };
 
@@ -42,7 +50,16 @@ export default async function Page() {
   const initials = initialsForName(name);
   const yearStreak = stats.year_streak;
   const monthStreak = stats.month_streak;
-  const monthly = definitions.filter((item) => item.category === "monthly");
+  const coverage = await fetchFieldYearCoverage(supabase, user.id);
+  const fieldYear = coverage.year;
+  const monthsThisYear = coverage.monthsByYear.get(fieldYear) ?? new Set<number>();
+  const yearCount = monthsThisYear.size;
+  const onTrack = leagueForMonths(yearCount);
+  const nextLeague = nextLeagueForMonths(yearCount);
+  const keptLeagues = finishedLeagueYears(coverage.monthsByYear, fieldYear);
+  const evidence = await fetchHonorEvidence(supabase, earnedRecords);
+  const isPending = (id: string) => earnedById.get(id)?.status === "auto_awarded_pending_review";
+  const evidenceLine = (e: HonorEvidence | undefined) => e ? `${e.label}${e.date ? ` · ${e.date}` : ""}${e.confirmedByAaron ? " · Confirmed by Aaron" : ""}` : "Earned";
   const decadeAchievements = definitions.filter((item) => isDecadeAchievement(item) && earnedById.has(item.id));
   const sky = buildSkyMap(definitions);
   const starByKey = new Map(sky.stars.map((star) => [star.key, star]));
@@ -101,7 +118,36 @@ export default async function Page() {
     </section>
     {reviewNotes.length > 0 && <section id="guild-review" className="progress-panel progress-review-notes"><div className="progress-section-head"><h2>Guild review notes</h2><p>What the Verification Desk said about your achievement claims</p></div><ul>{reviewNotes.map((n) => <li key={n.id} className={`progress-review-note ${n.status}`}><span className="progress-review-glyph" aria-hidden="true">{n.glyph}</span><div><p className="progress-review-head">{n.headline}{n.isNew && <span className="progress-review-new">New</span>}</p>{n.title && <p className="progress-muted">{n.title}{n.date ? ` · reviewed ${n.date}` : ""}</p>}{n.note && <blockquote>“{n.note}”</blockquote>}</div></li>)}</ul></section>}
     <section className="progress-panel progress-rank-panel"><div><h2>Progress to {nextRank?.short ?? "Master"}</h2><p>{nextRank ? `${Math.max(0, nextRank.min - earnedCount)} more honors to rank up` : "Master rank reached"}</p></div><div className="progress-bar"><span style={{ width: `${progressPct}%` }} /></div></section>
-    <section className="progress-panel"><div className="progress-section-head"><h2>2026 Field Year</h2><p>A Milky Way in every month you shoot</p></div><div className="progress-month-grid">{monthly.map((achievement, index) => <div key={achievement.id} className={earnedById.has(achievement.id) ? "earned" : "locked"}>{monthLabels[index]}</div>)}</div><div className="progress-season-grid">{seasonIds.map((id, index) => <div key={id} className={earnedById.has(id) ? "earned" : "locked"}>{seasonLabels[index]}</div>)}</div></section>
+    <section className="progress-panel progress-punch" aria-labelledby="field-year-title">
+      <div className="progress-section-head"><h2 id="field-year-title">{fieldYear} Field Year</h2><p>{yearCount > 0 ? `You went out for the Milky Way ${yearCount} of 12 months this year.` : "No Milky Way months logged yet this year. Upload an image and declare its capture date to punch a month."}</p></div>
+      <div className="progress-punch-grid">{monthLabels.map((label, index) => {
+        const month = index + 1; const punched = monthsThisYear.has(month); const shots = coverage.shotsThisYear.get(month) ?? [];
+        return <div key={label} tabIndex={0} className={`progress-punch-hole ${punched ? "earned" : "open"}`}><span className="progress-punch-label">{label}</span>{punched && <span className="progress-punch-mark" aria-hidden="true">★</span>}<span className="progress-hover-card"><strong>{label} {fieldYear}</strong>{punched ? shots.map((shot, i) => <em key={i}>{shot.title || "Untitled image"}{shot.date ? ` · ${formatEvidenceDate(shot.date)}` : ""}</em>) : <em>Not punched yet</em>}</span></div>;
+      })}</div>
+      <div className="progress-league-line">
+        <p>{onTrack ? <>On track for the <strong>{onTrack.name}</strong> for {fieldYear}.</> : <>Not in a league yet for {fieldYear}.</>} {nextLeague ? <>{nextLeague.minMonths - yearCount} more {nextLeague.minMonths - yearCount === 1 ? "month" : "months"} to reach the <strong>{nextLeague.name}</strong>.</> : <>Every month of the year. Nothing higher to reach.</>}</p>
+        <div className="progress-league-bar" aria-hidden="true"><span style={{ width: `${(yearCount / 12) * 100}%` }} />{[3, 6, 8, 10, 12].map((m) => <i key={m} style={{ left: `${(m / 12) * 100}%` }} className={yearCount >= m ? "reached" : undefined} />)}</div>
+        {keptLeagues.length > 0 && <div className="progress-league-badges">{keptLeagues.map((row) => <span key={row.year} className={`league-badge league-${row.league.id}`} title={`${row.months} of 12 months in ${row.year}`}>{row.league.name} {row.year}</span>)}</div>}
+        <p className="progress-muted">Leagues are set when the year ends: Bronze 3+ months, Silver 6+, Gold 8+, Platinum 10+, Diamond all 12. You keep each year&apos;s league on your profile.</p>
+      </div>
+    </section>
+    <section className="progress-panel progress-calendar" aria-labelledby="mw-calendar-title">
+      <div className="progress-section-head"><h2 id="mw-calendar-title">Milky Way Calendar</h2><p>Earn every month, in any years. Holding all three months of a season earns the season.</p></div>
+      <div className="progress-calendar-seasons">{calendarSeasons.map((season) => {
+        const seasonEarned = earnedById.has(season.id);
+        const seasonMonths = season.months.map((m) => ({ m, id: `monthly_${monthNames[m - 1]}` }));
+        const held = seasonMonths.filter((x) => earnedById.has(x.id)).length;
+        return <div key={season.id} className={`progress-calendar-season ${seasonEarned ? "earned" : "open"}`}>
+          <div tabIndex={0} className="progress-calendar-season-head"><span className="progress-season-flourish" aria-hidden="true">✧</span><strong>{season.label}</strong><small>{seasonEarned ? (isPending(season.id) ? "Season earned · pending review" : "Season earned") : `${held} of 3 months`}</small>
+            <span className="progress-hover-card"><strong>{season.label} Milky Way</strong>{seasonMonths.map((x) => <em key={x.id}>{monthLabels[x.m - 1]}: {earnedById.has(x.id) ? evidenceLine(evidence.get(x.id)) : "not earned yet"}</em>)}</span>
+          </div>
+          <div className="progress-calendar-months">{seasonMonths.map((x) => {
+            const earned = earnedById.has(x.id);
+            return <div key={x.id} tabIndex={0} className={`progress-calendar-month ${earned ? "earned" : "open"}${isPending(x.id) ? " pending" : ""}`}><span>{monthLabels[x.m - 1]}</span>{earned && <i aria-hidden="true">★</i>}<span className="progress-hover-card"><strong>{monthLabels[x.m - 1]} Milky Way</strong><em>{earned ? evidenceLine(evidence.get(x.id)) : "Not earned yet"}</em>{isPending(x.id) && <small>Pending review</small>}</span></div>;
+          })}</div>
+        </div>;
+      })}</div>
+    </section>
     <section className="progress-panel progress-decade"><div className="progress-section-head"><h2>❖ A Decade Under the Stars</h2><p>Credibility bonus for Milky Way images captured across different years.</p></div>{decadeAchievements.length ? <div className="progress-year-chips">{decadeAchievements.map((achievement) => <span key={achievement.id} title={achievement.name}>{DECADE_BADGE_LABEL} · 10 yrs</span>)}</div> : <p className="progress-empty">Not earned yet. Capture the Milky Way in ten different calendar years.</p>}</section>
     <section className="progress-constellation-head"><h2>The Constellation of Honors</h2><p>Hover any star for details, a fully earned cluster lights its constellation gold</p></section>
     <section className="progress-sky">
@@ -135,6 +181,7 @@ export default async function Page() {
       <div className="progress-library-notes">
         <span>One submitted image can claim one rank-counting Field Honor.</span>
         <span>Perfect Year is automatic when all 12 months have coverage in the same calendar year.</span>
+        <span>Seasons are automatic: hold all three months of a season, in any years, and the season is yours.</span>
         <span>Raw coverage and streaks are tracking only.</span>
       </div>
       {libraryGroups.map((group) => <section key={group.category} className="progress-library-group">

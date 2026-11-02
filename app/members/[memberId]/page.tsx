@@ -10,6 +10,8 @@ import { ImageViewer } from "@/components/images/ImageViewer";
 import { ImageGrid } from "@/components/images/ImageGrid";
 import { HonorBadge } from "@/components/HonorBadge";
 import { fetchMilkyWayYears, type MilkyWayYear } from "@/lib/streak";
+import { fetchFieldYearCoverage } from "@/lib/field-year";
+import { finishedLeagueYears, leagueForMonths } from "@/lib/leagues";
 import { MilkyWayYearsPanel } from "@/components/MilkyWayYearsPanel";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -24,13 +26,17 @@ export default async function Page({ params }: { params: Promise<{ memberId: str
   const { data: profile } = await supabase.from("member_profiles").select("id,display_name,full_name,avatar_url,avatar_path,avatar_pill_path,avatar_original_path,country,state_or_province,region,created_at").eq("id", memberId).maybeSingle();
   if (!profile) notFound();
 
-  const [stats, { data: earned }, { data: images }, { data: reports }, milkyWayYears] = await Promise.all([
+  const [stats, { data: earned }, { data: images }, { data: reports }, milkyWayYears, fieldYears] = await Promise.all([
     getMemberStats(supabase, { id: memberId, user_metadata: { full_name: profile.full_name, name: profile.display_name } }),
     supabase.from("user_achievements").select("achievement_id,status,earned_at,achievement_definitions(id,name,glyph,description,category,sort_order)").eq("user_id", memberId).in("status", EARNED_ACHIEVEMENT_STATUSES).order("earned_at", { ascending: false }),
     supabase.from("guild_images").select("*, profiles:member_profiles(display_name,full_name,avatar_url,avatar_path)").eq("user_id", memberId).is("hidden_at", null).is("deleted_at", null).not("moderation_status", "in", '("hidden","deleted")').order("created_at", { ascending: false }).limit(48),
     supabase.from("field_reports").select("id,guild_image_id,title").eq("user_id", memberId),
     fetchMilkyWayYears(supabase, [memberId]).catch(() => new Map()),
+    fetchFieldYearCoverage(supabase, memberId),
   ]);
+  const keptLeagues = finishedLeagueYears(fieldYears.monthsByYear, fieldYears.year);
+  const thisYearMonths = fieldYears.monthsByYear.get(fieldYears.year)?.size ?? 0;
+  const onTrackLeague = leagueForMonths(thisYearMonths);
   const mwYears: MilkyWayYear[] = milkyWayYears.get(memberId) || [];
   const reportIds = (reports || []).map((r: any) => r.id);
   const imageIds = (images || []).map((i: any) => i.id);
@@ -71,6 +77,7 @@ export default async function Page({ params }: { params: Promise<{ memberId: str
           <p className="mt-1 text-lg font-semibold text-[#f0bd66]">{fullPhotographerRank(stats.rank_short)}</p>
           <p className="mt-1 text-sm text-white/60">{[place, profile.created_at ? `Member since ${new Date(profile.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" })}` : ""].filter(Boolean).join(" · ")}</p>
           {stats.year_streak > 0 && <p className="mt-3"><span className="mw-streak-pill" title={`Out under the Milky Way every year, ${stats.year_streak_from} to ${stats.year_streak_to}`}>{formatStreakBadge(stats.year_streak)}</span></p>}
+          {(keptLeagues.length > 0 || onTrackLeague) && <p className="mt-3 flex flex-wrap gap-2">{keptLeagues.map((row) => <span key={row.year} className={`league-badge league-${row.league.id}`} title={`${row.months} of 12 months in ${row.year}`}>{row.league.name} {row.year}</span>)}{onTrackLeague && <span className={`league-badge league-${onTrackLeague.id} on-track`} title={`${thisYearMonths} of 12 months so far in ${fieldYears.year}`}>On track: {onTrackLeague.name} {fieldYears.year}</span>}</p>}
           {isMe && <Link href="/profile" className="mt-4 inline-block text-sm text-[#f0bd66] hover:underline">Edit your profile →</Link>}
         </div>
       </div>
