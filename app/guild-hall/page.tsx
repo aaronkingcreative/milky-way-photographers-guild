@@ -10,7 +10,8 @@ import { ReactionBar } from "@/components/images/ReactionBar";
 import { fetchMembers } from "@/lib/members";
 import { RANKS, fetchHonorCounts, rankLabelForCount } from "@/lib/ranks";
 import { MessageFromAaron } from "@/components/hall/MessageFromAaron";
-import { formatMountainShort, getIotwSchedule } from "@/lib/iotw";
+import { formatMountainShort, getIotwSchedule, type IotwScheduleWeek } from "@/lib/iotw";
+import { badgeTone, fetchAllEnteredImageIds, fetchBallotImageIds, fetchIotwBadges, type IotwBadge } from "@/lib/iotw-badges";
 
 const faviconUrl =
   "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/site-assets/logos/MWPG_Logo_FAVICON.png";
@@ -19,6 +20,7 @@ const SORTS = [
   { key: "recent", label: "Most Recent" },
   { key: "reactions", label: "Most Reactions" },
   { key: "contenders", label: "IOTW Contenders" },
+  { key: "entries", label: "IOTW Entries" },
   { key: "stories", label: "Best Stories" },
 ] as const;
 type SortKey = (typeof SORTS)[number]["key"];
@@ -75,7 +77,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
   const { sort: sortParam } = await searchParams;
   const sort: SortKey = (SORTS.find((s) => s.key === sortParam)?.key || "recent") as SortKey;
   const supabase = await createServerSupabaseClient();
-  const iotwEntry = sort === "contenders" ? (await getIotwSchedule(supabase).catch(() => null))?.entry || null : null;
+  const iotwSchedule: { entry: IotwScheduleWeek; voting: IotwScheduleWeek | null } | null = sort === "contenders" ? await getIotwSchedule(supabase).catch(() => null) : null;
+  const iotwEntry = iotwSchedule?.entry || null;
+  const iotwVoting = iotwSchedule?.voting || null;
+  let badges = new Map<string, IotwBadge>();
   let images: any[] = [];
   let reactions: any[] = [];
   const commentCounts = new Map<string, number>();
@@ -86,15 +91,25 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
 
   if (hasAccess) {
     const visible = () => supabase.from("guild_images").select(IMAGE_SELECT).is("hidden_at", null).is("deleted_at", null).not("moderation_status", "in", '("hidden","deleted")');
-    const poolQuery = sort === "contenders"
-      ? visible().eq("is_weekly_candidate", true).order("created_at", { ascending: false }).limit(FEED_SIZE)
+    // IOTW Contenders: only the week being voted on right now. IOTW Entries: everything ever entered, newest entry first.
+    const entered = sort === "contenders" ? (iotwVoting?.id ? await fetchBallotImageIds(supabase, iotwVoting.id) : []) : sort === "entries" ? await fetchAllEnteredImageIds(supabase) : null;
+    if (sort === "entries") {
+      // Images flagged as contenders before weekly ballots existed still count as entries.
+      const { data: legacy } = await supabase.from("guild_images").select("id,created_at").eq("is_weekly_candidate", true).is("deleted_at", null);
+      (legacy || []).forEach((l: any) => { if (!entered!.some((e) => e.imageId === l.id)) entered!.push({ imageId: l.id, submittedAt: l.created_at }); });
+      entered!.sort((a, b) => new Date(b.submittedAt || 0).getTime() - new Date(a.submittedAt || 0).getTime());
+    }
+    const enteredOrder = new Map((entered || []).map((e, i) => [e.imageId, i]));
+    const poolQuery = entered
+      ? (entered.length ? visible().in("id", entered.slice(0, FEED_SIZE).map((e) => e.imageId)).limit(FEED_SIZE) : Promise.resolve({ data: [] as any[] }))
       : visible().order("created_at", { ascending: false }).limit(sort === "recent" ? FEED_SIZE : POOL_SIZE);
     const [{ data: pool }, { data: msg }, { data: cmts }] = await Promise.all([
       poolQuery,
       supabase.from("guild_messages").select("id,body,created_at").is("archived_at", null).order("created_at", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("image_comments").select("id,body,created_at,user_id,image_id,section,guild_images!inner(id,title,image_url,hidden_at,deleted_at,moderation_status,moderation_blur_required)").is("deleted_at", null).is("guild_images.hidden_at", null).is("guild_images.deleted_at", null).order("created_at", { ascending: false }).limit(18),
     ]);
-    const poolImages = pool || [];
+    const poolImages = (pool || []) as any[];
+    if (entered) poolImages.sort((a: any, b: any) => (enteredOrder.get(a.id) ?? 0) - (enteredOrder.get(b.id) ?? 0));
     const poolIds = poolImages.map((i: any) => i.id);
     if (poolIds.length) {
       const [{ data: rx }, { data: cm }] = await Promise.all([
@@ -110,6 +125,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
     if (sort === "reactions") poolImages.sort((a: any, b: any) => (reactionTotals.get(b.id) || 0) - (reactionTotals.get(a.id) || 0) || byRecent(a, b));
     if (sort === "stories") poolImages.sort((a: any, b: any) => storyWeight(b) - storyWeight(a) || byRecent(a, b));
     images = poolImages.slice(0, FEED_SIZE);
+    badges = await fetchIotwBadges(supabase, images.map((i: any) => i.id), images.filter((i: any) => i.is_weekly_candidate).map((i: any) => i.id)).catch(() => new Map());
 
     message = msg || null;
     if (message && user) {
@@ -196,6 +212,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
                   const comments = commentCounts.get(image.id) || 0;
                   const rank = rankLabelForCount(achievementCount(image, achievementCounts));
                   const href = `/images/${image.id}?from=guild-hall`;
+                  const badge = badges.get(image.id);
                   const place = [image.specific_location_name, image.state_or_province, image.country].filter(Boolean).join(", ") || "Dark sky field report";
                   return (
                     <article key={image.id} className="mw-feed-card">
@@ -209,6 +226,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
                       </header>
                       <Link href={href} className="mw-feed-media" aria-label={`Open ${image.title || "this field report"}`}>
                         <img src={image.image_url} alt={image.title || "Guild image"} loading={index < 2 ? "eager" : "lazy"} decoding="async" width={Number(image.image_width) || undefined} height={Number(image.image_height) || undefined} className={image.moderation_blur_required ? "blur-2xl" : undefined} />
+                        {badge && <span className={`mw-iotw-badge mw-feed-badge ${badgeTone(badge)}`}>{badge.label}</span>}
                       </Link>
                       <div className="mw-feed-body">
                         <h3 className="mw-feed-title"><Link href={href}>{image.title}</Link></h3>
@@ -222,7 +240,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
                     </article>
                   );
                 })}
-                {images.length === 0 && <div className="mw-card-soft p-8 text-center text-white/60">{sort === "contenders" ? (iotwEntry ? `No contenders yet for IOTW ${iotwEntry.label}. Entries close ${formatMountainShort(iotwEntry.entries_close_at)}.` : "No IOTW contenders yet this week.") : "The Hall is ready. Community field reports will appear here after members submit images."}</div>}
+                {images.length === 0 && <div className="mw-card-soft p-8 text-center text-white/60">{sort === "contenders" ? (iotwVoting ? `No contenders on the IOTW ${iotwVoting.label} ballot.` : iotwEntry ? <>No IOTW week is open for voting yet. IOTW {iotwEntry.label} voting opens {formatMountainShort(iotwEntry.voting_opens_at)}, and its contenders will show here then. <Link href="/guild-hall?sort=entries" className="mw-member-link">See every IOTW entry</Link>.</> : "No IOTW week is open for voting yet.") : sort === "entries" ? "No images have been entered in Image of the Week yet." : "The Hall is ready. Community field reports will appear here after members submit images."}</div>}
               </div>
             </div>
 

@@ -10,12 +10,15 @@ import { CommentsSection, SectionReplyTray, type CommentAuthor, type CommentView
 import { ImageViewer } from "./ImageViewer";
 import { OpenVoteButton } from "./OpenVoteButton";
 import { HonorBadge, type HonorView } from "@/components/HonorBadge";
+import { badgeTone, type IotwBadge } from "@/lib/iotw-badges";
 
 const formatDate = (v: string) => new Date(v).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 const loc = (image: any) => ({ primary: [image.specific_location_name, image.state_or_province].filter(Boolean).join(", ") || image.state_or_province || "Location pending", country: image.country });
 
-export function ImageDetail({ image, authorStats, reactions, comments, canEditCandidate, from, currentUserId, currentAuthor, honors, edited, iotwBallot, iotwSchedule }: { edited?: boolean; iotwBallot?: any; iotwSchedule?: { entry: IotwScheduleWeek; voting: IotwScheduleWeek | null }; image: any; authorStats?: any; reactions: any[]; comments: CommentView[]; canEditCandidate: boolean; from?: string; currentUserId: string; currentAuthor: CommentAuthor; honors: HonorView[] }) {
+export function ImageDetail({ image, authorStats, reactions, comments, canEditCandidate, from, currentUserId, currentAuthor, honors, edited, iotwBallot, iotwSchedule, iotwBadge }: { edited?: boolean; iotwBallot?: any; iotwBadge?: IotwBadge | null; iotwSchedule?: { entry: IotwScheduleWeek; voting: IotwScheduleWeek | null }; image: any; authorStats?: any; reactions: any[]; comments: CommentView[]; canEditCandidate: boolean; from?: string; currentUserId: string; currentAuthor: CommentAuthor; honors: HonorView[] }) {
   const location = loc(image);
+  const badge: IotwBadge | null = iotwBadge || (image.is_weekly_candidate ? { label: iotwBallot ? `IOTW ${iotwWeekLabel(iotwBallot)} Contender` : "IOTW Contender", week: iotwBallot ? iotwWeekLabel(iotwBallot) : "", year: null, place: null, ballotId: iotwBallot?.id || null } : null);
+  const placeWord = badge?.place === 1 ? "first" : badge?.place === 2 ? "second" : badge?.place === 3 ? "third" : "";
   const name = publicMemberName(authorStats?.display_name, image.profiles?.display_name, image.profiles?.full_name, image.display_name, image.photographer_name);
   const avatar = getAvatarDisplay({ avatarPath: authorStats?.avatar_path || image.profiles?.avatar_path, avatarUrl: authorStats?.avatar_url || image.profiles?.avatar_url, displayName: name });
   const rank = fullPhotographerRank(authorStats?.rank_short);
@@ -38,7 +41,7 @@ export function ImageDetail({ image, authorStats, reactions, comments, canEditCa
           <ImageViewer src={image.image_url} alt={image.title} width={width || null} height={height || null} blurred={Boolean(image.moderation_blur_required)} className={`mw-detail-image ${image.moderation_blur_required ? "blur-2xl" : ""}`} />
           {image.moderation_blur_required && <div className="absolute inset-0 grid place-items-center bg-black/45 text-center font-display text-xl uppercase tracking-widest">Blurred pending moderation review</div>}
           {edited && <p role="status" className="mw-comment-notice absolute right-4 top-4 z-[3]">✓ Your changes are saved.</p>}
-          {image.is_weekly_candidate && <span className="absolute left-4 top-4 rounded-sm border border-[#e79f2b]/70 bg-[#091625] px-4 py-2 font-display text-xs uppercase tracking-[.16em] text-[#f0bd66]">IOTW Contender</span>}
+          {badge && <span className={`mw-iotw-badge mw-detail-badge ${badgeTone(badge)}`}>{badge.label}</span>}
         </div>
         <aside className="mw-report-side mw-report-left" aria-label="Reactions">
           <section className="mw-report-panel">
@@ -63,7 +66,7 @@ export function ImageDetail({ image, authorStats, reactions, comments, canEditCa
               <p className="mt-3 text-sm text-white/60">No honors on this one yet.</p>
             )}
           </section>
-          {image.is_weekly_candidate && <section className="mw-iotw-panel p-5"><p className="text-2xl text-[#f0bd66]">✪</p><h3>{iotwBallot ? `IOTW ${iotwWeekLabel(iotwBallot)} Contender` : "Image of the Week Contender"}</h3><p>{!iotwBallot ? "Entered for Image of the Week." : iotwBallot.status === "upcoming" ? `Entered in IOTW ${iotwWeekLabel(iotwBallot)}. Entries close ${formatMountainShort(iotwBallot.submission_cutoff)}, then members vote on this week all of next week, until ${formatMountainShort(iotwBallot.voting_closes_at)}.` : iotwBallot.status === "voting_open" ? `On the IOTW ${iotwWeekLabel(iotwBallot)} ballot. Voting closes ${formatMountainShort(iotwBallot.voting_closes_at)}, and the winner is announced then.` : `Was on the IOTW ${iotwWeekLabel(iotwBallot)} ballot, which closed ${formatMountainShort(iotwBallot.voting_closes_at)}.`}</p>{iotwSchedule && <IotwSchedule entry={iotwSchedule.entry} voting={iotwSchedule.voting} compact />}{iotwBallot?.status === "voting_open" && image.user_id !== currentUserId && <OpenVoteButton className="mw-btn-primary mt-4 w-full rounded-sm" label={`Vote for IOTW ${iotwWeekLabel(iotwBallot)}`} />}</section>}
+          {badge && <section className={`mw-iotw-panel p-5 ${badgeTone(badge)}`}><p className="mw-iotw-panel-glyph text-2xl">{badge.place ? `#${badge.place}` : "✪"}</p><h3>{badge.legacy ? "Image of the Week Contender" : badge.label}</h3><p>{badge.place ? `Placed ${placeWord} in IOTW ${badge.week}${iotwBallot?.voting_closes_at ? `, voted by the Guild until ${formatMountainShort(iotwBallot.voting_closes_at)}` : ""}.` : !iotwBallot ? "Entered for Image of the Week." : iotwBallot.status === "upcoming" ? `Entered in IOTW ${iotwWeekLabel(iotwBallot)}. Entries close ${formatMountainShort(iotwBallot.submission_cutoff)}, then members vote on this week all of next week, until ${formatMountainShort(iotwBallot.voting_closes_at)}.` : iotwBallot.status === "voting_open" ? `On the IOTW ${iotwWeekLabel(iotwBallot)} ballot. Voting closes ${formatMountainShort(iotwBallot.voting_closes_at)}, and the winner is announced then.` : `Was on the IOTW ${iotwWeekLabel(iotwBallot)} ballot, which closed ${formatMountainShort(iotwBallot.voting_closes_at)}.`}</p>{iotwSchedule && <IotwSchedule entry={iotwSchedule.entry} voting={iotwSchedule.voting} compact />}{iotwBallot?.status === "voting_open" && image.user_id !== currentUserId && <OpenVoteButton className="mw-btn-primary mt-4 w-full rounded-sm" label={`Vote for IOTW ${iotwWeekLabel(iotwBallot)}`} />}</section>}
         </aside>
       </div>
       <div className="mw-report-body">

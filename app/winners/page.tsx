@@ -21,7 +21,8 @@ function WinnerEntry({ week }: { week: IotwDecidedWeek }) {
     <article className="mw-winners-entry card">
       {href ? <Link href={href} aria-label={`Open the field report for ${w.title}`}>{thumb}</Link> : thumb}
       <div className="mw-winners-body">
-        <p className="eyebrow">IOTW {week.label}, {week.year}</p>
+        <span className="mw-iotw-badge is-gold">IOTW {week.label} #1</span>
+        <p className="eyebrow mt-2">{week.year}</p>
         <h2 className="mw-winners-title">{href ? <Link href={href}>{w.title}</Link> : w.title}</h2>
         <div className="mw-winners-by">
           <span className="mw-avatar-circle mw-winners-avatar">{avatar.avatarUrl ? <img src={avatar.avatarUrl} alt="" /> : avatar.initials || "G"}</span>
@@ -29,6 +30,17 @@ function WinnerEntry({ week }: { week: IotwDecidedWeek }) {
         </div>
         <p className="mw-winners-votes">{votesText(w.votes)}{w.points ? ` · ${w.points} points` : ""}</p>
         {week.ballot.voting_closes_at && <p className="mw-winners-date">Crowned {formatMountainShort(week.ballot.voting_closes_at)}</p>}
+        {week.placements.filter((p) => p.place > 1).length > 0 && (
+          <ul className="mw-winners-runners">
+            {week.placements.filter((p) => p.place > 1).map((p) => (
+              <li key={p.place}>
+                <span className={`mw-iotw-badge mw-iotw-badge-sm ${p.place === 2 ? "is-silver" : "is-bronze"}`}>IOTW {week.label} #{p.place}</span>
+                {p.image ? <Link href={`/images/${p.image.id}`}>{p.title}</Link> : <span>{p.title}</span>}
+                <span className="mw-winners-runner-by">{publicMemberName(p.image?.profiles?.display_name, p.image?.profiles?.full_name)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </article>
   );

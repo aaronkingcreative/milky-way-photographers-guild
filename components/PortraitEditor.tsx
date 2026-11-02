@@ -8,9 +8,14 @@ import { PROFILE_AVATAR_BUCKET } from "@/lib/storage";
 import { resolveAvatarUrl } from "@/lib/avatar";
 import { DEFAULT_CROP, PORTRAIT_ORIGINAL_MAX, PORTRAIT_OUTPUT, circleFromPill, placeCrop, sanitizeCrop, type PortraitCrop, type PortraitShape } from "@/lib/portrait";
 
-// One frame to position. The pill is the full portrait, the circle is its top square.
-const FRAMES: Record<PortraitShape, { w: number; h: number; label: string }> = { pill: { w: 120, h: 210, label: "Header pill" }, circle: { w: 120, h: 120, label: "Circle" } };
-const CIRCLE_PREVIEW = 76;
+// Two frames, each with its own position and zoom. The pill is the header portrait, the circle is used everywhere else.
+const FRAMES: Record<PortraitShape, { w: number; h: number; label: string; note: string }> = {
+  pill: { w: 120, h: 210, label: "Header pill", note: "Top of the site header" },
+  circle: { w: 150, h: 150, label: "Circle", note: "Posts, comments and the Hall" },
+};
+const SMALL_CIRCLE = 40;
+/** A fresh photo starts with the circle as wide as it can go, centered a little above the middle where a face usually is. */
+function freshCrop(): PortraitCrop { return { pill: { ...DEFAULT_CROP.pill }, circle: { x: 0.5, y: 0.42, zoom: 1 }, pillShape: "vertical" }; }
 const MAX_INPUT_BYTES = 40 * 1024 * 1024;
 
 type Source = { url: string; w: number; h: number; fresh: boolean };
@@ -80,7 +85,7 @@ export function PortraitEditor({ profile, initials, onSaved }: { profile: any; i
     try {
       const img = await loadImage(url);
       setSource({ url, w: img.naturalWidth, h: img.naturalHeight, fresh: true });
-      setCrop(DEFAULT_CROP);
+      setCrop(freshCrop());
       setChanged(true);
       setNotice(null);
     } catch {
@@ -136,7 +141,7 @@ export function PortraitEditor({ profile, initials, onSaved }: { profile: any; i
       const original = renderOriginal(img);
       const base = await loadImage(original.toDataURL("image/jpeg", 0.92));
       const stamp = Date.now().toString(36);
-      const circleCrop = circleFromPill(base.naturalWidth, base.naturalHeight, crop.pill);
+      const circleCrop = crop.circle;
       const files: [string, HTMLCanvasElement][] = [
         [`users/${userId}/avatar-${stamp}.jpg`, renderShape(base, PORTRAIT_OUTPUT.circle.w, PORTRAIT_OUTPUT.circle.h, circleCrop)],
         [`users/${userId}/avatar-pill-${stamp}.jpg`, renderShape(base, PORTRAIT_OUTPUT.pill.w, PORTRAIT_OUTPUT.pill.h, crop.pill)],
@@ -147,7 +152,7 @@ export function PortraitEditor({ profile, initials, onSaved }: { profile: any; i
         const { error } = await supabase.storage.from(PROFILE_AVATAR_BUCKET).upload(path, blob, { contentType: "image/jpeg", upsert: true, cacheControl: "31536000" });
         if (error) { console.error("Portrait upload failed", error); throw new Error("We could not upload your portrait. Try again."); }
       }
-      const result = await savePortrait({ circlePath: files[0][0], pillPath: files[1][0], originalPath: files[2][0], crop: { pill: crop.pill, circle: circleCrop, pillShape: "vertical" } });
+      const result = await savePortrait({ circlePath: files[0][0], pillPath: files[1][0], originalPath: files[2][0], crop: { pill: crop.pill, circle: circleCrop, pillShape: "vertical", circleMode: "independent" } });
       if (!result.ok) throw new Error(result.message);
       setChanged(false);
       setSaved(true);
@@ -165,44 +170,44 @@ export function PortraitEditor({ profile, initials, onSaved }: { profile: any; i
   return (
     <div className="mw-portrait-editor">
       <div className="mw-portrait-stage">
-        {(() => {
-          const f = FRAMES.pill;
-          const p = source ? placeCrop(source.w, source.h, f.w, f.h, crop.pill) : null;
-          const k = CIRCLE_PREVIEW / f.w;
+        {(["pill", "circle"] as PortraitShape[]).map((shape) => {
+          const f = FRAMES[shape];
+          const c = crop[shape];
+          const p = source ? placeCrop(source.w, source.h, f.w, f.h, c) : null;
           return (
-            <>
-              <div className="mw-portrait-shape">
-                <div
-                  className="mw-portrait-frame is-pill"
-                  role={source ? "slider" : "button"}
-                  tabIndex={0}
-                  aria-label={source ? "Portrait position. Drag or use the arrow keys." : "Choose a portrait photo"}
-                  aria-valuetext={source ? `${Math.round(crop.pill.x * 100)} percent across, ${Math.round(crop.pill.y * 100)} percent down` : undefined}
-                  onClick={() => { if (!source) fileRef.current?.click(); }}
-                  onPointerDown={(e) => onPointerDown("pill", e)}
-                  onPointerMove={(e) => onPointerMove("pill", e)}
-                  onPointerUp={() => { drag.current = null; }}
-                  onPointerCancel={() => { drag.current = null; }}
-                  onKeyDown={(e) => { if (!source && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); fileRef.current?.click(); } else onKey("pill", e); }}
-                >
-                  {source && p ? <img src={source.url} alt="" draggable={false} style={{ width: source.w * p.scale, height: source.h * p.scale, left: p.left, top: p.top }} /> : <span className="mw-portrait-empty">{initials}</span>}
-                  <span className="mw-portrait-circle-guide" aria-hidden="true" />
-                </div>
-                <span className="mw-portrait-name">Header pill</span>
+            <div key={shape} className={`mw-portrait-shape is-${shape}`}>
+              <span className="mw-portrait-name">{f.label}</span>
+              <div
+                className={`mw-portrait-frame is-${shape}`}
+                role={source ? "slider" : "button"}
+                tabIndex={0}
+                aria-label={source ? `${f.label} position. Drag or use the arrow keys.` : "Choose a portrait photo"}
+                aria-valuetext={source ? `${Math.round(c.x * 100)} percent across, ${Math.round(c.y * 100)} percent down` : undefined}
+                onClick={() => { if (!source) fileRef.current?.click(); }}
+                onPointerDown={(e) => onPointerDown(shape, e)}
+                onPointerMove={(e) => onPointerMove(shape, e)}
+                onPointerUp={() => { drag.current = null; }}
+                onPointerCancel={() => { drag.current = null; }}
+                onKeyDown={(e) => { if (!source && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); fileRef.current?.click(); } else onKey(shape, e); }}
+              >
+                {source && p ? <img src={source.url} alt="" draggable={false} style={{ width: source.w * p.scale, height: source.h * p.scale, left: p.left, top: p.top }} /> : <span className="mw-portrait-empty">{initials}</span>}
               </div>
-              <div className="mw-portrait-shape is-preview">
-                <div className="mw-portrait-frame is-circle" aria-hidden="true">
-                  {source && p ? <img src={source.url} alt="" draggable={false} style={{ width: source.w * p.scale * k, height: source.h * p.scale * k, left: p.left * k, top: p.top * k }} /> : <span className="mw-portrait-empty">{initials}</span>}
+              <label className="mw-portrait-zoom-label">
+                <span>Zoom</span>
+                <input className="mw-portrait-zoom" type="range" min={1} max={4} step={0.01} value={c.zoom} disabled={!source} aria-label={`${f.label} zoom`} onChange={(e) => setZoom(shape, Number(e.target.value))} />
+              </label>
+              <span className="mw-portrait-note">{f.note}</span>
+              {shape === "circle" && source && (
+                <div className="mw-portrait-circle-tools">
+                  <span className="mw-portrait-mini" aria-hidden="true">{(() => { const k = SMALL_CIRCLE / f.w; return p ? <img src={source.url} alt="" style={{ width: source.w * p.scale * k, height: source.h * p.scale * k, left: p.left * k, top: p.top * k }} /> : null; })()}</span>
+                  <button type="button" className="mw-portrait-link" onClick={() => { setCrop((x) => ({ ...x, circle: circleFromPill(source.w, source.h, x.pill) })); setChanged(true); }}>Match top of pill</button>
                 </div>
-                <span className="mw-portrait-name">Circle</span>
-                <span className="mw-portrait-note">The top of your pill</span>
-              </div>
-            </>
+              )}
+            </div>
           );
-        })()}
+        })}
       </div>
-      <input className="mw-portrait-zoom" type="range" min={1} max={4} step={0.01} value={crop.pill.zoom} disabled={!source} aria-label="Portrait zoom" onChange={(e) => setZoom("pill", Number(e.target.value))} />
-      <p className="profile-avatar-help">{source ? "Drag the pill to frame yourself. The dashed ring is your circle. Slide to zoom." : "Pick a photo of you. Any size works, we shrink it for you."}</p>
+      <p className="profile-avatar-help">{source ? "Frame each shape on its own. Drag inside a shape to move the photo, slide to zoom. Zoom the circle all the way out for head and shoulders." : "Pick a photo of you. Any size works, we shrink it for you."}</p>
       <input ref={fileRef} className="sr-only" type="file" accept="image/*" onChange={(e) => { choose(e.target.files?.[0]); e.target.value = ""; }} />
       <div className="mw-portrait-actions">
         <button className="profile-avatar-button" type="button" disabled={busy} onClick={() => fileRef.current?.click()}>{source ? "New photo" : "Choose photo"}</button>

@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { getAvatarDisplay, publicMemberName } from "@/lib/avatar";
+import { badgeTone } from "@/lib/iotw-badges";
 
 const glyphs: Record<string, string> = { love: "♥", wow: "✦", helpful: "◎", composition: "◫", processing: "✧", story: "☄" };
 
@@ -60,7 +61,9 @@ export function ImageCard({ image, reactions }: { image: any; reactions?: any[] 
           </Link>
         </div>
         {image.moderation_blur_required && <div className="absolute inset-0 grid place-items-center bg-black/45 p-4 text-center font-display">Blurred pending moderation review</div>}
-        {image.is_iotw_winner ? (
+        {image.iotw_badge ? (
+          <span className={`mw-card-ribbon mw-iotw-badge ${badgeTone(image.iotw_badge)}`}>{image.iotw_badge.label}</span>
+        ) : image.is_iotw_winner ? (
           <span className="mw-card-ribbon mw-card-ribbon-winner">✪ Image of the Week</span>
         ) : image.is_weekly_candidate ? (
           <span className="mw-card-ribbon">IOTW Contender</span>
