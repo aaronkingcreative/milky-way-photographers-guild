@@ -1,3 +1,4 @@
+import { withReviewNotes } from "@/lib/review-notes";
 import Link from "next/link";
 import { requireAdmin } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -7,7 +8,7 @@ import { ImageViewer } from "@/components/images/ImageViewer";
 import { ClaimDesk, type DeskClaim, type ReassignInfo, type ReassignOption } from "@/components/admin/ClaimDesk";
 
 const PENDING = "auto_awarded_pending_review";
-const SELECT = "id,status,claimed_at,reviewed_at,review_notes,original_achievement_id,user_id,achievement_id,achievement_definitions(id,name,glyph,category),profiles(display_name,full_name,email,avatar_url,avatar_path),field_reports(id,title,capture_date,gear,story,guild_image_id,image_bucket,image_original_path,guild_images(image_url,image_bucket,image_original_path,image_width,image_height,country,state_or_province,specific_location_name),user_field_coverage(capture_year,capture_month,capture_season))";
+const SELECT = "id,status,claimed_at,reviewed_at,original_achievement_id,user_id,achievement_id,achievement_definitions(id,name,glyph,category),profiles(display_name,full_name,email,avatar_url,avatar_path),field_reports(id,title,capture_date,gear,story,guild_image_id,image_bucket,image_original_path,guild_images(image_url,image_bucket,image_original_path,image_width,image_height,country,state_or_province,specific_location_name),user_field_coverage(capture_year,capture_month,capture_season))";
 
 // Claimed images live in the public field-report bucket. They are shown with a plain <img>
 // (via ImageViewer) rather than next/image, whose optimizer only allows the logo path.
@@ -72,10 +73,11 @@ function toDeskClaim(claim: any, defs: Def[] = [], heldByUser: Map<string, Set<s
 export default async function Page() {
   await requireAdmin();
   const supabase = await createServerSupabaseClient();
-  const [{ data: pending }, { data: reviewed }] = await Promise.all([
+  const [{ data: pendingRaw }, { data: reviewedRaw }] = await Promise.all([
     supabase.from("field_report_achievement_claims").select(SELECT).eq("status", PENDING).order("claimed_at", { ascending: true }).limit(100),
     supabase.from("field_report_achievement_claims").select(SELECT).neq("status", PENDING).order("reviewed_at", { ascending: false, nullsFirst: false }).limit(20),
   ]);
+  const [pending, reviewed] = await Promise.all([withReviewNotes(supabase, pendingRaw as any[]), withReviewNotes(supabase, reviewedRaw as any[])]);
   const userIds = [...new Set((pending || []).map((c: any) => c.user_id))];
   const [{ data: defRows }, { data: heldRows }] = await Promise.all([
     supabase.from("achievement_definitions").select("id,name,glyph,category,sort_order").eq("is_active", true).eq("is_manual_claimable", true).order("sort_order", { ascending: true }),

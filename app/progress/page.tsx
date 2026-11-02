@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { requireLogin } from "@/lib/guards";
+import { withReviewNotes } from "@/lib/review-notes";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { AchievementDefinition, AchievementLibraryCategory, DECADE_BADGE_LABEL, isDecadeAchievement, UserAchievement, achievementLibraryCategoryDetails, seededAchievementDefinitions, trackingAchievementDefinitions } from "@/lib/achievements";
 import { getMemberStats, initialsForName, EARNED_ACHIEVEMENT_STATUSES } from "@/lib/member-stats";
@@ -75,7 +76,8 @@ export default async function Page() {
   };
 
   // Guild review results that carry a note or a reassignment. Viewing this page marks them seen.
-  const { data: reviewRows } = await supabase.from("field_report_achievement_claims").select("id,status,reviewed_at,review_notes,original_achievement_id,member_seen_at,achievement_id,achievement_definitions(name,glyph),field_reports(title)").eq("user_id", user.id).neq("status", "auto_awarded_pending_review").not("reviewed_at", "is", null).order("reviewed_at", { ascending: false }).limit(30);
+  const { data: reviewRowsRaw } = await supabase.from("field_report_achievement_claims").select("id,status,reviewed_at,original_achievement_id,member_seen_at,achievement_id,achievement_definitions(name,glyph),field_reports(title)").eq("user_id", user.id).neq("status", "auto_awarded_pending_review").not("reviewed_at", "is", null).order("reviewed_at", { ascending: false }).limit(30);
+  const reviewRows = await withReviewNotes(supabase, reviewRowsRaw as any[]);
   const defNameById = new Map((definitionRows || []).map((d: any) => [d.id, d.name as string]));
   const reviewNotes = (reviewRows || []).filter((r: any) => r.review_notes || r.original_achievement_id).slice(0, 8).map((r: any) => {
     const def = Array.isArray(r.achievement_definitions) ? r.achievement_definitions[0] : r.achievement_definitions;

@@ -1,3 +1,4 @@
+import { withReviewNotes } from "@/lib/review-notes";
 import { getSessionState } from "@/lib/supabase/server";
 import { getMemberStats } from "@/lib/member-stats";
 import { HeaderClient } from "./HeaderClient";
@@ -33,8 +34,9 @@ export async function Header() {
     pendingClaims = count || 0;
   }
   if (user) {
-    const { data: notices } = await supabase.from("field_report_achievement_claims").select("id,status,review_notes,original_achievement_id,achievement_definitions(name)").eq("user_id", user.id).is("member_seen_at", null).neq("status", "auto_awarded_pending_review").limit(20);
-    const withNotes = (notices || []).filter((n: any) => n.review_notes || n.original_achievement_id);
+    const { data: noticeRows } = await supabase.from("field_report_achievement_claims").select("id,status,original_achievement_id,achievement_definitions(name)").eq("user_id", user.id).is("member_seen_at", null).neq("status", "auto_awarded_pending_review").limit(20);
+    const notices = await withReviewNotes(supabase, noticeRows as any[]);
+    const withNotes = notices.filter((n: any) => n.review_notes || n.original_achievement_id);
     if (withNotes.length) {
       const first: any = withNotes[0];
       const honor = (Array.isArray(first.achievement_definitions) ? first.achievement_definitions[0] : first.achievement_definitions)?.name || "Field Honor";
