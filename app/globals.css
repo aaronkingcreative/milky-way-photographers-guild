@@ -830,3 +830,15 @@ a { color: inherit; text-decoration: none; }
 .mw-portrait-save { border-radius:4px; padding:.72rem 1.1rem; font-family:var(--font-guild-display); text-transform:uppercase; letter-spacing:.09em; font-weight:700; color:#06101c; background:#e79f2b; border:1px solid #e79f2b; cursor:pointer; }
 .mw-portrait-save:disabled { opacity:.55; cursor:not-allowed; }
 @media (max-width: 820px) { .profile-settings-shell { grid-template-columns:1fr; } }
+
+/* Image of the Week two-phase schedule (voting now, open for entries) */
+.mw-iotw-schedule{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-top:12px}
+.mw-iotw-schedule-compact{grid-template-columns:1fr}
+.mw-iotw-phase{border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:10px 12px;background:rgba(6,16,28,.55);display:flex;flex-direction:column;gap:3px;text-align:left}
+.mw-iotw-phase strong{font-family:var(--font-display,inherit);font-size:17px;color:#fff;letter-spacing:.02em}
+.mw-iotw-phase small{font-size:13px;line-height:1.4;color:rgba(255,255,255,.68)}
+.mw-iotw-phase-tag{font-size:11px;text-transform:uppercase;letter-spacing:.16em;font-weight:700}
+.mw-iotw-phase-vote{border-color:rgba(240,189,102,.45)}
+.mw-iotw-phase-vote .mw-iotw-phase-tag{color:#f0bd66}
+.mw-iotw-phase-entry{border-color:rgba(95,175,230,.4)}
+.mw-iotw-phase-entry .mw-iotw-phase-tag{color:#7fc4f0}

@@ -1,4 +1,5 @@
-import { formatMountainDeadline } from "@/lib/iotw";
+import { formatMountainShort, iotwWeekLabel, type IotwScheduleWeek } from "@/lib/iotw";
+import { IotwSchedule } from "@/components/iotw/IotwSchedule";
 import type React from "react";
 import Link from "next/link";
 import { getAvatarDisplay, MEMBER_NAME_FALLBACK, publicMemberName } from "@/lib/avatar";
@@ -13,7 +14,7 @@ import { HonorBadge, type HonorView } from "@/components/HonorBadge";
 const formatDate = (v: string) => new Date(v).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 const loc = (image: any) => ({ primary: [image.specific_location_name, image.state_or_province].filter(Boolean).join(", ") || image.state_or_province || "Location pending", country: image.country });
 
-export function ImageDetail({ image, authorStats, reactions, comments, canEditCandidate, from, currentUserId, currentAuthor, honors, edited, iotwClosesAt }: { edited?: boolean; iotwClosesAt?: string | null; image: any; authorStats?: any; reactions: any[]; comments: CommentView[]; canEditCandidate: boolean; from?: string; currentUserId: string; currentAuthor: CommentAuthor; honors: HonorView[] }) {
+export function ImageDetail({ image, authorStats, reactions, comments, canEditCandidate, from, currentUserId, currentAuthor, honors, edited, iotwBallot, iotwSchedule }: { edited?: boolean; iotwBallot?: any; iotwSchedule?: { entry: IotwScheduleWeek; voting: IotwScheduleWeek | null }; image: any; authorStats?: any; reactions: any[]; comments: CommentView[]; canEditCandidate: boolean; from?: string; currentUserId: string; currentAuthor: CommentAuthor; honors: HonorView[] }) {
   const location = loc(image);
   const name = publicMemberName(authorStats?.display_name, image.profiles?.display_name, image.profiles?.full_name, image.display_name, image.photographer_name);
   const avatar = getAvatarDisplay({ avatarPath: authorStats?.avatar_path || image.profiles?.avatar_path, avatarUrl: authorStats?.avatar_url || image.profiles?.avatar_url, displayName: name });
@@ -62,7 +63,7 @@ export function ImageDetail({ image, authorStats, reactions, comments, canEditCa
               <p className="mt-3 text-sm text-white/60">No honors on this one yet.</p>
             )}
           </section>
-          {image.is_weekly_candidate && <section className="mw-iotw-panel p-5"><p className="text-2xl text-[#f0bd66]">✪</p><h3>Image of the Week Contender</h3><p>{iotwClosesAt ? `On the ballot. Voting closes ${formatMountainDeadline(iotwClosesAt)}.` : "Entered for the next ballot. Winners are crowned the day after it closes."}</p><OpenVoteButton className="mw-btn-primary mt-4 w-full rounded-sm" /></section>}
+          {image.is_weekly_candidate && <section className="mw-iotw-panel p-5"><p className="text-2xl text-[#f0bd66]">✪</p><h3>{iotwBallot ? `IOTW ${iotwWeekLabel(iotwBallot)} Contender` : "Image of the Week Contender"}</h3><p>{!iotwBallot ? "Entered for Image of the Week." : iotwBallot.status === "upcoming" ? `Entered in IOTW ${iotwWeekLabel(iotwBallot)}. Entries close ${formatMountainShort(iotwBallot.submission_cutoff)}, then members vote on this week all of next week, until ${formatMountainShort(iotwBallot.voting_closes_at)}.` : iotwBallot.status === "voting_open" ? `On the IOTW ${iotwWeekLabel(iotwBallot)} ballot. Voting closes ${formatMountainShort(iotwBallot.voting_closes_at)}, and the winner is announced then.` : `Was on the IOTW ${iotwWeekLabel(iotwBallot)} ballot, which closed ${formatMountainShort(iotwBallot.voting_closes_at)}.`}</p>{iotwSchedule && <IotwSchedule entry={iotwSchedule.entry} voting={iotwSchedule.voting} compact />}{iotwBallot?.status === "voting_open" && image.user_id !== currentUserId && <OpenVoteButton className="mw-btn-primary mt-4 w-full rounded-sm" label={`Vote for IOTW ${iotwWeekLabel(iotwBallot)}`} />}</section>}
         </aside>
       </div>
       <div className="mw-report-body">
@@ -77,7 +78,7 @@ export function ImageDetail({ image, authorStats, reactions, comments, canEditCa
           </div>
           {canEditCandidate && <div className="mt-4 flex flex-wrap gap-3">
             <Link href={`/images/${image.id}/edit`} className="mw-owner-edit"><span aria-hidden="true">✎</span> Edit your field report</Link>
-            <form action={toggleWeeklyCandidate} className="inline-block"><input type="hidden" name="image_id" value={image.id} /><input type="hidden" name="week_starts_on" value={image.week_starts_on} /><input type="hidden" name="next" value={(!image.is_weekly_candidate).toString()} /><button className="mw-btn-ghost">{image.is_weekly_candidate ? "Unmark weekly candidate" : "Mark as weekly candidate"}</button></form>
+            {(!image.is_weekly_candidate || !iotwBallot || iotwBallot.status === "upcoming") && <form action={toggleWeeklyCandidate} className="inline-block"><input type="hidden" name="image_id" value={image.id} /><input type="hidden" name="week_starts_on" value={image.week_starts_on} /><input type="hidden" name="next" value={(!image.is_weekly_candidate).toString()} /><button className="mw-btn-ghost">{image.is_weekly_candidate ? `Withdraw from IOTW ${iotwBallot ? iotwWeekLabel(iotwBallot) : ""}`.trim() : `Enter this image for ${iotwSchedule?.entry.label || "this week\u2019s"} Image of the Week consideration`}</button></form>}
           </div>}
         </header>
         <section className="mw-report-story"><h2 className="mw-field-report-label">The Field Report</h2><p className="mt-3 whitespace-pre-wrap mw-body">{image.short_story || "No story added yet."}</p></section>
