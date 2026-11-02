@@ -14,6 +14,9 @@ export function rankLabelForCount(count: number) {
   return "Unranked";
 }
 
+// Rank milestone rows (rank_beginner, ...) mark ranks reached; they are not Field Honors and never count toward rank.
+export const isRankCountingAchievementId = (id: string) => !String(id || "").startsWith("rank_");
+
 // Distinct earned Field Honors per member. Pass no ids to count every member.
 export async function fetchHonorCounts(supabase: any, userIds?: string[]) {
   const counts = new Map<string, number>();
@@ -24,7 +27,7 @@ export async function fetchHonorCounts(supabase: any, userIds?: string[]) {
   const sets = new Map<string, Set<string>>();
   (data || []).forEach((row: any) => {
     if (!sets.has(row.user_id)) sets.set(row.user_id, new Set());
-    sets.get(row.user_id)!.add(row.achievement_id);
+    if (isRankCountingAchievementId(row.achievement_id)) sets.get(row.user_id)!.add(row.achievement_id);
   });
   sets.forEach((ids, userId) => counts.set(userId, ids.size));
   return counts;
