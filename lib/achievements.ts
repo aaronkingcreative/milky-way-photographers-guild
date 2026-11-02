@@ -116,3 +116,10 @@ export function rankForCount(count: number) {
 export function nextRankForCount(count: number) {
   return rankThresholds.find((rank) => rank.min > count) ?? null;
 }
+
+// Decade Under the Stars lives under the legacy DB id "year_2018" (metadata.year 2018); the repo seed calls it
+// special_decade_under_the_stars. Never derive its label from the id or a year: it is the ten-year honor.
+export const DECADE_BADGE_LABEL = "Decade";
+export function isDecadeAchievement(item: { id: string; constellation?: string | null }) {
+  return item.id === "special_decade_under_the_stars" || item.id.startsWith("year_") || item.constellation === "decade";
+}

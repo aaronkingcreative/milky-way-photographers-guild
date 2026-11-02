@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { requireLogin } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { AchievementDefinition, AchievementLibraryCategory, UserAchievement, achievementLibraryCategoryDetails, seededAchievementDefinitions, trackingAchievementDefinitions } from "@/lib/achievements";
+import { AchievementDefinition, AchievementLibraryCategory, DECADE_BADGE_LABEL, isDecadeAchievement, UserAchievement, achievementLibraryCategoryDetails, seededAchievementDefinitions, trackingAchievementDefinitions } from "@/lib/achievements";
 import { getMemberStats, initialsForName, EARNED_ACHIEVEMENT_STATUSES } from "@/lib/member-stats";
 import { SKY_VIEW, SkyLayoutKey, buildSkyMap } from "@/lib/sky-constellations";
 
@@ -42,7 +42,7 @@ export default async function Page() {
   const yearStreak = stats.year_streak;
   const monthStreak = stats.month_streak;
   const monthly = definitions.filter((item) => item.category === "monthly");
-  const yearAchievements = definitions.filter((item) => item.category === "special" && earnedById.has(item.id));
+  const decadeAchievements = definitions.filter((item) => isDecadeAchievement(item) && earnedById.has(item.id));
   const sky = buildSkyMap(definitions);
   const starByKey = new Map(sky.stars.map((star) => [star.key, star]));
   const isEarnedStar = (key: string) => { const achievement = starByKey.get(key)?.achievement; return Boolean(achievement && earnedById.has(achievement.id)); };
@@ -56,7 +56,7 @@ export default async function Page() {
   const tipClassMobile = (x: number, y: number) => [x < 300 ? "mtip-left" : x > 700 ? "mtip-right" : "", y > 2050 ? "mtip-up" : ""].join(" ").trim();
 
   const categoryOrder: AchievementLibraryCategory[] = ["monthly", "seasonal", "foreground", "technique", "special", "rank", "tracking"];
-  const libraryDefinitions = definitions.filter((item) => !item.id.startsWith("year_"));
+  const libraryDefinitions = definitions.filter((item) => !item.id.startsWith("year_") || isDecadeAchievement(item));
   const libraryGroups = categoryOrder.map((category) => ({
     category,
     details: achievementLibraryCategoryDetails[category],
@@ -87,7 +87,7 @@ export default async function Page() {
     </section>
     <section className="progress-panel progress-rank-panel"><div><h2>Progress to {nextRank?.short ?? "Master"}</h2><p>{nextRank ? `${Math.max(0, nextRank.min - earnedCount)} more honors to rank up` : "Master rank reached"}</p></div><div className="progress-bar"><span style={{ width: `${progressPct}%` }} /></div></section>
     <section className="progress-panel"><div className="progress-section-head"><h2>2026 Field Year</h2><p>A Milky Way in every month you shoot</p></div><div className="progress-month-grid">{monthly.map((achievement, index) => <div key={achievement.id} className={earnedById.has(achievement.id) ? "earned" : "locked"}>{monthLabels[index]}</div>)}</div><div className="progress-season-grid">{seasonIds.map((id, index) => <div key={id} className={earnedById.has(id) ? "earned" : "locked"}>{seasonLabels[index]}</div>)}</div></section>
-    <section className="progress-panel progress-decade"><div className="progress-section-head"><h2>❖ A Decade Under the Stars</h2><p>Credibility bonus for Milky Way images captured across different years.</p></div>{yearAchievements.length ? <div className="progress-year-chips">{yearAchievements.map((achievement) => <span key={achievement.id}>{String(achievement.metadata?.year ?? achievement.name.replace(/\D/g, ""))}</span>)}</div> : <p className="progress-empty">No earned year honors yet.</p>}</section>
+    <section className="progress-panel progress-decade"><div className="progress-section-head"><h2>❖ A Decade Under the Stars</h2><p>Credibility bonus for Milky Way images captured across different years.</p></div>{decadeAchievements.length ? <div className="progress-year-chips">{decadeAchievements.map((achievement) => <span key={achievement.id} title={achievement.name}>{DECADE_BADGE_LABEL} · 10 yrs</span>)}</div> : <p className="progress-empty">Not earned yet. Capture the Milky Way in ten different calendar years.</p>}</section>
     <section className="progress-constellation-head"><h2>The Constellation of Honors</h2><p>Hover any star for details, a fully earned cluster lights its constellation gold</p></section>
     <section className="progress-sky">
       {(["desktop", "mobile"] as const).map((layout) => <svg key={layout} className={`progress-sky-lines progress-sky-${layout}`} viewBox={`0 0 ${SKY_VIEW[layout].w} ${SKY_VIEW[layout].h}`} preserveAspectRatio="none" aria-hidden="true">
