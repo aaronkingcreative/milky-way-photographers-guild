@@ -3,26 +3,26 @@
 // Every active achievement is pinned to a real star in one of six classic constellations. Star shapes come from
 // real J2000 coordinates (RA in hours, Dec in degrees), projected per constellation with a gnomonic (flat sky)
 // projection, so each figure keeps its true shape. The constellations are NOT placed in their true positions relative
-// to each other: each one is fitted into its own box on the panel, with a separate desktop and mobile arrangement.
+// to each other: the layout mirrors a Milky Way panorama (Big Dipper and Cygnus in the north; Cassiopeia far left,
+// Sagittarius left of the core, Scorpius right of the core, Crux low on the right as the southern Milky Way continues).
+// Each one is fitted into its own box, with a separate desktop and mobile arrangement.
+//
+// Today: 41 stars for 41 achievements, no placeholders. Scorpius 12 (months), Big Dipper 7 + Cassiopeia 5
+// (foregrounds), Cygnus 5 (seasons + Perfect Year), Sagittarius 8 (techniques + Decade on λ + Beginner on τ),
+// Crux 4 (Amateur, Novice, Veteran, Master).
 //
 // How achievements land on stars (deterministic and data driven):
 //   1. Achievements are sorted by category (SKY_CATEGORY_ORDER), then sort_order, then id.
 //   2. Constellations are filled in the order listed in SKY_CONSTELLATIONS. Each star takes the next unplaced
 //      achievement whose `constellation` field (or, if that is empty, its category) is in the star's `takes` list,
 //      or the constellation's `takes` list when the star has none.
-//   3. Any achievement still unplaced (its own constellation is full, or it is a brand new field) takes any free
-//      Future honor star, searched in SKY_OVERFLOW_ORDER, so a new honor never disappears.
-//   4. Stars left without an achievement render as faint "Future honor" placeholders.
-//   5. If every star is taken, extra achievements render as loose stars along the bottom of the panel. At that point,
-//      add stars (with real coordinates and lines) to a constellation below.
-//
-// Today: 44 stars = 41 achievements + 3 Future honor placeholders (Pherkad in the Little Dipper, λ Kaus Borealis and
-// τ in the Teapot). Layout mirrors a Milky Way panorama: Big Dipper, Little Dipper and Cygnus across the north (top);
-// Cassiopeia at the far left, Sagittarius left of the core and Scorpius right of the core along the bottom.
+//   3. A star with no matching achievement renders as a faint "Future honor" (none today).
+//   4. An achievement with no free star in its own constellation renders as a loose star along the bottom of the
+//      panel, so a new honor never disappears.
 //
 // To add an achievement later: insert the achievement_definitions row with a `constellation` field and sort_order.
-// It fills a free star in its own constellation first, then any Future honor star (SKY_OVERFLOW_ORDER), then a
-// loose star along the bottom of the panel.
+// It shows as a loose star until it gets a home: add a constellation (or stars) below with real coordinates, lines,
+// a `takes` list that includes its field, and a desktop + mobile layout box.
 
 export type SkyLayoutKey = "desktop" | "mobile";
 export type SkyBox = { x: number; y: number; w: number; h: number; rotate?: number; label?: "above" | "below" | "left" | "right" };
@@ -56,7 +56,7 @@ export const SKY_CONSTELLATIONS: SkyConstellationDef[] = [
       { id: "lambda", name: "Shaula (λ Sco)", ra: hms(17, 33, 36), dec: dms(-37, 6), mag: 1.6 },
     ],
     lines: [["beta", "delta"], ["delta", "pi"], ["delta", "sigma"], ["sigma", "alpha"], ["alpha", "tau"], ["tau", "epsilon"], ["epsilon", "mu"], ["mu", "zeta"], ["zeta", "eta"], ["eta", "theta"], ["theta", "lambda"]],
-    layout: { desktop: { x: 590, y: 380, w: 290, h: 270, label: "below" }, mobile: { x: 560, y: 1160, w: 380, h: 520, label: "below" } },
+    layout: { desktop: { x: 540, y: 370, w: 270, h: 270, label: "below" }, mobile: { x: 560, y: 1080, w: 380, h: 520, label: "below" } },
   },
   {
     id: "big_dipper", name: "Big Dipper", takes: ["foregrounds"],
@@ -70,7 +70,7 @@ export const SKY_CONSTELLATIONS: SkyConstellationDef[] = [
       { id: "alkaid", name: "Alkaid (η UMa)", ra: hms(13, 47, 32), dec: dms(49, 19), mag: 1.9 },
     ],
     lines: [["dubhe", "merak"], ["merak", "phecda"], ["phecda", "megrez"], ["megrez", "dubhe"], ["megrez", "alioth"], ["alioth", "mizar"], ["mizar", "alkaid"]],
-    layout: { desktop: { x: 40, y: 50, w: 320, h: 190, label: "below" }, mobile: { x: 70, y: 90, w: 860, h: 310, label: "below" } },
+    layout: { desktop: { x: 60, y: 50, w: 340, h: 190, label: "below" }, mobile: { x: 70, y: 90, w: 860, h: 310, label: "below" } },
   },
   {
     id: "cassiopeia", name: "Cassiopeia", takes: ["foregrounds"],
@@ -82,23 +82,7 @@ export const SKY_CONSTELLATIONS: SkyConstellationDef[] = [
       { id: "segin", name: "Segin (ε Cas)", ra: hms(1, 54, 24), dec: dms(63, 40), mag: 3.4 },
     ],
     lines: [["caph", "schedar"], ["schedar", "navi"], ["navi", "ruchbah"], ["ruchbah", "segin"]],
-    layout: { desktop: { x: 40, y: 420, w: 220, h: 135, label: "below" }, mobile: { x: 200, y: 1900, w: 600, h: 300, label: "below" } },
-  },
-  {
-    id: "little_dipper", name: "Little Dipper", takes: ["ranks", "decade"],
-    // Ranks climb from the bowl up the handle, so Master sits on Polaris. The two Guardians of the Pole hold
-    // the Decade honors.
-    stars: [
-      { id: "eta", name: "η UMi", ra: hms(16, 17, 30), dec: dms(75, 45), mag: 5.0, takes: ["ranks"] },
-      { id: "zeta", name: "ζ UMi", ra: hms(15, 44, 4), dec: dms(77, 47), mag: 4.3, takes: ["ranks"] },
-      { id: "epsilon", name: "ε UMi", ra: hms(16, 45, 58), dec: dms(82, 2), mag: 4.2, takes: ["ranks"] },
-      { id: "delta", name: "Yildun (δ UMi)", ra: hms(17, 32, 13), dec: dms(86, 35), mag: 4.4, takes: ["ranks"] },
-      { id: "polaris", name: "Polaris (α UMi)", ra: hms(2, 31, 49), dec: dms(89, 15, 51), mag: 2.0, takes: ["ranks"] },
-      { id: "kochab", name: "Kochab (β UMi)", ra: hms(14, 50, 42), dec: dms(74, 9), mag: 2.1, takes: ["decade"] },
-      { id: "pherkad", name: "Pherkad (γ UMi)", ra: hms(15, 20, 44), dec: dms(71, 50), mag: 3.0, takes: ["decade"] },
-    ],
-    lines: [["polaris", "delta"], ["delta", "epsilon"], ["epsilon", "zeta"], ["zeta", "kochab"], ["kochab", "pherkad"], ["pherkad", "eta"], ["eta", "zeta"]],
-    layout: { desktop: { x: 410, y: 40, w: 190, h: 250, label: "below" }, mobile: { x: 70, y: 540, w: 360, h: 450, label: "below" } },
+    layout: { desktop: { x: 30, y: 430, w: 210, h: 130, label: "below" }, mobile: { x: 60, y: 1880, w: 470, h: 250, label: "below" } },
   },
   {
     id: "cygnus", name: "Cygnus", takes: ["seasons", "special"],
@@ -111,10 +95,12 @@ export const SKY_CONSTELLATIONS: SkyConstellationDef[] = [
       { id: "sadr", name: "Sadr (γ Cyg)", ra: hms(20, 22, 14), dec: dms(40, 15), mag: 2.2, takes: ["special"] },
     ],
     lines: [["deneb", "sadr"], ["sadr", "albireo"], ["delta", "sadr"], ["sadr", "gienah"]],
-    layout: { desktop: { x: 690, y: 30, w: 230, h: 260, label: "below" }, mobile: { x: 560, y: 540, w: 380, h: 460, label: "below" } },
+    layout: { desktop: { x: 600, y: 30, w: 240, h: 260, label: "below" }, mobile: { x: 300, y: 520, w: 400, h: 440, label: "below" } },
   },
   {
     id: "sagittarius", name: "Sagittarius (the Teapot)", takes: ["techniques"],
+    // Six techniques fill the pot; the lid tip (λ) holds Decade Under the Stars and the handle (τ) holds Beginner,
+    // where every photographer picks the hobby up.
     stars: [
       { id: "epsilon", name: "Kaus Australis (ε Sgr)", ra: hms(18, 24, 10), dec: dms(-34, 23), mag: 1.8 },
       { id: "gamma", name: "Alnasl (γ² Sgr)", ra: hms(18, 5, 48), dec: dms(-30, 25), mag: 3.0 },
@@ -122,16 +108,27 @@ export const SKY_CONSTELLATIONS: SkyConstellationDef[] = [
       { id: "phi", name: "φ Sgr", ra: hms(18, 45, 39), dec: dms(-26, 59), mag: 3.2 },
       { id: "zeta", name: "Ascella (ζ Sgr)", ra: hms(19, 2, 37), dec: dms(-29, 53), mag: 2.6 },
       { id: "sigma", name: "Nunki (σ Sgr)", ra: hms(18, 55, 16), dec: dms(-26, 18), mag: 2.1 },
-      { id: "lambda", name: "Kaus Borealis (λ Sgr)", ra: hms(18, 27, 58), dec: dms(-25, 25), mag: 2.8 },
-      { id: "tau", name: "τ Sgr", ra: hms(19, 6, 56), dec: dms(-27, 40), mag: 3.3 },
+      { id: "lambda", name: "Kaus Borealis (λ Sgr)", ra: hms(18, 27, 58), dec: dms(-25, 25), mag: 2.8, takes: ["decade"] },
+      { id: "tau", name: "τ Sgr", ra: hms(19, 6, 56), dec: dms(-27, 40), mag: 3.3, takes: ["ranks"] },
     ],
     lines: [["gamma", "delta"], ["gamma", "epsilon"], ["delta", "epsilon"], ["delta", "lambda"], ["lambda", "phi"], ["delta", "phi"], ["phi", "zeta"], ["epsilon", "zeta"], ["phi", "sigma"], ["sigma", "tau"], ["tau", "zeta"]],
-    layout: { desktop: { x: 300, y: 420, w: 250, h: 210, rotate: -29, label: "below" }, mobile: { x: 40, y: 1230, w: 440, h: 330, rotate: -29, label: "below" } },
+    layout: { desktop: { x: 270, y: 420, w: 240, h: 200, rotate: -29, label: "below" }, mobile: { x: 40, y: 1150, w: 440, h: 330, rotate: -29, label: "below" } },
+  },
+  {
+    id: "crux", name: "Crux (the Southern Cross)", takes: ["ranks"],
+    // The ranks above Beginner get brighter as they climb: Amateur on faint Imai, Master on Acrux, the brightest.
+    // The faint ε Crucis is left out so the cross reads cleanly.
+    stars: [
+      { id: "delta", name: "Imai (δ Cru)", ra: hms(12, 15, 9), dec: dms(-58, 45), mag: 2.8 },
+      { id: "gamma", name: "Gacrux (γ Cru)", ra: hms(12, 31, 10), dec: dms(-57, 7), mag: 1.6 },
+      { id: "beta", name: "Mimosa (β Cru)", ra: hms(12, 47, 43), dec: dms(-59, 41), mag: 1.3 },
+      { id: "alpha", name: "Acrux (α Cru)", ra: hms(12, 26, 36), dec: dms(-63, 6), mag: 0.8 },
+    ],
+    lines: [["gamma", "alpha"], ["beta", "delta"]],
+    layout: { desktop: { x: 845, y: 470, w: 120, h: 150, label: "below" }, mobile: { x: 570, y: 1800, w: 260, h: 360, label: "below" } },
   },
 ];
 
-/** When an achievement's own constellation has no free star, it takes the first Future honor star found in this order. */
-export const SKY_OVERFLOW_ORDER = ["sagittarius", "little_dipper", "cygnus", "cassiopeia", "big_dipper", "scorpius"];
 
 type Pt = { x: number; y: number };
 
@@ -196,14 +193,7 @@ export function buildSkyMap<T extends SkyAchievementInput>(achievements: T[]) {
     constellations.push({ id: con.id, name: con.name, label: { desktop: label("desktop"), mobile: label("mobile") }, lines: con.lines.map(([a, b]) => ({ a: `${con.id}:${a}`, b: `${con.id}:${b}` })) });
   }
 
-  // Overflow: achievements whose field has no free star take the first free star in SKY_OVERFLOW_ORDER.
-  for (const item of pool) {
-    if (used.has(item.id)) continue;
-    const free = SKY_OVERFLOW_ORDER.flatMap((id) => stars.filter((s) => s.constellationId === id && !s.achievement))[0];
-    if (!free) continue;
-    free.achievement = item; used.add(item.id);
-  }
-  // Sky full: loose stars along the bottom edge so nothing is ever hidden.
+  // No free star in its own constellation: loose stars along the bottom edge so nothing is ever hidden.
   const loose = pool.filter((item) => !used.has(item.id));
   loose.forEach((item, i) => {
     const step = (n: number) => 60 + ((i % 12) * (880 / 11));

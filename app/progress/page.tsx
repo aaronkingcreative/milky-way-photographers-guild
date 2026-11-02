@@ -106,7 +106,7 @@ export default async function Page() {
         return <button key={star.key} type="button" className={`progress-star ${earned ? "earned" : "locked"}${completeConstellations.has(star.constellationId) ? " in-complete" : ""} ${tips}`} style={style}><span className="progress-star-shape"><span>{definition.glyph}</span></span><span className="progress-tooltip"><strong>{definition.name}</strong><em>{definition.requirement}</em><b>{earned ? (record?.earnedAt ? `✓ Earned ${earnedDate(record.earnedAt)}` : "✓ Earned") : "Locked"}</b><small>{star.starName}, {star.constellationName}</small></span></button>;
       })}
     </section>
-    <div className="progress-legend"><span><i className="earned" />Earned honor</span><span><i />Locked, not yet earned</span><span><i className="future" />Future honor</span><span><i className="line" />Gold line joins two earned honors, a fully earned constellation glows gold</span></div>
+    <div className="progress-legend"><span><i className="earned" />Earned honor</span><span><i />Locked, not yet earned</span>{sky.stars.some((s) => !s.achievement) ? <span><i className="future" />Future honor</span> : null}<span><i className="line" />Gold line joins two earned honors, a fully earned constellation glows gold</span></div>
 
     <section className="progress-achievement-library" aria-labelledby="achievement-library-title">
       <div className="progress-library-heading">
