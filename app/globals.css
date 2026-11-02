@@ -1075,3 +1075,21 @@ html[data-list-loading] .mw-sort-list::before{content:"";position:absolute;z-ind
 .mw-claim-img{display:block;width:100%;height:auto;max-height:400px;object-fit:contain;margin:0 auto}
 .mw-desk-flash{position:sticky;top:5.5rem;z-index:20;border:1px solid rgba(240,189,102,.55);background:rgba(20,16,8,.95);color:#f0bd66;border-radius:.4rem;padding:.65rem 1rem;font-weight:700}
 .mw-desk-flash.is-error{border-color:rgba(248,113,113,.6);color:#fca5a5;background:rgba(40,10,10,.95)}
+.mw-claim-mismatch{margin-top:.6rem;display:inline-block;border:1px solid rgba(252,165,165,.45);background:rgba(127,29,29,.25);color:#fecaca;border-radius:.35rem;padding:.3rem .6rem;font-size:.85rem;font-weight:700}
+.mw-reassign select option,.mw-reassign select optgroup{background:#0b1220;color:#fff}
+.mw-header-notice{display:flex;align-items:center;gap:.6rem;justify-content:center;padding:.4rem 2.6rem .4rem 1rem;background:linear-gradient(90deg,rgba(231,159,43,.14),rgba(231,159,43,.22),rgba(231,159,43,.14));border-top:1px solid rgba(240,189,102,.35);border-bottom:1px solid rgba(240,189,102,.35);color:#f8e3bd;font-size:.88rem;position:relative}
+.mw-header-notice-dot{width:.5rem;height:.5rem;border-radius:50%;background:#f0bd66;box-shadow:0 0 8px #f0bd66;flex:none}
+.mw-header-notice-link{font-family:var(--font-guild-display);font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#f0bd66;white-space:nowrap}
+.mw-header-notice-link:hover{text-decoration:underline}
+.mw-header-notice-close{position:absolute;right:.6rem;top:50%;transform:translateY(-50%);width:1.6rem;height:1.6rem;border-radius:50%;color:#f8e3bd;font-size:1.15rem;line-height:1}
+.mw-header-notice-close:hover{background:rgba(255,255,255,.1)}
+.mw-count-badge{color:#f0bd66}
+.mw-admin-count{margin-left:.35rem;display:inline-flex;align-items:center;justify-content:center;min-width:2.1rem;padding:.05rem .45rem;border-radius:999px;background:#081321;color:#f0bd66;font-weight:800}
+.progress-review-notes ul{display:grid;gap:.7rem;margin-top:.9rem}
+.progress-review-note{display:flex;gap:.85rem;align-items:flex-start;border:1px solid rgba(255,255,255,.1);border-radius:.6rem;padding:.75rem .9rem;background:rgba(8,19,33,.45)}
+.progress-review-note.verified{border-color:rgba(240,189,102,.35)}
+.progress-review-note.rejected{border-color:rgba(252,165,165,.3)}
+.progress-review-glyph{font-size:1.3rem;color:#f0bd66;line-height:1.2}
+.progress-review-head{font-weight:800;color:#fff}
+.progress-review-new{margin-left:.5rem;font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;background:#f0bd66;color:#081321;border-radius:999px;padding:.1rem .45rem;vertical-align:middle}
+.progress-review-note blockquote{margin-top:.4rem;color:#f8e3bd;font-style:italic}

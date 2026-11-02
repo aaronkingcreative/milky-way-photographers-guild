@@ -74,6 +74,18 @@ export default async function Page() {
     return (item as AchievementDefinition).isManualClaimable === false ? "Locked" : "Available";
   };
 
+  // Guild review results that carry a note or a reassignment. Viewing this page marks them seen.
+  const { data: reviewRows } = await supabase.from("field_report_achievement_claims").select("id,status,reviewed_at,review_notes,original_achievement_id,member_seen_at,achievement_id,achievement_definitions(name,glyph),field_reports(title)").eq("user_id", user.id).neq("status", "auto_awarded_pending_review").not("reviewed_at", "is", null).order("reviewed_at", { ascending: false }).limit(30);
+  const defNameById = new Map((definitionRows || []).map((d: any) => [d.id, d.name as string]));
+  const reviewNotes = (reviewRows || []).filter((r: any) => r.review_notes || r.original_achievement_id).slice(0, 8).map((r: any) => {
+    const def = Array.isArray(r.achievement_definitions) ? r.achievement_definitions[0] : r.achievement_definitions;
+    const report = Array.isArray(r.field_reports) ? r.field_reports[0] : r.field_reports;
+    const honor = def?.name || r.achievement_id;
+    const original = r.original_achievement_id ? defNameById.get(r.original_achievement_id) || r.original_achievement_id : null;
+    const headline = r.status === "verified" ? (original ? `Verified as ${honor} (you claimed ${original})` : `${honor} verified`) : r.status === "rejected" ? `${honor} not approved` : `${honor} ${r.status}`;
+    return { id: r.id, glyph: def?.glyph || "✦", headline, title: report?.title || null, note: r.review_notes as string | null, date: earnedDate(r.reviewed_at), isNew: !r.member_seen_at, status: r.status as string };
+  });
+  if (reviewNotes.some((n) => n.isNew)) await supabase.rpc("mark_my_claim_reviews_seen");
   return <main className="mw-page-wide progress-page">
     <div className="progress-kicker"><Image src={favicon} alt="" width={20} height={20} /><span>Guild Progress</span></div>
     <h1 className="progress-title">Your Climb to Master</h1>
@@ -85,6 +97,7 @@ export default async function Page() {
       <div className="progress-streak-card"><strong>{yearStreak}</strong><span>Year Streak</span><p>Upload a Milky Way image from a year and declare when you shot it. Each consecutive year adds to your streak. <a href="/profile#streak" className="underline">See your years</a></p></div>
       <div className="progress-streak-card progress-streak-card-cool"><strong>{monthStreak}</strong><span>Month Streak</span><p>Earned calendar month honors</p></div>
     </section>
+    {reviewNotes.length > 0 && <section id="guild-review" className="progress-panel progress-review-notes"><div className="progress-section-head"><h2>Guild review notes</h2><p>What the Verification Desk said about your achievement claims</p></div><ul>{reviewNotes.map((n) => <li key={n.id} className={`progress-review-note ${n.status}`}><span className="progress-review-glyph" aria-hidden="true">{n.glyph}</span><div><p className="progress-review-head">{n.headline}{n.isNew && <span className="progress-review-new">New</span>}</p>{n.title && <p className="progress-muted">{n.title}{n.date ? ` · reviewed ${n.date}` : ""}</p>}{n.note && <blockquote>“{n.note}”</blockquote>}</div></li>)}</ul></section>}
     <section className="progress-panel progress-rank-panel"><div><h2>Progress to {nextRank?.short ?? "Master"}</h2><p>{nextRank ? `${Math.max(0, nextRank.min - earnedCount)} more honors to rank up` : "Master rank reached"}</p></div><div className="progress-bar"><span style={{ width: `${progressPct}%` }} /></div></section>
     <section className="progress-panel"><div className="progress-section-head"><h2>2026 Field Year</h2><p>A Milky Way in every month you shoot</p></div><div className="progress-month-grid">{monthly.map((achievement, index) => <div key={achievement.id} className={earnedById.has(achievement.id) ? "earned" : "locked"}>{monthLabels[index]}</div>)}</div><div className="progress-season-grid">{seasonIds.map((id, index) => <div key={id} className={earnedById.has(id) ? "earned" : "locked"}>{seasonLabels[index]}</div>)}</div></section>
     <section className="progress-panel progress-decade"><div className="progress-section-head"><h2>❖ A Decade Under the Stars</h2><p>Credibility bonus for Milky Way images captured across different years.</p></div>{decadeAchievements.length ? <div className="progress-year-chips">{decadeAchievements.map((achievement) => <span key={achievement.id} title={achievement.name}>{DECADE_BADGE_LABEL} · 10 yrs</span>)}</div> : <p className="progress-empty">Not earned yet. Capture the Milky Way in ten different calendar years.</p>}</section>
