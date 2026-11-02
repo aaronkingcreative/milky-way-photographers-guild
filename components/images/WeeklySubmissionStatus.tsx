@@ -7,7 +7,7 @@ export function WeeklySubmissionStatus({ remaining, hasCandidate, iotwLabel }: {
     <p className="fd-label fd-label-muted">This Week&apos;s Field Reports</p>
     <div className="fd-weekly-bars">{[0, 1, 2].map((i) => <span key={i} className={i < used ? "used" : ""} />)}</div>
     <div className="fd-weekly-count"><span>{used} of 3 used</span><strong>{hasCandidate ? "IOTW candidate set" : `IOTW ${iotwLabel || ""} open`.replace("  ", " ")}</strong></div>
-    <p>Up to 3 Guild images per week. One may be entered for Image of the Week.</p>
+    <p>Up to 3 Guild images per week. One may be entered for {iotwLabel ? `IOTW ${iotwLabel}` : "Image of the Week"}. Slots reset Sunday at 12:00 PM MT.</p>
     <Link href="/submit">+ New Field Report</Link>
   </div>;
 }

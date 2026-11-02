@@ -10,6 +10,7 @@ import { ReactionBar } from "@/components/images/ReactionBar";
 import { fetchMembers } from "@/lib/members";
 import { RANKS, fetchHonorCounts, rankLabelForCount } from "@/lib/ranks";
 import { MessageFromAaron } from "@/components/hall/MessageFromAaron";
+import { formatMountainShort, getIotwSchedule } from "@/lib/iotw";
 
 const faviconUrl =
   "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/site-assets/logos/MWPG_Logo_FAVICON.png";
@@ -74,6 +75,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
   const { sort: sortParam } = await searchParams;
   const sort: SortKey = (SORTS.find((s) => s.key === sortParam)?.key || "recent") as SortKey;
   const supabase = await createServerSupabaseClient();
+  const iotwEntry = sort === "contenders" ? (await getIotwSchedule(supabase).catch(() => null))?.entry || null : null;
   let images: any[] = [];
   let reactions: any[] = [];
   const commentCounts = new Map<string, number>();
@@ -220,7 +222,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
                     </article>
                   );
                 })}
-                {images.length === 0 && <div className="mw-card-soft p-8 text-center text-white/60">{sort === "contenders" ? "No Image of the Week contenders yet this week." : "The Hall is ready. Community field reports will appear here after members submit images."}</div>}
+                {images.length === 0 && <div className="mw-card-soft p-8 text-center text-white/60">{sort === "contenders" ? (iotwEntry ? `No contenders yet for IOTW ${iotwEntry.label}. Entries close ${formatMountainShort(iotwEntry.entries_close_at)}.` : "No IOTW contenders yet this week.") : "The Hall is ready. Community field reports will appear here after members submit images."}</div>}
               </div>
             </div>
 
