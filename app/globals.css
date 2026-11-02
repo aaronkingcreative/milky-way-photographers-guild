@@ -1069,3 +1069,9 @@ html[data-list-loading] .mw-sort-list::before{content:"";position:absolute;z-ind
 .mw-date-review button { padding:.4rem .75rem; font-size:.72rem; border:1px solid rgba(231,159,43,.55); color:#f0bd66; border-radius:6px; }
 .mw-burst-dot::after{white-space:pre;text-align:center;line-height:1.35}
 .mw-ascent-face{background:linear-gradient(rgba(231,159,43,.14),rgba(231,159,43,.14)),#0b1a2b}
+
+/* Verification Desk: claimed image and review feedback */
+.mw-claim-image .mw-viewer-trigger{background:#04070d;border:1px solid rgba(255,255,255,.1);border-radius:.4rem;overflow:hidden}
+.mw-claim-img{display:block;width:100%;height:auto;max-height:400px;object-fit:contain;margin:0 auto}
+.mw-desk-flash{position:sticky;top:5.5rem;z-index:20;border:1px solid rgba(240,189,102,.55);background:rgba(20,16,8,.95);color:#f0bd66;border-radius:.4rem;padding:.65rem 1rem;font-weight:700}
+.mw-desk-flash.is-error{border-color:rgba(248,113,113,.6);color:#fca5a5;background:rgba(40,10,10,.95)}
