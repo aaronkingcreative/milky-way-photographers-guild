@@ -8,6 +8,8 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getMemberStats } from "@/lib/member-stats";
 import { fetchWinningImageIds } from "@/lib/ranks";
 import { publicMemberName } from "@/lib/avatar";
+import { getIotwSchedule } from "@/lib/iotw";
+import { IotwSchedule } from "@/components/iotw/IotwSchedule";
 
 const ranks = ["Beginner", "Amateur", "Novice", "Veteran", "Master"];
 const honors = [
@@ -72,6 +74,7 @@ function ContenderPreview({ image }: { image: any }) {
 export default async function Page() {
   const { hasAccess, user } = await requireLogin();
   const supabase = await createServerSupabaseClient();
+  let iotwSchedule: Awaited<ReturnType<typeof getIotwSchedule>> | null = null;
   let latest: any[] = [], reactions: any[] = [], remaining = 0, hasCandidate = false, myCount = 0, candidateCount = 0, stats: any = null, iotwWins = 0;
 
   if (hasAccess && user) {
@@ -93,6 +96,7 @@ export default async function Page() {
     iotwWins = (myImageIds || []).filter((row: any) => winningIds.has(row.id)).length;
     candidateCount = latest.filter((i) => i.is_weekly_candidate).length;
     stats = memberStats;
+    iotwSchedule = await getIotwSchedule(supabase);
   }
 
   const first = stats?.first_name || "Guild member";
@@ -120,11 +124,11 @@ export default async function Page() {
     <section className="fd-panel fd-throne"><div className="fd-section-head"><span>✪</span><FieldDeskLabel>The Winners&apos; Throne</FieldDeskLabel><p>Last week&apos;s Image of the Week, the Top 3</p></div><div className="fd-throne-grid"><WinnerSlot image={top[1]} place="2" reactions={reactions} /><WinnerSlot image={top[0]} place="1" featured reactions={reactions} /><WinnerSlot image={top[2]} place="3" reactions={reactions} /></div></section>
 
     <div className="fd-main-grid"><section className="fd-panel fd-phavorite"><div className="fd-section-head"><span>✪</span><FieldDeskLabel>Photog Phavorite, Moment of Envy</FieldDeskLabel></div>{top[0] ? <Link href={`/images/${top[0].id}`} className="fd-phavorite-image"><img src={top[0].image_url} alt={top[0].title || "Guild image"} /><div /><span className="fd-video-chip">▶ Envy Video</span><div className="fd-phavorite-copy"><span>Aaron&apos;s Phavorite</span><h3>{top[0].title}</h3><p>{nameFor(top[0])}{imageLocation(top[0]) ? `, ${imageLocation(top[0])}` : ""}</p></div></Link> : <div className="fd-empty fd-empty-large">Aaron&apos;s Phavorite will appear here once images are available.</div>}<div className="fd-phavorite-foot"><p>Aaron&apos;s personal pick from outside the Top 3, awarded its own Moment of Envy video</p>{top[0] && <Link href={`/images/${top[0].id}`}>View →</Link>}</div></section>
-      <div className="fd-side-stack"><WeeklySubmissionStatus remaining={remaining} hasCandidate={hasCandidate} /><section className="fd-panel fd-recent"><FieldDeskLabel muted>Your Recent Reports</FieldDeskLabel><div>{latest.slice(0, 3).map((i) => <Link key={i.id} href={`/images/${i.id}`}><img src={i.image_url} alt="" /><span><strong>{i.title}</strong><small>{reportMeta(i, reactions)}</small></span></Link>)}{!latest.length && <p>No recent reports yet.</p>}</div></section></div>
+      <div className="fd-side-stack"><WeeklySubmissionStatus remaining={remaining} hasCandidate={hasCandidate} iotwLabel={iotwSchedule?.entry.label} /><section className="fd-panel fd-recent"><FieldDeskLabel muted>Your Recent Reports</FieldDeskLabel><div>{latest.slice(0, 3).map((i) => <Link key={i.id} href={`/images/${i.id}`}><img src={i.image_url} alt="" /><span><strong>{i.title}</strong><small>{reportMeta(i, reactions)}</small></span></Link>)}{!latest.length && <p>No recent reports yet.</p>}</div></section></div>
     </div>
 
     <section className="fd-panel fd-honors"><div className="fd-honors-head"><div><FieldDeskLabel muted>Field Honors</FieldDeskLabel><span>{stats?.earned_honor_count || 0} earned</span></div><Link href="/progress">View All Honors →</Link></div><div className="fd-honor-legend"><span><i className="earned" />Earned</span><span><i />Locked</span></div><div className="fd-honor-grid">{honors.map(([g, n, e]) => <div key={n}><div className={e ? "fd-honor-badge earned" : "fd-honor-badge"}>{g}</div><p>{n}</p></div>)}</div></section>
 
-    <section className="fd-contenders"><div className="fd-contender-head"><div><FieldDeskLabel muted>This Week&apos;s Contenders</FieldDeskLabel><span>{candidateCount ? `${candidateCount} active` : "Cast your vote in the Gallery"}</span></div><Link href="/feed">Open Gallery →</Link></div>{contendersPreview.length ? <div className={contendersPreview.length === 1 ? "fd-contender-grid fd-contender-grid-single" : "fd-contender-grid"}>{contendersPreview.map((i) => <ContenderPreview key={i.id} image={i} />)}</div> : <div className="fd-panel fd-empty fd-empty-large">No contenders have been filed yet.</div>}</section>
+    <section className="fd-contenders"><div className="fd-contender-head"><div><FieldDeskLabel muted>This Week&apos;s Contenders</FieldDeskLabel><span>{candidateCount ? `${candidateCount} active` : "Cast your vote in the Gallery"}</span></div><Link href="/feed">Open Gallery →</Link></div>{iotwSchedule && <IotwSchedule entry={iotwSchedule.entry} voting={iotwSchedule.voting} />}{contendersPreview.length ? <div className={contendersPreview.length === 1 ? "fd-contender-grid fd-contender-grid-single" : "fd-contender-grid"}>{contendersPreview.map((i) => <ContenderPreview key={i.id} image={i} />)}</div> : <div className="fd-panel fd-empty fd-empty-large">No contenders have been filed yet.</div>}</section>
   </> : <div className="mt-8"><AccessNeededPanel /></div>}</section>;
 }

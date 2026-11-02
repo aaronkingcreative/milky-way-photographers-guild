@@ -1,6 +1,7 @@
 import { WinnerPlaceholder } from "@/components/Cards";
 import { requireAccess } from "@/lib/guards";
-import { formatMountainDeadline } from "@/lib/iotw";
+import { formatMountainDeadline, getIotwSchedule, iotwWeekLabel } from "@/lib/iotw";
+import { IotwSchedule } from "@/components/iotw/IotwSchedule";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { publicMemberName } from "@/lib/avatar";
 
@@ -30,14 +31,16 @@ export default async function Page() {
     const { data: reports } = await supabase.from("field_reports").select("id,title,country,region,guild_images(image_url),profiles:member_profiles(display_name,full_name)").in("id", ids);
     (reports || []).forEach((r: any) => picks.set(r.id, { id: r.id, title: r.title || "Untitled", image_url: r.guild_images?.image_url || null, photographer: publicMemberName(r.profiles?.display_name, r.profiles?.full_name), location: [r.region, r.country].filter(Boolean).join(", ") }));
   }
+  const schedule = await getIotwSchedule(supabase);
   const get = (id?: string | null) => (id ? picks.get(id) || null : null);
   return (
     <section className="mx-auto max-w-7xl px-5 py-14">
       <p className="eyebrow">Guild Honors</p>
-      <h1 className="mt-2 font-display text-5xl uppercase">Image of the Week</h1>
+      <h1 className="mt-2 font-display text-5xl uppercase">Image of the Week{ballot ? ` ${iotwWeekLabel(ballot)}` : ""}</h1>
       <p className="mt-3 max-w-3xl text-white/68">
-        {ballot ? `Crowned for the ballot that closed ${formatMountainDeadline(ballot.voting_closes_at)}.` : "Winners are celebrated like guild honors, with Aaron’s Photog Phavorite reserved for the Monday Moment of Envy."}
+        {ballot ? `IOTW ${iotwWeekLabel(ballot)} winners, crowned when voting closed ${formatMountainDeadline(ballot.voting_closes_at)}.` : "Winners are celebrated like guild honors, with Aaron’s Photog Phavorite reserved for the Monday Moment of Envy."}
       </p>
+      <div className="max-w-3xl"><IotwSchedule entry={schedule.entry} voting={schedule.voting} /></div>
       <div className="mt-8 grid gap-5 lg:grid-cols-3">
         <div className="lg:col-span-2"><WinnerCard label="Winner's Throne" pick={get(ballot?.winner_field_report_id)} large /></div>
         <WinnerCard label="Aaron’s Photog Phavorite" pick={get(ballot?.photog_phavorite_field_report_id)} />

@@ -1,7 +1,7 @@
 import { getSessionState } from "@/lib/supabase/server";
 import { getMemberStats } from "@/lib/member-stats";
 import { HeaderClient } from "./HeaderClient";
-import { getIotwPeriod, iotwVoteIsRequired } from "@/lib/iotw";
+import { getIotwPeriod, getIotwTargetPeriod, iotwVoteIsRequired } from "@/lib/iotw";
 import { publicMemberName } from "@/lib/avatar";
 
 export async function Header() {
@@ -21,7 +21,8 @@ export async function Header() {
       const entries = (rows || []).map((r:any) => ({ field_report_id:r.field_report_id, user_id:r.user_id, title:r.field_reports?.title || "Untitled", image_url:r.field_reports?.guild_images?.image_url || null, photographer_name:publicMemberName(r.field_reports?.profiles?.display_name, r.field_reports?.profiles?.full_name), capture_date:r.field_reports?.capture_date, location:[r.field_reports?.region,r.field_reports?.country].filter(Boolean).join(", ") }));
       // Members never vote for their own image. If only their own images are in, there is nothing to vote on.
       const eligible = entries.filter((entry:any) => entry.user_id !== user.id);
-      if (eligible.length) iotw = { ballot, entries: eligible, vote, mustVote: !vote && iotwVoteIsRequired(ballot, eligible.length) };
+      const entryPeriod = getIotwTargetPeriod();
+      if (eligible.length) iotw = { ballot, entries: eligible, vote, entryWeek: { label: `Week ${entryPeriod.contest_week}`, closes: entryPeriod.submission_cutoff }, mustVote: !vote && iotwVoteIsRequired(ballot, eligible.length) };
     }
   }
   const streakLabel = stats?.year_streak ? `${stats.year_streak} Year Streak` : undefined;
