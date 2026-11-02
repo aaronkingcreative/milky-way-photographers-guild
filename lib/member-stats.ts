@@ -63,7 +63,7 @@ export async function getMemberStats(supabase: SupabaseClient, user: AuthUser): 
     supabase.from("user_achievements").select("achievement_id,status,achievement_definitions(counts_toward_rank)").eq("user_id", user.id).in("status", EARNED_ACHIEVEMENT_STATUSES),
     supabase.from("user_field_coverage").select("capture_year,capture_month").eq("user_id", user.id),
   ]);
-  const earned = new Set((achievements || []).filter((row: any) => row.achievement_definitions?.counts_toward_rank !== false).map((row: any) => row.achievement_id)).size;
+  const earned = new Set((achievements || []).filter((row: any) => row.achievement_definitions?.counts_toward_rank !== false && !String(row.achievement_id || "").startsWith("rank_")).map((row: any) => row.achievement_id)).size;
   const rank = rankForCount(earned);
   const nextRank = nextRankForCount(earned);
   const years = new Set((coverage || []).map((row: any) => row.capture_year).filter((year: number) => !Number.isNaN(year)));
