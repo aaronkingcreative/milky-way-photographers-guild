@@ -16,6 +16,7 @@ const navItems = [
   ["Guild Hall", "/guild-hall"],
   ["Gallery", "/feed"],
   ["Field Desk", "/field-desk"],
+  ["Winners", "/winners"],
   ["Progress", "/progress"],
 ];
 

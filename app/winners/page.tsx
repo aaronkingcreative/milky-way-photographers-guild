@@ -1,56 +1,63 @@
-import { WinnerPlaceholder } from "@/components/Cards";
+import Link from "next/link";
 import { requireAccess } from "@/lib/guards";
-import { formatMountainDeadline, getIotwSchedule, iotwWeekLabel } from "@/lib/iotw";
+import { formatMountainShort, getIotwSchedule } from "@/lib/iotw";
 import { IotwSchedule } from "@/components/iotw/IotwSchedule";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { publicMemberName } from "@/lib/avatar";
+import { getAvatarDisplay, publicMemberName } from "@/lib/avatar";
+import { fetchDecidedIotwWeeks, type IotwDecidedWeek } from "@/lib/iotw-winners";
 
-type Pick = { id: string; title: string; image_url: string | null; photographer: string; location: string };
+function votesText(n: number) {
+  return `${n} ${n === 1 ? "vote" : "votes"}`;
+}
 
-function WinnerCard({ label, pick, large = false }: { label: string; pick: Pick | null; large?: boolean }) {
-  if (!pick) return <WinnerPlaceholder title={label} />;
+function WinnerEntry({ week }: { week: IotwDecidedWeek }) {
+  const w = week.winner!;
+  const image = w.image;
+  const name = publicMemberName(image?.profiles?.display_name, image?.profiles?.full_name);
+  const avatar = getAvatarDisplay({ avatarPath: image?.profiles?.avatar_path, avatarUrl: image?.profiles?.avatar_url, displayName: name });
+  const href = image ? `/images/${image.id}` : null;
+  const thumb = image?.image_url ? <img src={image.image_url} alt={w.title} className="mw-winners-thumb" /> : <div className="mw-winners-thumb mw-winners-thumb-empty">Image unavailable</div>;
   return (
-    <div className="card overflow-hidden rounded-3xl">
-      {pick.image_url && <img src={pick.image_url} alt={pick.title} className={`w-full object-cover ${large ? "h-[420px]" : "h-56"}`} />}
-      <div className="p-6">
-        <p className="eyebrow">{label}</p>
-        <h3 className="mt-2 font-display text-2xl uppercase text-[#f0bd66]">{pick.title}</h3>
-        <p className="mt-1 text-white/68">{[pick.photographer, pick.location].filter(Boolean).join(" · ")}</p>
+    <article className="mw-winners-entry card">
+      {href ? <Link href={href} aria-label={`Open the field report for ${w.title}`}>{thumb}</Link> : thumb}
+      <div className="mw-winners-body">
+        <p className="eyebrow">IOTW {week.label}, {week.year}</p>
+        <h2 className="mw-winners-title">{href ? <Link href={href}>{w.title}</Link> : w.title}</h2>
+        <div className="mw-winners-by">
+          <span className="mw-avatar-circle mw-winners-avatar">{avatar.avatarUrl ? <img src={avatar.avatarUrl} alt="" /> : avatar.initials || "G"}</span>
+          <span>{name}</span>
+        </div>
+        <p className="mw-winners-votes">{votesText(w.votes)}{w.points ? ` · ${w.points} points` : ""}</p>
+        {week.ballot.voting_closes_at && <p className="mw-winners-date">Crowned {formatMountainShort(week.ballot.voting_closes_at)}</p>}
       </div>
-    </div>
+    </article>
   );
 }
 
 export default async function Page() {
   await requireAccess();
   const supabase = await createServerSupabaseClient();
-  const { data: ballot } = await supabase.from("iotw_ballots").select("*").eq("status", "finalized").order("period_start", { ascending: false }).limit(1).maybeSingle();
-  const ids = ballot ? [ballot.winner_field_report_id, ballot.second_place_field_report_id, ballot.third_place_field_report_id, ballot.photog_phavorite_field_report_id].filter(Boolean) : [];
-  const picks = new Map<string, Pick>();
-  if (ids.length) {
-    const { data: reports } = await supabase.from("field_reports").select("id,title,country,region,guild_images(image_url),profiles:member_profiles(display_name,full_name)").in("id", ids);
-    (reports || []).forEach((r: any) => picks.set(r.id, { id: r.id, title: r.title || "Untitled", image_url: r.guild_images?.image_url || null, photographer: publicMemberName(r.profiles?.display_name, r.profiles?.full_name), location: [r.region, r.country].filter(Boolean).join(", ") }));
-  }
-  const schedule = await getIotwSchedule(supabase);
-  const get = (id?: string | null) => (id ? picks.get(id) || null : null);
+  const [weeks, schedule] = await Promise.all([fetchDecidedIotwWeeks(supabase), getIotwSchedule(supabase)]);
+  const decided = weeks.filter((w) => w.winner);
+  const next = schedule.voting || schedule.entry;
   return (
-    <section className="mx-auto max-w-7xl px-5 py-14">
+    <section className="mx-auto max-w-6xl px-5 py-14">
       <p className="eyebrow">Guild Honors</p>
-      <h1 className="mt-2 font-display text-5xl uppercase">Image of the Week{ballot ? ` ${iotwWeekLabel(ballot)}` : ""}</h1>
-      <p className="mt-3 max-w-3xl text-white/68">
-        {ballot ? `IOTW ${iotwWeekLabel(ballot)} winners, crowned when voting closed ${formatMountainDeadline(ballot.voting_closes_at)}.` : "Winners are celebrated like guild honors, with Aaron’s Photog Phavorite reserved for the Monday Moment of Envy."}
-      </p>
+      <h1 className="mt-2 font-display text-5xl uppercase">Image of the Week Winners</h1>
+      <p className="mt-3 max-w-3xl text-white/68">Every IOTW winner, newest first. Open any winning image to read its field report.</p>
       <div className="max-w-3xl"><IotwSchedule entry={schedule.entry} voting={schedule.voting} /></div>
-      <div className="mt-8 grid gap-5 lg:grid-cols-3">
-        <div className="lg:col-span-2"><WinnerCard label="Winner's Throne" pick={get(ballot?.winner_field_report_id)} large /></div>
-        <WinnerCard label="Aaron’s Photog Phavorite" pick={get(ballot?.photog_phavorite_field_report_id)} />
-      </div>
-      <div className="mt-8 grid gap-4 md:grid-cols-3">
-        {([["#1 Crowned Image", ballot?.winner_field_report_id], ["#2 Runner Up", ballot?.second_place_field_report_id], ["#3 Runner Up", ballot?.third_place_field_report_id]] as const).map(([label, id]) => {
-          const pick = get(id);
-          return pick ? <WinnerCard key={label} label={label} pick={pick} /> : <div key={label} className="card rounded-lg p-6"><p className="eyebrow">Coming soon</p><h2 className="mt-12 font-display text-2xl uppercase text-[#f0bd66]">{label}</h2></div>;
-        })}
-      </div>
+      {decided.length ? (
+        <div className="mw-winners-list">{decided.map((w) => <WinnerEntry key={w.ballot.id} week={w} />)}</div>
+      ) : (
+        <div className="mw-winners-empty card">
+          <p className="eyebrow">The throne is waiting</p>
+          <h2 className="mt-2 font-display text-3xl uppercase text-[#f0bd66]">No winners crowned yet</h2>
+          <p className="mt-3 text-white/68">
+            {next ? `The first winner, IOTW ${next.label}, is announced ${formatMountainShort(next.voting_closes_at)}. Every week's winner will be listed here after that.` : "Every week's winner will be listed here once voting closes."}
+          </p>
+          <Link href="/feed" className="mw-btn-secondary mt-5 inline-block px-4 py-2 text-xs">Browse the Gallery</Link>
+        </div>
+      )}
     </section>
   );
 }
