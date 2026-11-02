@@ -8,6 +8,7 @@ import { signOut } from "@/app/actions";
 import { titleCaseLabel } from "@/lib/display";
 import { IotwVotingModal } from "@/components/iotw/IotwVotingModal";
 import { ProfileNudge } from "@/components/ProfileNudge";
+import { HeaderNotice } from "@/components/HeaderNotice";
 
 const logoUrl =
   "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/site-assets/logos/MWPG_Logo.png";
@@ -44,6 +45,8 @@ export function HeaderClient({
   missingName = false,
   missingPhoto = false,
   userId = null,
+  pendingClaims = 0,
+  reviewNotice = null,
 }: {
   user: boolean;
   isAdmin: boolean;
@@ -56,6 +59,10 @@ export function HeaderClient({
   missingName?: boolean;
   missingPhoto?: boolean;
   userId?: string | null;
+  /** Admins: achievement claims waiting on the Verification Desk. */
+  pendingClaims?: number;
+  /** Members: unseen Guild review results with a note or a reassignment. */
+  reviewNotice?: { count: number; text: string } | null;
 }) {
   const pathname = usePathname();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
@@ -134,6 +141,8 @@ export function HeaderClient({
         )}
       </nav>
       {showProfileNudge && userId ? <ProfileNudge userId={userId} missingName={missingName} missingPhoto={missingPhoto} /> : null}
+      {user && isAdmin && pendingClaims > 0 ? <HeaderNotice id="claims" text={`${pendingClaims} achievement claim${pendingClaims === 1 ? "" : "s"} waiting for review`} href="/admin/achievements" cta="Verification Desk" hideOn="/admin/achievements" /> : null}
+      {user && reviewNotice && reviewNotice.count > 0 ? <HeaderNotice id="review" text={reviewNotice.text} href="/progress#guild-review" cta="See the note" hideOn="/progress" /> : null}
     </header>
   );
 }

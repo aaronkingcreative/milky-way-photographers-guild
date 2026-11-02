@@ -254,10 +254,36 @@ export async function adminAchievementClaimAction(formData: FormData): Promise<C
   if (!["verified", "rejected", "revoked"].includes(action)) return { ok: false, error: "Unknown review action." };
   const { data: claim } = await supabase.from("field_report_achievement_claims").select("user_id,achievement_id").eq("id", claim_id).maybeSingle();
   if (!claim) return { ok: false, error: "That claim could not be found." };
-  const { error } = await supabase.from("field_report_achievement_claims").update({ status: action, reviewed_at: new Date().toISOString(), reviewed_by: user.id, review_notes }).eq("id", claim_id);
+  const { error } = await supabase.from("field_report_achievement_claims").update({ status: action, reviewed_at: new Date().toISOString(), reviewed_by: user.id, review_notes, member_seen_at: null }).eq("id", claim_id);
   if (error) return { ok: false, error: "The review did not save. Please try again." };
   await supabase.from("user_achievements").update({ status: action, awarded_by: user.id, notes: review_notes }).eq("user_id", claim.user_id).eq("achievement_id", claim.achievement_id);
-  revalidatePath("/admin/achievements"); revalidatePath("/field-desk"); revalidatePath("/guild-hall"); revalidatePath("/progress"); revalidatePath(`/members/${claim.user_id}`);
+  revalidatePath("/admin/achievements"); revalidatePath("/admin"); revalidatePath("/field-desk"); revalidatePath("/guild-hall"); revalidatePath("/progress"); revalidatePath(`/members/${claim.user_id}`);
+  return { ok: true };
+}
+
+const REASSIGN_ERRORS: Record<string, string> = {
+  not_found: "That claim could not be found.",
+  not_pending: "That claim was already reviewed.",
+  same_achievement: "That is the achievement they already claimed. Use Verify instead.",
+  bad_target: "That achievement can't be awarded from a field report.",
+  already_has: "They already have that achievement.",
+  duplicate_claim: "This field report already has a claim for that achievement.",
+};
+
+// Verify a pending claim under a different achievement in one step (atomic in the database).
+// Records the original claim and the note; the member sees the note on /progress and in a header notice.
+export async function adminReassignClaimAction(formData: FormData): Promise<ClaimReviewResult & { code?: string }> {
+  await requireAdmin();
+  const supabase = await createServerSupabaseClient();
+  const claim_id = value(formData, "claim_id"), target = value(formData, "target_achievement_id"), note = value(formData, "reassign_note") || null;
+  if (!claim_id || !target) return { ok: false, error: "Choose the achievement to verify it as." };
+  const { data, error } = await supabase.rpc("admin_reassign_achievement_claim", { p_claim: claim_id, p_target: target, p_note: note });
+  if (error) return { ok: false, error: "The review did not save. Please try again." };
+  const res = (data || {}) as { ok?: boolean; error?: string };
+  if (!res.ok) return { ok: false, code: res.error, error: REASSIGN_ERRORS[res.error || ""] || "The review did not save." };
+  const { data: claim } = await supabase.from("field_report_achievement_claims").select("user_id").eq("id", claim_id).maybeSingle();
+  revalidatePath("/admin/achievements"); revalidatePath("/admin"); revalidatePath("/field-desk"); revalidatePath("/guild-hall"); revalidatePath("/progress");
+  if (claim?.user_id) revalidatePath(`/members/${claim.user_id}`);
   return { ok: true };
 }
 

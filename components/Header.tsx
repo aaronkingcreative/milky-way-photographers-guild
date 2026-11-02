@@ -25,6 +25,22 @@ export async function Header() {
       if (eligible.length) iotw = { ballot, entries: eligible, vote, entryWeek: { label: `Week ${entryPeriod.contest_week}`, closes: entryPeriod.submission_cutoff }, mustVote: !vote && iotwVoteIsRequired(ballot, eligible.length) };
     }
   }
+  // Admins: pending Verification Desk claims. Members: unseen review results that carry a note or a reassignment.
+  let pendingClaims = 0;
+  let reviewNotice: { count: number; text: string } | null = null;
+  if (user && isAdmin) {
+    const { count } = await supabase.from("field_report_achievement_claims").select("id", { count: "exact", head: true }).eq("status", "auto_awarded_pending_review");
+    pendingClaims = count || 0;
+  }
+  if (user) {
+    const { data: notices } = await supabase.from("field_report_achievement_claims").select("id,status,review_notes,original_achievement_id,achievement_definitions(name)").eq("user_id", user.id).is("member_seen_at", null).neq("status", "auto_awarded_pending_review").limit(20);
+    const withNotes = (notices || []).filter((n: any) => n.review_notes || n.original_achievement_id);
+    if (withNotes.length) {
+      const first: any = withNotes[0];
+      const honor = (Array.isArray(first.achievement_definitions) ? first.achievement_definitions[0] : first.achievement_definitions)?.name || "Field Honor";
+      reviewNotice = { count: withNotes.length, text: withNotes.length === 1 ? (first.original_achievement_id ? `The Guild verified your claim as ${honor} and left you a note` : `The Guild reviewed your ${honor} claim and left you a note`) : `The Guild left notes on ${withNotes.length} of your achievement claims` };
+    }
+  }
   const streakLabel = stats?.year_streak ? `${stats.year_streak} Year Streak` : undefined;
-  return <HeaderClient user={Boolean(user)} isAdmin={isAdmin} name={publicMemberName(stats?.display_name)} needsProfile={Boolean(stats && (!stats.has_display_name || !stats.has_avatar))} missingName={Boolean(stats && !stats.has_display_name)} missingPhoto={Boolean(stats && !stats.has_avatar)} userId={user?.id || null} rankLabel={stats?.rank_short} streakLabel={streakLabel} avatarUrl={stats?.avatar_pill_url || stats?.avatar_url || null} iotw={iotw} />;
+  return <HeaderClient pendingClaims={pendingClaims} reviewNotice={reviewNotice} user={Boolean(user)} isAdmin={isAdmin} name={publicMemberName(stats?.display_name)} needsProfile={Boolean(stats && (!stats.has_display_name || !stats.has_avatar))} missingName={Boolean(stats && !stats.has_display_name)} missingPhoto={Boolean(stats && !stats.has_avatar)} userId={user?.id || null} rankLabel={stats?.rank_short} streakLabel={streakLabel} avatarUrl={stats?.avatar_pill_url || stats?.avatar_url || null} iotw={iotw} />;
 }
