@@ -298,6 +298,7 @@ a { color: inherit; text-decoration: none; }
   .fd-weekly-bars span { height:6px; border-radius:999px; background:rgba(255,255,255,.13); }
   .fd-weekly-bars span.used { background:#e79f2b; }
   .fd-weekly-count { display:flex; align-items:baseline; justify-content:space-between; gap:12px; color:rgba(255,255,255,.7); }
+  .fd-weekly-count.is-open { margin-top:16px; }
   .fd-weekly-count strong { color:#e79f2b; font-size:14px; font-weight:500; }
   .fd-weekly-status p:not(.fd-label) { margin:14px 0 0; color:rgba(255,255,255,.42); font-size:14px; line-height:1.5; }
   .fd-weekly-status a { display:flex; justify-content:center; margin-top:16px; border:1px solid rgba(231,159,43,.4); border-radius:2px; background:rgba(231,159,43,.08); color:#e79f2b; padding:11px; font-family:var(--font-guild-display); font-size:14.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; }

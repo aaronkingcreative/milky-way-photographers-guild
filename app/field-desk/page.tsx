@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { AccessNeededPanel } from "@/components/Cards";
 import { WeeklySubmissionStatus } from "@/components/images/WeeklySubmissionStatus";
-import { getWeekStart, SUBMISSION_LIMIT } from "@/lib/images";
+import { getWeekStart } from "@/lib/images";
 import { requireLogin } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { badgeTone, fetchIotwBadges } from "@/lib/iotw-badges";
@@ -77,7 +77,7 @@ export default async function Page() {
   const { hasAccess, user } = await requireLogin();
   const supabase = await createServerSupabaseClient();
   let iotwSchedule: Awaited<ReturnType<typeof getIotwSchedule>> | null = null;
-  let latest: any[] = [], reactions: any[] = [], remaining = 0, hasCandidate = false, myCount = 0, candidateCount = 0, stats: any = null, iotwWins = 0;
+  let latest: any[] = [], reactions: any[] = [], filedThisWeek = 0, hasCandidate = false, myCount = 0, candidateCount = 0, stats: any = null, iotwWins = 0;
   let lastWeek: IotwDecidedWeek | null = null, contenders: any[] = [];
 
   if (hasAccess && user) {
@@ -92,7 +92,7 @@ export default async function Page() {
     ]);
     latest = imgs || [];
     reactions = rx || [];
-    remaining = Math.max(0, SUBMISSION_LIMIT - (count || 0));
+    filedThisWeek = count || 0;
     hasCandidate = (cand || 0) > 0;
     myCount = mine || 0;
     const [winningIds, { data: myImageIds }] = await Promise.all([fetchWinningImageIds(supabase), supabase.from("guild_images").select("id").eq("user_id", user.id).is("deleted_at", null)]);
@@ -146,7 +146,7 @@ export default async function Page() {
     <section className="fd-panel fd-throne"><div className="fd-section-head"><span>✪</span><FieldDeskLabel>The Winners&apos; Throne</FieldDeskLabel><p>{throneCopy}</p><Link href="/winners" className="fd-throne-archive">All winners →</Link></div><div className="fd-throne-grid"><WinnerSlot placement={place(2)} place="2" weekLabel={lastWeek?.label} /><WinnerSlot placement={place(1)} place="1" featured weekLabel={lastWeek?.label} /><WinnerSlot placement={place(3)} place="3" weekLabel={lastWeek?.label} /></div></section>
 
     <div className="fd-main-grid"><section className="fd-panel fd-phavorite"><div className="fd-section-head"><span>✪</span><FieldDeskLabel>Photog Phavorite, Moment of Envy</FieldDeskLabel></div>{top[0] ? <Link href={`/images/${top[0].id}`} className="fd-phavorite-image"><img src={top[0].image_url} alt={top[0].title || "Guild image"} /><div /><span className="fd-video-chip">▶ Envy Video</span><div className="fd-phavorite-copy"><span>Aaron&apos;s Phavorite</span><h3>{top[0].title}</h3><p>{nameFor(top[0])}{imageLocation(top[0]) ? `, ${imageLocation(top[0])}` : ""}</p></div></Link> : <div className="fd-empty fd-empty-large">Aaron&apos;s Phavorite will appear here once images are available.</div>}<div className="fd-phavorite-foot"><p>Aaron&apos;s personal pick from outside the Top 3, awarded its own Moment of Envy video</p>{top[0] && <Link href={`/images/${top[0].id}`}>View →</Link>}</div></section>
-      <div className="fd-side-stack"><WeeklySubmissionStatus remaining={remaining} hasCandidate={hasCandidate} iotwLabel={iotwSchedule?.entry.label} /><section className="fd-panel fd-recent"><FieldDeskLabel muted>Your Recent Reports</FieldDeskLabel><div>{latest.slice(0, 3).map((i) => <Link key={i.id} href={`/images/${i.id}`}><img src={i.image_url} alt="" /><span><strong>{i.title}</strong><small>{reportMeta(i, reactions)}</small></span></Link>)}{!latest.length && <p>No recent reports yet.</p>}</div></section></div>
+      <div className="fd-side-stack"><WeeklySubmissionStatus filed={filedThisWeek} hasCandidate={hasCandidate} iotwLabel={iotwSchedule?.entry.label} /><section className="fd-panel fd-recent"><FieldDeskLabel muted>Your Recent Reports</FieldDeskLabel><div>{latest.slice(0, 3).map((i) => <Link key={i.id} href={`/images/${i.id}`}><img src={i.image_url} alt="" /><span><strong>{i.title}</strong><small>{reportMeta(i, reactions)}</small></span></Link>)}{!latest.length && <p>No recent reports yet.</p>}</div></section></div>
     </div>
 
     <section className="fd-panel fd-honors"><div className="fd-honors-head"><div><FieldDeskLabel muted>Field Honors</FieldDeskLabel><span>{stats?.earned_honor_count || 0} earned</span></div><Link href="/progress">View All Honors →</Link></div><div className="fd-honor-legend"><span><i className="earned" />Earned</span><span><i />Locked</span></div><div className="fd-honor-grid">{honors.map(([g, n, e]) => <div key={n}><div className={e ? "fd-honor-badge earned" : "fd-honor-badge"}>{g}</div><p>{n}</p></div>)}</div></section>
