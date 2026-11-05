@@ -2,6 +2,7 @@ import Image from "next/image";
 import { SubmitImageForm } from "@/components/images/SubmitImageForm";
 import { requireAccess } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { loadFieldHonorOptions } from "@/lib/field-honors";
 import { formatMountainShort, getIotwSchedule } from "@/lib/iotw";
 import { WEEKLY_SUBMISSION_LIMIT, weeklySubmissionsUnlimited } from "@/lib/images";
 
@@ -10,7 +11,7 @@ export default async function Page() {
   const supabase = await createServerSupabaseClient();
   const schedule = await getIotwSchedule(supabase);
   const period = { period_start: schedule.entry.voting_opens_at };
-  const [{ count: candidateCount }, { data: achievements }, { data: earnedAchievements }] = await Promise.all([
+  const [{ count: candidateCount }, honors] = await Promise.all([
     supabase
       .from("field_reports")
       .select("id", { count: "exact", head: true })
@@ -18,18 +19,7 @@ export default async function Page() {
       .eq("iotw_week_start", period.period_start.slice(0,10))
       .eq("is_iotw_candidate", true)
       .neq("status", "removed"),
-    supabase
-      .from("achievement_definitions")
-      .select("id,name,category,glyph,requirement,allow_repeat,is_manual_claimable")
-      .eq("is_active", true)
-      .in("category", ["monthly", "seasonal", "foreground", "technique", "special"])
-      .order("sort_order")
-      .limit(60),
-    supabase
-      .from("user_achievements")
-      .select("achievement_id,status")
-      .eq("user_id", user.id)
-      .in("status", ["auto_awarded_pending_review", "verified"]),
+    loadFieldHonorOptions(supabase, user.id),
   ]);
 
   return (
@@ -52,7 +42,7 @@ export default async function Page() {
             : `Up to ${WEEKLY_SUBMISSION_LIMIT} field reports a week. One of them can enter IOTW ${schedule.entry.label}, open for entries until ${formatMountainShort(schedule.entry.entries_close_at)}.`}
         </p>
       </div>
-      <SubmitImageForm iotwEntry={{ label: schedule.entry.label, closes: formatMountainShort(schedule.entry.entries_close_at), votingCloses: formatMountainShort(schedule.entry.voting_closes_at), votingNow: schedule.voting ? `IOTW ${schedule.voting.label}` : null }} hasCandidate={(candidateCount || 0) > 0} achievements={(achievements || []).filter((item: any) => item.is_manual_claimable || item.category === "special")} earnedAchievementIds={(earnedAchievements || []).map((item: any) => item.achievement_id)} currentHonorCount={new Set((earnedAchievements || []).map((item: any) => item.achievement_id).filter((id: string) => !String(id || "").startsWith("rank_"))).size} />
+      <SubmitImageForm iotwEntry={{ label: schedule.entry.label, closes: formatMountainShort(schedule.entry.entries_close_at), votingCloses: formatMountainShort(schedule.entry.voting_closes_at), votingNow: schedule.voting ? `IOTW ${schedule.voting.label}` : null }} hasCandidate={(candidateCount || 0) > 0} achievements={honors.achievements} earnedAchievementIds={honors.earnedAchievementIds} currentHonorCount={honors.currentHonorCount} />
     </section>
   );
 }
