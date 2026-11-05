@@ -3,6 +3,7 @@ import { SubmitImageForm } from "@/components/images/SubmitImageForm";
 import { requireAccess } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { formatMountainShort, getIotwSchedule } from "@/lib/iotw";
+import { WEEKLY_SUBMISSION_LIMIT, weeklySubmissionsUnlimited } from "@/lib/images";
 
 export default async function Page() {
   const { user } = await requireAccess();
@@ -46,10 +47,12 @@ export default async function Page() {
       <div className="mw-submit-notice mb-7">
         <span aria-hidden="true" className="mw-submit-notice-icon">✪</span>
         <p>
-          Up to 3 field reports a week. One of them can enter IOTW {schedule.entry.label}, open for entries until {formatMountainShort(schedule.entry.entries_close_at)}.
+          {weeklySubmissionsUnlimited()
+            ? `Unlimited field reports this week. One can enter IOTW ${schedule.entry.label}, open for entries until ${formatMountainShort(schedule.entry.entries_close_at)}.`
+            : `Up to ${WEEKLY_SUBMISSION_LIMIT} field reports a week. One of them can enter IOTW ${schedule.entry.label}, open for entries until ${formatMountainShort(schedule.entry.entries_close_at)}.`}
         </p>
       </div>
-      <SubmitImageForm iotwEntry={{ label: schedule.entry.label, closes: formatMountainShort(schedule.entry.entries_close_at), votingCloses: formatMountainShort(schedule.entry.voting_closes_at), votingNow: schedule.voting ? `IOTW ${schedule.voting.label}` : null }} remaining={999} hasCandidate={(candidateCount || 0) > 0} achievements={(achievements || []).filter((item: any) => item.is_manual_claimable || item.category === "special")} earnedAchievementIds={(earnedAchievements || []).map((item: any) => item.achievement_id)} currentHonorCount={new Set((earnedAchievements || []).map((item: any) => item.achievement_id).filter((id: string) => !String(id || "").startsWith("rank_"))).size} />
+      <SubmitImageForm iotwEntry={{ label: schedule.entry.label, closes: formatMountainShort(schedule.entry.entries_close_at), votingCloses: formatMountainShort(schedule.entry.voting_closes_at), votingNow: schedule.voting ? `IOTW ${schedule.voting.label}` : null }} hasCandidate={(candidateCount || 0) > 0} achievements={(achievements || []).filter((item: any) => item.is_manual_claimable || item.category === "special")} earnedAchievementIds={(earnedAchievements || []).map((item: any) => item.achievement_id)} currentHonorCount={new Set((earnedAchievements || []).map((item: any) => item.achievement_id).filter((id: string) => !String(id || "").startsWith("rank_"))).size} />
     </section>
   );
 }

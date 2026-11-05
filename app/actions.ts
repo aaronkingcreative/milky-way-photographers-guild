@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAccess, requireAdmin, requireLogin } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { REACTION_TYPES, SUBMISSION_LIMIT, getWeekStart } from "@/lib/images";
+import { REACTION_TYPES, WEEKLY_SUBMISSION_LIMIT, getWeekStart, weeklySubmissionCapReached, weeklySubmissionsUnlimited } from "@/lib/images";
 import { getIotwEntryPeriod, getIotwTargetPeriod } from "@/lib/iotw";
 import { sanitizeCrop } from "@/lib/portrait";
 import { coverageFromCaptureDate } from "@/lib/coverage";
@@ -40,8 +40,11 @@ export async function submitImage(formData: FormData) {
     if (!def.allow_repeat) { const { data: existing } = await supabase.from("user_achievements").select("achievement_id,status").eq("user_id", user.id).eq("achievement_id", selectedAchievementId).in("status", ["auto_awarded_pending_review", "verified"]).maybeSingle(); if (existing) return { error: "You already earned that Field Honor. Choose a different one." }; }
   }
   const weekStart = getWeekStart();
-  const { count: weekCount } = await supabase.from("guild_images").select("id",{count:"exact",head:true}).eq("user_id",user.id).eq("week_starts_on",weekStart).is("deleted_at",null);
-  if ((weekCount || 0) >= SUBMISSION_LIMIT) return { error: `You have filed ${SUBMISSION_LIMIT} field reports this week. Your slots reset Sunday at 12:00 PM Mountain Time.` };
+  // Count cap lives in WEEKLY_SUBMISSION_LIMIT (lib/images.ts). Skipped while Aaron has it set to unlimited.
+  if (!weeklySubmissionsUnlimited()) {
+    const { count: weekCount } = await supabase.from("guild_images").select("id",{count:"exact",head:true}).eq("user_id",user.id).eq("week_starts_on",weekStart).is("deleted_at",null);
+    if (weeklySubmissionCapReached(weekCount || 0)) return { error: `You have filed ${WEEKLY_SUBMISSION_LIMIT} field reports this week. Your slots reset Sunday at 12:00 PM Mountain Time.` };
+  }
   const is_weekly_candidate = formData.get("is_weekly_candidate") === "on";
   if (is_weekly_candidate) { const { count: candidateCount } = await supabase.from("field_reports").select("id",{count:"exact",head:true}).eq("user_id",user.id).eq("iotw_week_start",targetBallot.period_start.slice(0,10)).eq("is_iotw_candidate",true).neq("status","removed"); if ((candidateCount || 0)>0) return { error: `You already have an IOTW Week ${targetBallot.contest_week} contender. You can still submit this as a regular field report.` }; }
   const publicUrl = storagePublicUrl(FIELD_REPORT_IMAGE_BUCKET, image_original_path) || "";
