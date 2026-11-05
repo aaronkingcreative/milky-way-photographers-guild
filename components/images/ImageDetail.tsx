@@ -103,7 +103,7 @@ export function ImageDetail({ dateReview, image, authorStats, reactions, comment
             {(!image.is_weekly_candidate || !iotwBallot || iotwBallot.status === "upcoming") && <form action={toggleWeeklyCandidate} className="inline-block"><input type="hidden" name="image_id" value={image.id} /><input type="hidden" name="week_starts_on" value={image.week_starts_on} /><input type="hidden" name="next" value={(!image.is_weekly_candidate).toString()} /><button className="mw-btn-ghost">{image.is_weekly_candidate ? `Withdraw from IOTW ${iotwBallot ? iotwWeekLabel(iotwBallot) : ""}`.trim() : `Enter this image for ${iotwSchedule?.entry.label || "this week\u2019s"} Image of the Week consideration`}</button></form>}
           </div>}
         </header>
-        <section className="mw-report-story"><h2 className="mw-field-report-label">The Field Report</h2><p className="mt-3 whitespace-pre-wrap mw-body">{image.short_story || "No story added yet."}</p></section>
+        <section className="mw-report-story"><h2 className="mw-field-report-label">The Field Report</h2><p className="mt-3 whitespace-pre-wrap mw-body">{image.short_story || "No story added yet."}</p>{canEditCandidate && !image.short_story && <p className="mt-3"><Link href={`/images/${image.id}/edit`} className="mw-owner-edit"><span aria-hidden="true">✎</span> Add your story</Link></p>}</section>
         <div className="mw-insight-row">
           <section id="went-well" className="mw-insight-block is-good" aria-labelledby="went-well-heading">
             <div className="mw-insight-answer">
