@@ -5,13 +5,15 @@ import { requireLogin } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { fullPhotographerRank } from "@/lib/display";
 import { StreakPill } from "@/components/StreakPill";
-import { AscentFace, type CloudHonor } from "@/components/hall/AscentFace";
+import { AscentBoard } from "@/components/hall/AscentBoard";
+import { type CloudHonor } from "@/components/hall/AscentFace";
+import { compareAscentClimbers } from "@/lib/ascent-order";
 import { fetchStreaks, type MilkyWayStreak } from "@/lib/streak";
 import { EARNED_ACHIEVEMENT_STATUSES } from "@/lib/member-stats";
 import { getAvatarDisplay, MEMBER_NAME_FALLBACK, publicMemberName } from "@/lib/avatar";
 import { ReactionBar } from "@/components/images/ReactionBar";
 import { fetchMembers, type MemberLite } from "@/lib/members";
-import { RANKS, fetchHonorCounts, rankLabelForCount } from "@/lib/ranks";
+import { fetchHonorCounts, rankLabelForCount } from "@/lib/ranks";
 import { MessageFromAaron } from "@/components/hall/MessageFromAaron";
 import { formatMountainShort, getIotwSchedule, type IotwScheduleWeek } from "@/lib/iotw";
 import { badgeTone, fetchAllEnteredImageIds, fetchBallotImageIds, fetchIotwBadges, type IotwBadge } from "@/lib/iotw-badges";
@@ -179,7 +181,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
     });
     climberIds
       .map((id) => ({ ...(climbers.get(id) || { id, name: MEMBER_NAME_FALLBACK, avatarUrl: null, initials: "GM" }), count: allCounts.get(id) || 0 }))
-      .sort((x, y) => Number(Boolean(y.avatarUrl)) - Number(Boolean(x.avatarUrl)) || y.count - x.count)
+      .toSorted(compareAscentClimbers)
       .forEach((member) => {
         const label = rankLabelForCount(member.count);
         if (!ascent.has(label)) ascent.set(label, []);
@@ -197,27 +199,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
             <p className="mw-guild-page-subtitle">Field reports from across the Guild. React with intent, leave feedback that teaches.</p>
           </div>
 
-          <section className="mw-ascent-board mb-10">
-            <div className="mw-ascent-heading"><p className="mw-ascent-label">The Ascent</p><p className="mw-ascent-helper">Every guildie&apos;s climb toward Master. Tap a face to visit their profile.</p></div>
-            <ol className="mw-ascent-track">
-              {RANKS.map((rank) => {
-                const climbers = ascent.get(rank.label) || [];
-                const shown = climbers.slice(0, 6);
-                return (
-                  <li key={rank.label} className={`mw-ascent-step ${climbers.length ? "" : "is-empty"}`}>
-                    <div className="mw-ascent-node"><span className="mw-ascent-dot" /><span className="mw-ascent-rank">{rank.label}</span><span className="mw-ascent-range">{rank.range}</span></div>
-                    <div className="mw-ascent-faces">
-                      {shown.map((member) => (
-                        <AscentFace key={member.id} member={member} rankLabel={rank.label} honors={cloudHonors.get(member.id) || []} />
-                      ))}
-                      {climbers.length > shown.length && <span className="mw-ascent-more">+{climbers.length - shown.length}</span>}
-                      {!climbers.length && <span className="mw-ascent-open">Open</span>}
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
-          </section>
+          <AscentBoard ascent={ascent} cloudHonors={cloudHonors} />
 
           <div className="mw-hall-layout">
             <div className="mw-hall-feed">
