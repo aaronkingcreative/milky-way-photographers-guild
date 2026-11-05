@@ -8,6 +8,7 @@ import { getIotwEntryPeriod, getIotwTargetPeriod } from "@/lib/iotw";
 import { sanitizeCrop } from "@/lib/portrait";
 import { coverageFromCaptureDate } from "@/lib/coverage";
 import { displayNameFromProfile, getAvatarDisplay } from "@/lib/avatar";
+import { EARNED_ACHIEVEMENT_STATUSES } from "@/lib/member-stats";
 import { ALLOWED_IMAGE_TYPES, FIELD_REPORT_IMAGE_BUCKET, MAX_UPLOAD_BYTES, PROFILE_AVATAR_BUCKET, storagePublicUrl } from "@/lib/storage";
 
 function value(formData: FormData, key: string) { return String(formData.get(key) || "").trim(); }
@@ -24,6 +25,30 @@ async function awardPerfectYearIfComplete(supabase: any, userId: string, fieldRe
   return { achievement_id, name: "Perfect Year", year };
 }
 
+async function claimEligibilityError(supabase: any, userId: string, achievementId: string) {
+  const { data: def } = await supabase.from("achievement_definitions").select("id,is_manual_claimable,is_active,allow_repeat").eq("id", achievementId).maybeSingle();
+  if (!def?.is_active || !def?.is_manual_claimable) return "Choose an available Field Honor.";
+  if (!def.allow_repeat) {
+    const { data: existing } = await supabase.from("user_achievements").select("achievement_id,status").eq("user_id", userId).eq("achievement_id", achievementId).in("status", EARNED_ACHIEVEMENT_STATUSES).maybeSingle();
+    if (existing) return "You already earned that Field Honor. Choose a different one.";
+  }
+  return null;
+}
+
+async function recordFieldHonorClaim(supabase: any, userId: string, fieldReportId: string, achievementId: string, submissionId: string | null) {
+  const { error } = await supabase.from("field_report_achievement_claims").insert({ field_report_id: fieldReportId, user_id: userId, achievement_id: achievementId, status: "auto_awarded_pending_review" });
+  if (error) {
+    console.error("Field Honor claim failed", error);
+    return error.code === "23505" ? "This field report already has a Field Honor." : "That Field Honor could not be claimed. Please try again.";
+  }
+  const { error: earnedError } = await supabase.from("user_achievements").upsert({ user_id: userId, achievement_id: achievementId, earned_at: new Date().toISOString(), source_submission_id: submissionId, source_field_report_id: fieldReportId, status: "auto_awarded_pending_review", metadata: { source: "field_report_claim" } }, { onConflict: "user_id,achievement_id" });
+  if (earnedError) {
+    console.error("Field Honor award failed", earnedError);
+    return "That Field Honor could not be claimed. Please try again.";
+  }
+  return null;
+}
+
 export async function submitImage(formData: FormData) {
   const { user } = await requireAccess(); const supabase = await createServerSupabaseClient(); const targetBallot = await getIotwEntryPeriod(supabase);
   const title=value(formData,"title"), capture_date=value(formData,"capture_date"), country=value(formData,"country"), state_or_province=value(formData,"state_or_province"), gear_settings=value(formData,"gear_settings");
@@ -35,9 +60,8 @@ export async function submitImage(formData: FormData) {
   const coverage = coverageFromCaptureDate(capture_date); if (!coverage) return { error: "Use a valid capture date." };
   const selectedAchievementId = value(formData, "achievement_id");
   if (selectedAchievementId) {
-    const { data: def } = await supabase.from("achievement_definitions").select("id,is_manual_claimable,is_active,allow_repeat").eq("id", selectedAchievementId).maybeSingle();
-    if (!def?.is_active || !def?.is_manual_claimable) return { error: "Choose an available Field Honor." };
-    if (!def.allow_repeat) { const { data: existing } = await supabase.from("user_achievements").select("achievement_id,status").eq("user_id", user.id).eq("achievement_id", selectedAchievementId).in("status", ["auto_awarded_pending_review", "verified"]).maybeSingle(); if (existing) return { error: "You already earned that Field Honor. Choose a different one." }; }
+    const eligibility = await claimEligibilityError(supabase, user.id, selectedAchievementId);
+    if (eligibility) return { error: eligibility };
   }
   const weekStart = getWeekStart();
   // Count cap lives in WEEKLY_SUBMISSION_LIMIT (lib/images.ts). Skipped while Aaron has it set to unlimited.
@@ -54,7 +78,7 @@ export async function submitImage(formData: FormData) {
   await supabase.from("field_reports").update({ guild_image_id: data.id }).eq("id", report.id).eq("user_id", user.id);
   if (is_weekly_candidate) { const ballotId = await ensureIotwBallot(supabase, targetBallot); if (ballotId) { const { error: entryError } = await supabase.from("iotw_ballot_entries").insert({ ballot_id: ballotId, field_report_id: report.id, user_id: user.id }); if (entryError) console.error("IOTW entry failed", entryError); } }
   await supabase.from("user_field_coverage").upsert({ field_report_id: report.id, user_id: user.id, capture_date, capture_year: coverage.year, capture_month: coverage.month, capture_season: coverage.season }, { onConflict: "field_report_id" });
-  if (selectedAchievementId) { await supabase.from("field_report_achievement_claims").insert({ field_report_id: report.id, user_id: user.id, achievement_id: selectedAchievementId, status: "auto_awarded_pending_review" }); await supabase.from("user_achievements").upsert({ user_id: user.id, achievement_id: selectedAchievementId, earned_at: new Date().toISOString(), source_submission_id: data.id, source_field_report_id: report.id, status: "auto_awarded_pending_review", metadata: { source: "field_report_claim" } }, { onConflict: "user_id,achievement_id" }); }
+  if (selectedAchievementId) await recordFieldHonorClaim(supabase, user.id, report.id, selectedAchievementId, data.id);
   await awardPerfectYearIfComplete(supabase, user.id, report.id, coverage.year);
   revalidatePath("/feed"); revalidatePath("/field-desk"); revalidatePath("/guild-hall"); revalidatePath("/progress"); revalidatePath("/profile"); redirect(`/images/${data.id}?achievement=1`);
 }
@@ -299,13 +323,28 @@ export async function updateOwnFieldReport(_prev: EditReportState, formData: For
   const image_id = value(formData, "image_id");
   const title = value(formData, "title"), capture_date = value(formData, "capture_date"), country = value(formData, "country"), state_or_province = value(formData, "state_or_province"), gear_settings = value(formData, "gear_settings");
   const specific = value(formData, "specific_location_name") || null, story = value(formData, "short_story") || null, wentWell = value(formData, "what_went_well") || null, better = value(formData, "what_could_have_gone_better") || null;
+  const selectedAchievementId = value(formData, "achievement_id");
   if (!image_id) return { error: "That field report could not be found." };
   if (!title || !capture_date || !country || !state_or_province || !gear_settings) return { error: "Title, capture date, country, state or region, and gear are required." };
   if (title.length > 200 || (story?.length || 0) > 4000 || (wentWell?.length || 0) > 2000 || (better?.length || 0) > 2000 || gear_settings.length > 500) return { error: "One of the fields is too long. Trim it a little and save again." };
   const coverage = coverageFromCaptureDate(capture_date);
   if (!coverage) return { error: "Use a valid capture date." };
-  const { data: image } = await supabase.from("guild_images").select("id,user_id,capture_date").eq("id", image_id).eq("user_id", user.id).maybeSingle();
-  if (!image) return { error: "You can only edit your own field reports." };
+  const { data: image } = await supabase.from("guild_images").select("id,user_id,capture_date,deleted_at").eq("id", image_id).eq("user_id", user.id).maybeSingle();
+  if (!image || image.deleted_at) return { error: "You can only edit your own field reports." };
+  let claimReportId: string | null = null;
+  let alreadyClaimed = false;
+  if (selectedAchievementId) {
+    const { data: linked, error: linkedError } = await supabase.from("field_reports").select("id").eq("guild_image_id", image_id).eq("user_id", user.id).maybeSingle();
+    if (linkedError || !linked?.id) return { error: "This field report cannot take a Field Honor yet." };
+    const { data: prior, error: priorError } = await supabase.from("field_report_achievement_claims").select("id").eq("field_report_id", linked.id).maybeSingle();
+    if (priorError) return { error: "That Field Honor could not be claimed. Please try again." };
+    if (prior) alreadyClaimed = true;
+    else {
+      const eligibility = await claimEligibilityError(supabase, user.id, selectedAchievementId);
+      if (eligibility) return { error: eligibility };
+      claimReportId = linked.id;
+    }
+  }
   const { error } = await supabase.from("guild_images").update({ title, capture_date, country, state_or_province, specific_location_name: specific, gear_settings, short_story: story, what_went_well: wentWell, what_could_have_gone_better: better }).eq("id", image_id).eq("user_id", user.id);
   if (error) return { error: "Your changes did not save. Please try again in a moment." };
   const { data: report, error: reportError } = await supabase.from("field_reports").update({ title, capture_date, country, region: state_or_province, specific_location: specific, gear: gear_settings, story, went_well: wentWell, could_have_gone_better: better }).eq("guild_image_id", image_id).eq("user_id", user.id).select("id").maybeSingle();
@@ -327,6 +366,28 @@ export async function updateOwnFieldReport(_prev: EditReportState, formData: For
     else await supabase.from("user_field_coverage").insert({ field_report_id: report.id, user_id: user.id, ...cleanPatch });
     if (image.capture_date !== capture_date) await awardPerfectYearIfComplete(supabase, user.id, report.id, coverage.year);
   }
-  revalidatePath(`/images/${image_id}`); revalidatePath(`/images/${image_id}/edit`); revalidatePath("/feed"); revalidatePath("/guild-hall"); revalidatePath("/field-desk"); revalidatePath("/progress"); revalidatePath(`/members/${user.id}`);
-  redirect(`/images/${image_id}?edited=1`);
+  if (alreadyClaimed) {
+    revalidateEditedReport(image_id, user.id, false);
+    return { error: "Your other changes are saved. This field report already has a Field Honor." };
+  }
+  if (claimReportId) {
+    const claimError = await recordFieldHonorClaim(supabase, user.id, claimReportId, selectedAchievementId, image_id);
+    if (claimError) {
+      revalidateEditedReport(image_id, user.id, false);
+      return { error: `Your other changes are saved. ${claimError}` };
+    }
+  }
+  revalidateEditedReport(image_id, user.id, Boolean(claimReportId));
+  redirect(claimReportId ? `/images/${image_id}?edited=1&achievement=1` : `/images/${image_id}?edited=1`);
+}
+
+function revalidateEditedReport(imageId: string, userId: string, claimed: boolean) {
+  revalidatePath(`/images/${imageId}`);
+  revalidatePath(`/images/${imageId}/edit`);
+  revalidatePath("/feed");
+  revalidatePath("/guild-hall");
+  revalidatePath("/field-desk");
+  revalidatePath("/progress");
+  revalidatePath(`/members/${userId}`);
+  if (claimed) revalidatePath("/profile");
 }
