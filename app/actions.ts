@@ -297,17 +297,36 @@ export async function updateOwnFieldReport(_prev: EditReportState, formData: For
   const { user } = await requireAccess();
   const supabase = await createServerSupabaseClient();
   const image_id = value(formData, "image_id");
-  const title = value(formData, "title"), country = value(formData, "country"), state_or_province = value(formData, "state_or_province"), gear_settings = value(formData, "gear_settings");
+  const title = value(formData, "title"), capture_date = value(formData, "capture_date"), country = value(formData, "country"), state_or_province = value(formData, "state_or_province"), gear_settings = value(formData, "gear_settings");
   const specific = value(formData, "specific_location_name") || null, story = value(formData, "short_story") || null, wentWell = value(formData, "what_went_well") || null, better = value(formData, "what_could_have_gone_better") || null;
   if (!image_id) return { error: "That field report could not be found." };
-  if (!title || !country || !state_or_province || !gear_settings) return { error: "Title, country, state or region, and gear are required." };
+  if (!title || !capture_date || !country || !state_or_province || !gear_settings) return { error: "Title, capture date, country, state or region, and gear are required." };
   if (title.length > 200 || (story?.length || 0) > 4000 || (wentWell?.length || 0) > 2000 || (better?.length || 0) > 2000 || gear_settings.length > 500) return { error: "One of the fields is too long. Trim it a little and save again." };
-  const { data: image } = await supabase.from("guild_images").select("id,user_id").eq("id", image_id).eq("user_id", user.id).maybeSingle();
+  const coverage = coverageFromCaptureDate(capture_date);
+  if (!coverage) return { error: "Use a valid capture date." };
+  const { data: image } = await supabase.from("guild_images").select("id,user_id,capture_date").eq("id", image_id).eq("user_id", user.id).maybeSingle();
   if (!image) return { error: "You can only edit your own field reports." };
-  const { error } = await supabase.from("guild_images").update({ title, country, state_or_province, specific_location_name: specific, gear_settings, short_story: story, what_went_well: wentWell, what_could_have_gone_better: better }).eq("id", image_id).eq("user_id", user.id);
+  const { error } = await supabase.from("guild_images").update({ title, capture_date, country, state_or_province, specific_location_name: specific, gear_settings, short_story: story, what_went_well: wentWell, what_could_have_gone_better: better }).eq("id", image_id).eq("user_id", user.id);
   if (error) return { error: "Your changes did not save. Please try again in a moment." };
-  const { error: reportError } = await supabase.from("field_reports").update({ title, country, region: state_or_province, specific_location: specific, gear: gear_settings, story, went_well: wentWell, could_have_gone_better: better }).eq("guild_image_id", image_id).eq("user_id", user.id);
+  const { data: report, error: reportError } = await supabase.from("field_reports").update({ title, capture_date, country, region: state_or_province, specific_location: specific, gear: gear_settings, story, went_well: wentWell, could_have_gone_better: better }).eq("guild_image_id", image_id).eq("user_id", user.id).select("id").maybeSingle();
   if (reportError) console.error("Field report sync failed", reportError);
-  revalidatePath(`/images/${image_id}`); revalidatePath("/feed"); revalidatePath("/guild-hall"); revalidatePath("/field-desk"); revalidatePath(`/members/${user.id}`);
+  if (report?.id) {
+    const { data: cov } = await supabase.from("user_field_coverage").select("id,declared_capture_date,date_status").eq("field_report_id", report.id).maybeSingle();
+    const coveragePatch = {
+      capture_date,
+      capture_year: coverage.year,
+      capture_month: coverage.month,
+      capture_season: coverage.season,
+      date_status: image.capture_date === capture_date ? (cov?.date_status || "declared") : "declared",
+      date_reviewed_by: image.capture_date === capture_date ? undefined : null,
+      date_reviewed_at: image.capture_date === capture_date ? undefined : null,
+    };
+    // Drop undefined keys so we do not wipe review fields when the date did not change.
+    const cleanPatch = Object.fromEntries(Object.entries(coveragePatch).filter(([, v]) => v !== undefined));
+    if (cov) await supabase.from("user_field_coverage").update(cleanPatch).eq("id", cov.id);
+    else await supabase.from("user_field_coverage").insert({ field_report_id: report.id, user_id: user.id, ...cleanPatch });
+    if (image.capture_date !== capture_date) await awardPerfectYearIfComplete(supabase, user.id, report.id, coverage.year);
+  }
+  revalidatePath(`/images/${image_id}`); revalidatePath(`/images/${image_id}/edit`); revalidatePath("/feed"); revalidatePath("/guild-hall"); revalidatePath("/field-desk"); revalidatePath("/progress"); revalidatePath(`/members/${user.id}`);
   redirect(`/images/${image_id}?edited=1`);
 }
