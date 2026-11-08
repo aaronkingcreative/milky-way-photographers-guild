@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { KeepTail } from "@/components/KeepTail";
 import { isBeforeGuildLaunch } from "@/lib/launch";
 import {
   afterFeaturesLead,
@@ -27,29 +28,27 @@ export default async function Home() {
   if (user) redirect("/guild-hall");
 
   return (
-    <div className="overflow-hidden">
+    <div className="mw-public overflow-hidden">
       <section className="starfield relative px-5 py-20 sm:py-24 lg:py-32">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_68%_18%,rgba(231,159,43,.20),transparent_22rem),radial-gradient(circle_at_24%_30%,rgba(47,68,93,.44),transparent_24rem)]" />
         <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[.86fr_1.14fr] xl:grid-cols-[.8fr_1.2fr]">
-          <div className="lg:-ml-2">
-            <p className="text-sm font-bold uppercase tracking-[.35em] text-[#f4bd61]">
+          <div className="lg:col-span-2">
+            <p className="mw-brand-eyebrow mw-balance text-sm font-bold uppercase tracking-[.35em] text-[#f4bd61]">
               Milky Way Photographers Guild
             </p>
             <h1 className="mt-6 max-w-4xl text-5xl font-black leading-[.95] tracking-tight text-white md:text-7xl">
-              {homeHeadline}
+              <KeepTail text={homeHeadline} />
             </h1>
-            <p className="mt-6 max-w-3xl text-2xl leading-9 text-[#f4bd61]">
-              The private image-first, ad-free community for Milky Way photographers. Free to join right now.
+          </div>
+          <div className="lg:-ml-2">
+            <p className="mt-6 max-w-3xl text-2xl leading-9 text-[#f4bd61] lg:mt-0">
+              <KeepTail text="The private image-first, ad-free community for Milky Way photographers. Free to join right now." />
             </p>
             <p className="mt-7 max-w-3xl text-lg leading-8 text-[#b8c4d4]">
-              I rebuilt the Milky Way Photographers Guild into a better home for sharing your
-              night-sky images, voting on each other&apos;s images to find the Image of the Week,
-              celebrating weekly winners with a Monday Moment of Envy, while still keeping the
-              original benefits of getting useful feedback and improving your Milky Way photography
-              without ads or social media noise.
+              <KeepTail text="I rebuilt the Milky Way Photographers Guild into a better home for sharing your night-sky images, voting on each other's images to find the Image of the Week, celebrating weekly winners with a Monday Moment of Envy, while still keeping the original benefits of getting useful feedback and improving your Milky Way photography without ads or social media noise." />
             </p>
             <p className="mt-5 text-lg font-semibold text-white">
-              Aaron King of Photog Adventures.
+              <KeepTail text="Aaron King of Photog Adventures." />
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link className="btn btn-primary" href="/signup">
@@ -72,7 +71,7 @@ export default async function Home() {
               className="h-auto w-full rounded-md border border-white/15 object-cover shadow-[0_28px_70px_rgba(0,0,0,0.42)]"
             />
             <figcaption className="mt-3 text-base leading-6 text-[#f4f7fb]">
-              Island in the Sky, Canyonlands. Photo by Aaron King
+              <KeepTail text="Island in the Sky, Canyonlands. Photo by Aaron King" />
             </figcaption>
           </figure>
         </div>
@@ -80,11 +79,11 @@ export default async function Home() {
 
       <section className="mx-auto max-w-7xl px-5 py-16 sm:py-20">
         <div className="max-w-3xl">
-          <p className="text-sm font-bold uppercase tracking-[.32em] text-[#f4bd61]">
+          <p className="mw-balance text-sm font-bold uppercase tracking-[.32em] text-[#f4bd61]">
             Inside the Guild
           </p>
           <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">
-            {homeSectionTitle}
+            <KeepTail text={homeSectionTitle} />
           </h2>
         </div>
         <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -93,22 +92,22 @@ export default async function Home() {
               <p className="text-sm font-black text-[#f4bd61]">
                 {String(index + 1).padStart(2, "0")}
               </p>
-              <h3 className="mt-5 text-xl font-bold leading-7 text-white">{item.title}</h3>
-              <p className="mt-3 text-base leading-7 text-[#e7eef6]">{item.body}</p>
+              <h3 className="mt-5 text-xl font-bold leading-7 text-white"><KeepTail text={item.title} /></h3>
+              <p className="mt-3 text-base leading-7 text-[#e7eef6]"><KeepTail text={item.body} /></p>
             </div>
           ))}
         </div>
         <aside className="card mt-8 rounded-3xl p-6 sm:p-8" aria-labelledby="feedback-example-title">
-          <p id="feedback-example-title" className="text-sm font-bold uppercase tracking-[.18em] text-[#f4bd61]">
-            {feedbackExampleTitle}
+          <p id="feedback-example-title" className="mw-balance text-sm font-bold uppercase tracking-[.18em] text-[#f4bd61]">
+            <KeepTail text={feedbackExampleTitle} />
           </p>
-          <p className="mt-3 text-base leading-7 text-[#f4f7fb]">{feedbackExampleDisclaimer}</p>
+          <p className="mt-3 text-base leading-7 text-[#f4f7fb]"><KeepTail text={feedbackExampleDisclaimer} /></p>
           <blockquote className="mt-4 border-l-4 border-[#e79f2b] pl-4 text-lg leading-8 text-white">
-            {feedbackExampleBody}
+            <KeepTail text={feedbackExampleBody} />
           </blockquote>
         </aside>
         <div className="mt-10">
-          <p className="max-w-2xl text-lg leading-8 text-[#e7eef6]">{afterFeaturesLead}</p>
+          <p className="max-w-2xl text-lg leading-8 text-[#e7eef6]"><KeepTail text={afterFeaturesLead} /></p>
           <Link className="btn btn-primary mt-5" href="/signup">
             Join the Guild free
           </Link>
@@ -117,17 +116,17 @@ export default async function Home() {
 
       <section className="px-5 pb-20">
         <div className="starfield card mx-auto max-w-5xl rounded-[2rem] p-8 text-center sm:p-12">
-          <p className="text-sm font-bold uppercase tracking-[.32em] text-[#f4bd61]">
+          <p className="mw-balance text-sm font-bold uppercase tracking-[.32em] text-[#f4bd61]">
             More from Aaron
           </p>
-          <p className="mx-auto mt-5 max-w-3xl text-xl leading-9 text-[#e7eef6]">{closingLead}</p>
+          <p className="mx-auto mt-5 max-w-3xl text-xl leading-9 text-[#e7eef6]"><KeepTail text={closingLead} /></p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
             <Link className="btn btn-primary" href="/signup">
               Join the Guild free
             </Link>
           </div>
           <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-[#dbe5f1]">
-            You can also find all my photography content and resources through the Photog Adventures YouTube and Podcast.
+            <KeepTail text="You can also find all my photography content and resources through the Photog Adventures YouTube and Podcast." />
           </p>
           <div className="mt-5 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
             <a className="btn btn-ghost" href="https://www.youtube.com/c/PhotogAdventures">
@@ -141,7 +140,9 @@ export default async function Home() {
             </a>
           </div>
           <p className="mt-8 text-base text-[#d5deea]">
-            Questions? Contact Aaron at{" "}
+            <KeepTail text="Questions? Contact Aaron at" />
+          </p>
+          <p className="mt-2 text-base">
             <a className="text-[#f4bd61] underline-offset-4 hover:underline" href="mailto:aaron@photogadventures.com">
               aaron@photogadventures.com
             </a>

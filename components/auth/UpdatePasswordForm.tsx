@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { KeepTail } from "@/components/KeepTail";
 import { createClient } from "@/lib/supabase/client";
 
 export function UpdatePasswordForm() {
@@ -63,9 +64,9 @@ export function UpdatePasswordForm() {
   }
 
   return (
-    <form onSubmit={submit} className="card mx-auto max-w-md rounded-3xl p-8">
-      <h1 className="text-3xl font-bold">Update your password</h1>
-      <p className="mt-3 text-sm text-[#b8c4d4]">Enter a new password for your Milky Way Photographers Guild account.</p>
+    <form onSubmit={submit} className="card mx-auto max-w-md rounded-3xl px-4 py-8 sm:px-8">
+      <h1 className="text-3xl font-bold"><KeepTail text="Update your password" /></h1>
+      <p className="mt-3 text-sm leading-6 text-[#d5deea]"><KeepTail text="Enter a new password for your Milky Way Photographers Guild account." /></p>
       <label className="mt-6 block text-sm">
         New password
         <input type="password" required minLength={6} className="input mt-2" value={password} onChange={(event) => setPassword(event.target.value)} />
