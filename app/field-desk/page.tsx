@@ -13,7 +13,8 @@ import { publicMemberName } from "@/lib/avatar";
 import { formatMountainShort, getIotwSchedule } from "@/lib/iotw";
 import { fetchDecidedIotwWeeks, type IotwDecidedWeek, type IotwPlacement } from "@/lib/iotw-winners";
 import { IotwSchedule } from "@/components/iotw/IotwSchedule";
-import { countReactionsOnReports, fieldDeskGreeting, honorsToGo } from "@/lib/member-labels";
+import { fieldDeskGreeting, honorsToGo } from "@/lib/member-labels";
+import { countReceivedReactions } from "@/lib/received-reactions";
 
 const ranks = ["Beginner", "Amateur", "Novice", "Veteran", "Master"];
 const honors = [
@@ -84,22 +85,26 @@ export default async function Page() {
 
   if (hasAccess && user) {
     const week = getWeekStart();
-    const [{ data: imgs }, { data: rx }, { count }, { count: cand }, { count: mine }, memberStats] = await Promise.all([
+    const [{ data: imgs }, { count }, { count: cand }, { count: mine }, memberStats, received] = await Promise.all([
       supabase.from("guild_images").select("*, profiles:member_profiles(display_name,full_name,avatar_url,avatar_path)").is("hidden_at", null).is("deleted_at", null).order("created_at", { ascending: false }).limit(9),
-      supabase.from("image_reactions").select("image_id,reaction_type"),
       supabase.from("guild_images").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("week_starts_on", week).is("deleted_at", null),
       supabase.from("guild_images").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("week_starts_on", week).eq("is_weekly_candidate", true).is("deleted_at", null),
       supabase.from("guild_images").select("id", { count: "exact", head: true }).eq("user_id", user.id).is("deleted_at", null),
       getMemberStats(supabase, user),
+      countReceivedReactions(supabase, user.id),
     ]);
     latest = imgs || [];
+    const latestIds = latest.map((image: { id: string }) => image.id);
+    const { data: rx } = latestIds.length
+      ? await supabase.from("image_reactions").select("image_id,reaction_type").in("image_id", latestIds)
+      : { data: [] as { image_id: string; reaction_type: string }[] };
     reactions = rx || [];
+    receivedReactions = received;
     filedThisWeek = count || 0;
     hasCandidate = (cand || 0) > 0;
     myCount = mine || 0;
     const [winningIds, { data: myImageIds }] = await Promise.all([fetchWinningImageIds(supabase), supabase.from("guild_images").select("id").eq("user_id", user.id).is("deleted_at", null)]);
     iotwWins = (myImageIds || []).filter((row: any) => winningIds.has(row.id)).length;
-    receivedReactions = countReactionsOnReports((myImageIds || []).map((row: any) => row.id), reactions);
     stats = memberStats;
     const [schedule, decided] = await Promise.all([getIotwSchedule(supabase), fetchDecidedIotwWeeks(supabase, 1)]);
     iotwSchedule = schedule;

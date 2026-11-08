@@ -1309,13 +1309,28 @@ a.mw-header-join {
 .mw-rail-comment-who b { min-width: 0; }
 .mw-ascent-cloud { overflow: hidden; }
 .mw-ascent-caption {
-  width: max-content;
-  max-width: min(14rem, calc(100vw - 3rem));
-  left: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.mw-ascent-slot:hover .mw-ascent-caption,
+.mw-ascent-slot:focus-within .mw-ascent-caption {
+  opacity: 1;
+  visibility: visible;
+}
+.mw-ascent-slot .mw-ascent-caption {
+  position: fixed;
+  top: calc(anchor(bottom) + 6px);
+  left: anchor(left);
+  width: anchor-size(width);
+  max-width: anchor-size(width);
+  right: auto;
+  bottom: auto;
   transform: none;
-  text-align: left;
+  margin: 0;
   white-space: normal;
   overflow-wrap: break-word;
+  text-align: left;
 }
 .fd-intro h1 { text-wrap: balance; }
 .fd-intro p { text-wrap: pretty; }

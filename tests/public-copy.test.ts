@@ -56,6 +56,8 @@ test("free join says a paid tier is planned and free members keep access", () =>
   assert.equal(resourcesNote.toLowerCase().includes("december"), false);
   assert.equal(resourcesNote.toLowerCase().includes("placeholder"), false);
   assert.equal(courseLibraryUrl, "https://onlinecourses.photogadventures.com");
+  assert.equal(homeLead.includes("\u200B"), false);
+  assert.equal(homeLead.includes("photographers"), true);
 });
 
 test("the weekly upload cap stays unlimited", () => {
