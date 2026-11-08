@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AccessNeededPanel } from "@/components/Cards";
+import { KeepTail } from "@/components/KeepTail";
 import { WeeklySubmissionStatus } from "@/components/images/WeeklySubmissionStatus";
 import { getWeekStart } from "@/lib/images";
 import { requireLogin } from "@/lib/guards";
@@ -131,7 +132,7 @@ export default async function Page() {
       <div>
         <div className="fd-kicker-with-icon"><Image src="/launch/mwpg/MWPG_Logo_FAVICON.png" alt="" width={20} height={20} /><FieldDeskLabel>Your Field Desk</FieldDeskLabel></div>
         <h1>Welcome back, {first}.</h1>
-        <p>Your standing in the Guild, this week&apos;s contenders, and the honors you&apos;re chasing.</p>
+        <p><KeepTail text="Your standing in the Guild, this week's contenders, and the honors you're chasing." /></p>
       </div>
       <Link className="fd-outline-button" href="/submit">File a Field Report</Link>
     </div>
