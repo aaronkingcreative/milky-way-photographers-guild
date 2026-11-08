@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { ZoomFit } from "@/components/ZoomFit";
 import { AuthHashHandler } from "@/components/auth/AuthHashHandler";
 import { NavProgress } from "@/components/NavProgress";
 import { Suspense } from "react";
@@ -31,7 +30,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <Suspense fallback={null}><NavProgress /></Suspense>
         <AuthHashHandler />
-        <ZoomFit />
         <Header />
         <main>{children}</main>
         <Footer />

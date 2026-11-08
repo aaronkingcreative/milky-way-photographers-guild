@@ -1255,18 +1255,9 @@ a.mw-header-join {
   }
 }
 
-/* Page zoom that does not shrink the layout viewport. The visible slice is the
-   wrapping width, so the guild name, headline, and paragraph stay whole. */
-html.mw-zoom-fit > body > header,
-html.mw-zoom-fit > body > main,
-html.mw-zoom-fit > body > footer {
-  width: var(--mw-zoom-w);
-  max-width: var(--mw-zoom-w);
-}
-
 /* Narrow header: the wordmark and the actions each take a row so Sign in,
-   Join free, and Submit Image cannot cover the guild name. The query uses the
-   header's own width, including when page zoom has narrowed that box. */
+   Join free, and Submit Image cannot cover the guild name. The query follows
+   the header's width, which is the layout viewport after browser zoom. */
 .mw-app-header { container-type: inline-size; container-name: mw-header; }
 @container mw-header (max-width: 340px) {
   .mw-header-nav {
@@ -1318,6 +1309,7 @@ html.mw-zoom-fit > body > footer {
 .mw-rail-comment-who b { min-width: 0; }
 .mw-ascent-cloud { overflow: hidden; }
 .mw-ascent-caption {
+  width: max-content;
   max-width: min(16rem, calc(100vw - 2.5rem));
   white-space: normal;
   overflow-wrap: break-word;
