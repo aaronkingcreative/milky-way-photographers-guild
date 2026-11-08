@@ -2,19 +2,19 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isBeforeGuildLaunch } from "@/lib/launch";
+import {
+  afterFeaturesLead,
+  closingLead,
+  feedbackExampleBody,
+  feedbackExampleDisclaimer,
+  feedbackExampleTitle,
+  homeFeatures,
+  homeHeadline,
+  homeSectionTitle,
+} from "@/lib/public-copy";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-const logoUrl =
-  "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/site-assets/logos/MWPG_Logo.png";
-
-const whatsComing = [
-  "Image sharing built with photographers in mind",
-  "Weekly Image of the Week voting",
-  "Winner Monday Moment of Envy",
-  "Earn Milky Way achievement badges from submitted images",
-  "Graduate from Beginner Milky Way Photographer to Master Milky Way Photographer",
-  "Learn from each other's shared tips & tricks",
-];
+const heroPhoto = "/join/island-in-the-sky-milky-way.jpg";
 
 export default async function Home() {
   if (isBeforeGuildLaunch()) {
@@ -36,7 +36,7 @@ export default async function Home() {
               Milky Way Photographers Guild
             </p>
             <h1 className="mt-6 max-w-4xl text-5xl font-black leading-[.95] tracking-tight text-white md:text-7xl">
-              The Guild is back.
+              {homeHeadline}
             </h1>
             <p className="mt-6 max-w-3xl text-2xl leading-9 text-[#f4bd61]">
               The private image-first, ad-free community for Milky Way photographers. Free to join right now.
@@ -55,32 +55,26 @@ export default async function Home() {
               <Link className="btn btn-primary" href="/signup">
                 Join the Guild free
               </Link>
-              <a className="btn btn-secondary" href="https://www.photogadventures.com">
-                Visit Photog Adventures
-              </a>
-              <a
-                className="btn btn-ghost"
-                href="https://onlinecourses.photogadventures.com"
-              >
-                View Online Courses
-              </a>
               <Link className="btn btn-ghost" href="/login">
                 Member sign in
               </Link>
             </div>
           </div>
 
-          <div className="relative flex justify-center lg:justify-end">
-            <div className="absolute inset-0 -z-10 rounded-full bg-[#e79f2b]/10 blur-3xl" />
+          <figure className="relative mx-auto w-full max-w-[44rem] lg:max-w-none lg:justify-self-end">
             <Image
-              src={logoUrl}
-              alt="Milky Way Photographers Guild"
-              width={900}
-              height={450}
+              src={heroPhoto}
+              alt="The Milky Way over Island in the Sky in Canyonlands"
+              width={2000}
+              height={1125}
               priority
-              className="h-auto w-full max-w-[38rem] drop-shadow-[0_28px_70px_rgba(0,0,0,0.42)] sm:max-w-[44rem] lg:max-w-[48rem] xl:max-w-[54rem]"
+              sizes="(min-width: 1024px) 58vw, 100vw"
+              className="h-auto w-full rounded-md border border-white/15 object-cover shadow-[0_28px_70px_rgba(0,0,0,0.42)]"
             />
-          </div>
+            <figcaption className="mt-3 text-base leading-6 text-[#f4f7fb]">
+              Island in the Sky, Canyonlands. Photo by Aaron King
+            </figcaption>
+          </figure>
         </div>
       </section>
 
@@ -90,20 +84,34 @@ export default async function Home() {
             Inside the Guild
           </p>
           <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">
-            Share your images, pass off achievements and earn Master Milky Way Photographer.
+            {homeSectionTitle}
           </h2>
         </div>
         <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {whatsComing.map((item, index) => (
-            <div className="card rounded-3xl p-6" key={item}>
+          {homeFeatures.map((item, index) => (
+            <div className="card rounded-3xl p-6" key={item.title}>
               <p className="text-sm font-black text-[#f4bd61]">
                 {String(index + 1).padStart(2, "0")}
               </p>
-              <h3 className="mt-5 text-xl font-bold leading-7 text-white">
-                {item}
-              </h3>
+              <h3 className="mt-5 text-xl font-bold leading-7 text-white">{item.title}</h3>
+              <p className="mt-3 text-base leading-7 text-[#e7eef6]">{item.body}</p>
             </div>
           ))}
+        </div>
+        <aside className="card mt-8 rounded-3xl p-6 sm:p-8" aria-labelledby="feedback-example-title">
+          <p id="feedback-example-title" className="text-sm font-bold uppercase tracking-[.18em] text-[#f4bd61]">
+            {feedbackExampleTitle}
+          </p>
+          <p className="mt-3 text-base leading-7 text-[#f4f7fb]">{feedbackExampleDisclaimer}</p>
+          <blockquote className="mt-4 border-l-4 border-[#e79f2b] pl-4 text-lg leading-8 text-white">
+            {feedbackExampleBody}
+          </blockquote>
+        </aside>
+        <div className="mt-10">
+          <p className="max-w-2xl text-lg leading-8 text-[#e7eef6]">{afterFeaturesLead}</p>
+          <Link className="btn btn-primary mt-5" href="/signup">
+            Join the Guild free
+          </Link>
         </div>
       </section>
 
@@ -112,22 +120,27 @@ export default async function Home() {
           <p className="text-sm font-bold uppercase tracking-[.32em] text-[#f4bd61]">
             More from Aaron
           </p>
-          <p className="mx-auto mt-5 max-w-3xl text-xl leading-9 text-[#dbe5f1]">
-            You can also find all my photography content &amp;
-            resources through the Photog Adventures YouTube &amp; Podcast.
-          </p>
+          <p className="mx-auto mt-5 max-w-3xl text-xl leading-9 text-[#e7eef6]">{closingLead}</p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
-            <a className="btn btn-primary" href="https://www.photogadventures.com">
-              Go to Photog Adventures
-            </a>
-            <a className="btn btn-secondary" href="https://www.youtube.com/c/PhotogAdventures">
+            <Link className="btn btn-primary" href="/signup">
+              Join the Guild free
+            </Link>
+          </div>
+          <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-[#dbe5f1]">
+            You can also find all my photography content and resources through the Photog Adventures YouTube and Podcast.
+          </p>
+          <div className="mt-5 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
+            <a className="btn btn-ghost" href="https://www.youtube.com/c/PhotogAdventures">
               YouTube
             </a>
             <a className="btn btn-ghost" href="https://soundcloud.com/user-407436417">
               Podcast
             </a>
+            <a className="btn btn-ghost" href="https://www.photogadventures.com">
+              Photog Adventures
+            </a>
           </div>
-          <p className="mt-8 text-sm text-[#9fb0c0]">
+          <p className="mt-8 text-base text-[#d5deea]">
             Questions? Contact Aaron at{" "}
             <a className="text-[#f4bd61] underline-offset-4 hover:underline" href="mailto:aaron@photogadventures.com">
               aaron@photogadventures.com
