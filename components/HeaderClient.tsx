@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { signOut } from "@/app/actions";
 import { titleCaseLabel } from "@/lib/display";
 import { IotwVotingModal } from "@/components/iotw/IotwVotingModal";
@@ -19,6 +19,8 @@ const navItems = [
   ["Field Desk", "/field-desk"],
   ["Winners", "/winners"],
   ["Progress", "/progress"],
+  ["Courses", "/courses"],
+  ["Resources", "/resources"],
 ];
 
 // The vote gate never covers sign-in pages, the public landing pages or admin tools.
@@ -67,6 +69,8 @@ export function HeaderClient({
   const pathname = usePathname();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
+  const navToggleRef = useRef<HTMLButtonElement>(null);
+  const navPanelRef = useRef<HTMLDivElement>(null);
   const initials = name
     .split(/\s+/)
     .filter(Boolean)
@@ -80,12 +84,25 @@ export function HeaderClient({
   const voteGateBlocking = Boolean(iotw?.mustVote) && voteGateApplies(pathname);
   const showProfileNudge = user && needsProfile && Boolean(userId) && !voteGateBlocking && voteGateApplies(pathname) && !pathname.startsWith("/profile");
 
+  useEffect(() => {
+    if (!navOpen) return;
+    const firstLink = navPanelRef.current?.querySelector("a");
+    firstLink?.focus();
+    function onKey(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      setNavOpen(false);
+      navToggleRef.current?.focus();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [navOpen]);
+
   return (
     <header className="mw-app-header">
       <nav className="mw-header-nav mx-auto max-w-[1680px]">
         <div className="mw-header-brand">
           {user && (
-            <button type="button" className="mw-nav-toggle" aria-label="Open navigation" aria-expanded={navOpen} onClick={() => setNavOpen((open) => !open)}>
+            <button ref={navToggleRef} type="button" className={`mw-nav-toggle ${navOpen ? "is-open" : ""}`} aria-label={navOpen ? "Close menu" : "Open menu"} aria-expanded={navOpen} aria-controls="mw-primary-nav" onClick={() => setNavOpen((open) => !open)}>
               <span aria-hidden="true" />
             </button>
           )}
@@ -94,12 +111,15 @@ export function HeaderClient({
           </Link>
         </div>
         {user && (
-          <div className={`mw-primary-nav ${navOpen ? "is-open" : ""}`}>
-            {navItems.map(([label, href]) => (
-              <Link key={`${label}-${href}`} href={href} onClick={() => setNavOpen(false)} className={`mw-primary-nav-link ${isActive(pathname, href) ? "mw-primary-nav-link-active" : ""}`}>
-                {label}
-              </Link>
-            ))}
+          <div ref={navPanelRef} id="mw-primary-nav" className={`mw-primary-nav ${navOpen ? "is-open" : ""}`}>
+            {navItems.map(([label, href]) => {
+              const active = isActive(pathname, href);
+              return (
+                <Link key={`${label}-${href}`} href={href} onClick={() => setNavOpen(false)} aria-current={active ? "page" : undefined} className={`mw-primary-nav-link ${active ? "mw-primary-nav-link-active" : ""}`}>
+                  {label}
+                </Link>
+              );
+            })}
           </div>
         )}
         {user ? (

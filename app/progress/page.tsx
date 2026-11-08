@@ -4,6 +4,7 @@ import { withReviewNotes } from "@/lib/review-notes";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { AchievementDefinition, AchievementLibraryCategory, DECADE_BADGE_LABEL, isDecadeAchievement, UserAchievement, achievementLibraryCategoryDetails, seededAchievementDefinitions, trackingAchievementDefinitions } from "@/lib/achievements";
 import { getMemberStats, initialsForName, EARNED_ACHIEVEMENT_STATUSES } from "@/lib/member-stats";
+import { moreHonorsToRank, rankProgressPercent } from "@/lib/member-labels";
 import { fetchFieldYearCoverage, fetchHonorEvidence, formatEvidenceDate, type HonorEvidence } from "@/lib/field-year";
 import { finishedLeagueYears, leagueForMonths, nextLeagueForMonths } from "@/lib/leagues";
 import { SKY_VIEW, SkyLayoutKey, buildSkyMap } from "@/lib/sky-constellations";
@@ -43,9 +44,7 @@ export default async function Page() {
   const earnedCount = stats.earned_honor_count;
   const rank = { short: stats.rank_short, full: stats.rank, min: 0 };
   const nextRank = stats.next_rank ? { short: stats.next_rank, min: earnedCount + stats.honors_to_next_rank } : null;
-  const rankProgressBase = Math.max(0, earnedCount - (earnedCount % Math.max(1, stats.honors_to_next_rank || 1)));
-  const rankProgressTarget = nextRank?.min ?? Math.max(earnedCount, 1);
-  const progressPct = nextRank ? Math.max(4, Math.min(100, ((earnedCount - rankProgressBase) / Math.max(1, rankProgressTarget - rankProgressBase)) * 100)) : 100;
+  const progressPct = rankProgressPercent(earnedCount, stats.honors_to_next_rank, Boolean(nextRank));
   const name = stats.display_name;
   const initials = initialsForName(name);
   const yearStreak = stats.year_streak;
@@ -117,7 +116,7 @@ export default async function Page() {
       <div className="progress-streak-card progress-streak-card-cool"><strong>{monthStreak}</strong><span>Month Streak</span><p>Earned calendar month honors</p></div>
     </section>
     {reviewNotes.length > 0 && <section id="guild-review" className="progress-panel progress-review-notes"><div className="progress-section-head"><h2>Guild review notes</h2><p>What the Verification Desk said about your achievement claims</p></div><ul>{reviewNotes.map((n) => <li key={n.id} className={`progress-review-note ${n.status}`}><span className="progress-review-glyph" aria-hidden="true">{n.glyph}</span><div><p className="progress-review-head">{n.headline}{n.isNew && <span className="progress-review-new">New</span>}</p>{n.title && <p className="progress-muted">{n.title}{n.date ? ` · reviewed ${n.date}` : ""}</p>}{n.note && <blockquote>“{n.note}”</blockquote>}</div></li>)}</ul></section>}
-    <section className="progress-panel progress-rank-panel"><div><h2>Progress to {nextRank?.short ?? "Master"}</h2><p>{nextRank ? `${Math.max(0, nextRank.min - earnedCount)} more honors to rank up` : "Master rank reached"}</p></div><div className="progress-bar"><span style={{ width: `${progressPct}%` }} /></div></section>
+    <section className="progress-panel progress-rank-panel"><div><h2>Progress to {nextRank?.short ?? "Master"}</h2><p>{nextRank ? moreHonorsToRank(stats.honors_to_next_rank) : "Master rank reached"}</p></div><div className="progress-bar"><span style={{ width: `${progressPct}%` }} /></div></section>
     <section className="progress-panel progress-punch" aria-labelledby="field-year-title">
       <div className="progress-section-head"><h2 id="field-year-title">{fieldYear} Field Year</h2><p>{yearCount > 0 ? `You went out for the Milky Way ${yearCount} of 12 months this year.` : "No Milky Way months logged yet this year. Upload an image and declare its capture date to punch a month."}</p></div>
       <div className="progress-punch-grid">{monthLabels.map((label, index) => {

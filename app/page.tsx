@@ -10,7 +10,9 @@ import {
   feedbackExampleDisclaimer,
   feedbackExampleTitle,
   homeFeatures,
+  contactLead,
   homeHeadline,
+  homeLead,
   homeSectionTitle,
 } from "@/lib/public-copy";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -42,7 +44,7 @@ export default async function Home() {
           </div>
           <div className="lg:-ml-2">
             <p className="mt-6 max-w-3xl text-2xl leading-9 text-[#f4bd61] lg:mt-0">
-              <KeepTail text="The private image-first, ad-free community for Milky Way photographers. Free to join right now." />
+              <KeepTail text={homeLead} />
             </p>
             <p className="mt-7 max-w-3xl text-lg leading-8 text-[#b8c4d4]">
               <KeepTail text="I rebuilt the Milky Way Photographers Guild into a better home for sharing your night-sky images, voting on each other's images to find the Image of the Week, celebrating weekly winners with a Monday Moment of Envy, while still keeping the original benefits of getting useful feedback and improving your Milky Way photography without ads or social media noise." />
@@ -140,7 +142,7 @@ export default async function Home() {
             </a>
           </div>
           <p className="mt-8 text-base text-[#d5deea]">
-            <KeepTail text="Questions? Contact Aaron at" />
+            <KeepTail text={contactLead} />
           </p>
           <p className="mt-2 text-base">
             <a className="text-[#f4bd61] underline-offset-4 hover:underline" href="mailto:aaron@photogadventures.com">

@@ -1,1 +1,17 @@
-import { FeatureCard } from "@/components/Cards";import { requireAccess } from "@/lib/guards";const items=["Moon Window of Opportunity PDF","Composition tips","Milky Way planning resources","More coming soon"];export default async function Page(){await requireAccess();return <section className="mx-auto max-w-7xl px-5 py-14"><h1 className="text-4xl font-bold">Resources</h1><div className="mt-8 grid gap-5 md:grid-cols-2">{items.map(i=><FeatureCard key={i} title={i}>Member resource placeholder for Phase 1.</FeatureCard>)}</div></section>}
+import { requireAccess } from "@/lib/guards";
+import { courseLibraryLabel, courseLibraryUrl, resourcesNote } from "@/lib/public-copy";
+
+export default async function Page() {
+  await requireAccess();
+  return (
+    <section className="mx-auto max-w-3xl px-5 py-14">
+      <h1 className="text-4xl font-bold">Resources</h1>
+      <p className="mt-6 text-lg leading-8 text-[#e7eef6]">{resourcesNote}</p>
+      <p className="mt-6">
+        <a className="text-[#f4bd61] underline underline-offset-4" href={courseLibraryUrl}>
+          {courseLibraryLabel}
+        </a>
+      </p>
+    </section>
+  );
+}
