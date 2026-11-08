@@ -1160,7 +1160,8 @@ a.mw-header-join {
   letter-spacing: .06em;
   text-transform: uppercase;
   line-height: 1.2;
-  white-space: nowrap;
+  white-space: normal;
+  max-width: 100%;
 }
 a.mw-header-signin {
   color: #f6e2b0;
@@ -1212,4 +1213,44 @@ a.mw-btn-ghost { color: #f4f7fb; }
 :focus-visible {
   outline: 3px solid #f6d27a;
   outline-offset: 3px;
+}
+
+/* Public pages. Balance short display lines. Pretty body copy avoids a one-word ending where the browser can. */
+.mw-public :is(p, blockquote, li, label) {
+  text-wrap: pretty;
+}
+.mw-public :is(h1, h2, h3, figcaption, button, .btn, .mw-join-eyebrow, .mw-join-title, .mw-join-credit, .mw-section-label),
+.mw-public .mw-balance {
+  text-wrap: balance;
+}
+a.mw-header-signin,
+a.mw-header-join {
+  text-wrap: balance;
+}
+/* Three words stay together when they fit. A pair kept together is still a two-word last line.
+   If the group is wider than the column, it wraps instead of being clipped. Enlarged text wins. */
+.mw-keep {
+  display: inline-block;
+  max-width: 100%;
+  white-space: normal;
+  text-wrap: pretty;
+  overflow-wrap: break-word;
+}
+.mw-public :is(h1, h2, h3, p, figcaption, a, .mw-join-title, .mw-join-intro, .mw-auth-card-title, .mw-brand-eyebrow),
+.mw-public .grid > *,
+.mw-join-inner > * {
+  min-width: 0;
+}
+.mw-public :is(h1, h2, h3, p, figcaption, a, .mw-join-title, .mw-join-intro, .mw-auth-card-title, .mw-brand-eyebrow) {
+  overflow-wrap: break-word;
+}
+@media (max-width: 560px) {
+  .mw-header-nav { height: auto; min-height: var(--mw-header-h); align-items: center; }
+  .mw-header-actions { min-width: 0; max-width: 100%; flex-wrap: wrap; justify-content: flex-end; }
+}
+/* The four-word brand eyebrow cannot wrap without a one-word or two-word last line. Keep it one line on narrow screens by easing the tracking, not the type size. */
+@media (max-width: 460px) {
+  .mw-brand-eyebrow {
+    letter-spacing: 0.12em;
+  }
 }

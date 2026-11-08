@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getAuthCallbackUrl } from "@/lib/site-url";
 import { signUpMember } from "@/app/signup/actions";
 import { emailFieldError } from "@/lib/email-address";
+import { KeepTail } from "@/components/KeepTail";
 import { SIGNUP_REASSURANCE } from "@/lib/signup-messages";
 
 const errorMessages: Record<string, string> = {
@@ -126,10 +127,10 @@ export function AuthForm({ mode, formToken }: { mode: "login" | "signup"; formTo
 
   return (
     <form onSubmit={submit} noValidate className="mw-auth-card">
-      <h2 className="mw-auth-card-title">{mode === "login" ? "Sign in" : "Create your account"}</h2>
+      <h2 className="mw-auth-card-title"><KeepTail text={mode === "login" ? "Sign in" : "Create your account"} /></h2>
       {mode === "signup" && (
         <p className="mt-4 text-base leading-7 text-[#e7eef6]">
-          {SIGNUP_REASSURANCE} <Link className="text-[#f6e2b0] underline underline-offset-4" href="/privacy">privacy notes</Link> and the <Link className="text-[#f6e2b0] underline underline-offset-4" href="/terms">terms</Link>.
+          {SIGNUP_REASSURANCE} <Link className="text-[#f6e2b0] underline underline-offset-4" href="/privacy">privacy notes</Link> <span className="mw-keep">and the <Link className="text-[#f6e2b0] underline underline-offset-4" href="/terms">terms</Link>.</span>
         </p>
       )}
       {mode === "signup" && (
@@ -146,7 +147,7 @@ export function AuthForm({ mode, formToken }: { mode: "login" | "signup"; formTo
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
-          <span className="mt-2 block text-base leading-6 text-[#d5deea]">Shown beside your field reports. You can change it later.</span>
+          <span className="mt-2 block text-base leading-6 text-[#d5deea]"><KeepTail text="Shown beside your field reports. You can change it later." /></span>
         </label>
       )}
       <label className="mt-6 block text-base" htmlFor="auth-email">
@@ -218,9 +219,9 @@ export function AuthForm({ mode, formToken }: { mode: "login" | "signup"; formTo
       )}
       <p className="mt-4 text-base text-[#d5deea]">
         {mode === "login" ? (
-          <>Need an account? <Link className="text-[#f6e2b0] underline underline-offset-4" href="/signup">Sign up</Link></>
+          <>Need <span className="mw-keep">an account? <Link className="text-[#f6e2b0] underline underline-offset-4" href="/signup">Sign up</Link></span></>
         ) : (
-          <>Already have access? <Link className="text-[#f6e2b0] underline underline-offset-4" href="/login">Sign in</Link></>
+          <>Already have <span className="mw-keep">access? <Link className="text-[#f6e2b0] underline underline-offset-4" href="/login">Sign in</Link></span></>
         )}
       </p>
     </form>
