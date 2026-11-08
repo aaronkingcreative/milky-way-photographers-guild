@@ -130,7 +130,7 @@ export function AuthForm({ mode, formToken }: { mode: "login" | "signup"; formTo
       <h2 className="mw-auth-card-title"><KeepTail text={mode === "login" ? "Sign in" : "Create your account"} /></h2>
       {mode === "signup" && (
         <p className="mt-4 text-base leading-7 text-[#e7eef6]">
-          {SIGNUP_REASSURANCE} <Link className="text-[#f6e2b0] underline underline-offset-4" href="/privacy">privacy notes</Link> <span className="mw-keep">and the <Link className="text-[#f6e2b0] underline underline-offset-4" href="/terms">terms</Link>.</span>
+          {SIGNUP_REASSURANCE} <Link className="mw-auth-link" href="/privacy">privacy notes</Link> <span className="mw-keep">and the <Link className="mw-auth-link" href="/terms">terms</Link>.</span>
         </p>
       )}
       {mode === "signup" && (
@@ -213,17 +213,24 @@ export function AuthForm({ mode, formToken }: { mode: "login" | "signup"; formTo
       </button>
       {mode === "login" && (
         <div className="mt-4 flex flex-col gap-2 text-base text-[#d5deea]">
-          <button type="button" className="text-left text-[#f6e2b0]" onClick={sendPasswordReset} disabled={isSubmitting}>Forgot password?</button>
-          <button type="button" className="text-left text-[#f6e2b0]" onClick={sendMagicLink} disabled={isSubmitting}>Email me a magic link</button>
+          <button type="button" className="mw-auth-link text-left" onClick={sendPasswordReset} disabled={isSubmitting}>Forgot password?</button>
+          <button type="button" className="mw-auth-link text-left" onClick={sendMagicLink} disabled={isSubmitting}>Email me a magic link</button>
         </div>
       )}
       <p className="mt-4 text-base text-[#d5deea]">
         {mode === "login" ? (
-          <>Need <span className="mw-keep">an account? <Link className="text-[#f6e2b0] underline underline-offset-4" href="/signup">Sign up</Link></span></>
+          <>Need <span className="mw-keep">an account? <Link className="mw-auth-link" href="/signup">Sign up</Link></span></>
         ) : (
-          <>Already have <span className="mw-keep">access? <Link className="text-[#f6e2b0] underline underline-offset-4" href="/login">Sign in</Link></span></>
+          <>Already have <span className="mw-keep">access? <Link className="mw-auth-link" href="/login">Sign in</Link></span></>
         )}
       </p>
+      {mode === "login" && (
+        <p className="mt-4 text-base text-[#d5deea]">
+          <Link className="mw-auth-link" href="/privacy">Privacy notes</Link>
+          {" and the "}
+          <Link className="mw-auth-link" href="/terms">terms</Link>
+        </p>
+      )}
     </form>
   );
 }

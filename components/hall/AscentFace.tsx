@@ -13,7 +13,7 @@ const MAX_MEDALS = 12;
  * so the glyph stays upright. Past MAX_MEDALS the last medal is "+N". A caption under the ring carries
  * the name, honor count, and Milky Way streak. Pure CSS, so it costs nothing until hovered.
  */
-export function AscentFace({ member, rankLabel, honors }: { member: Climber; rankLabel: string; honors: CloudHonor[] }) {
+export function AscentFace({ member, rankLabel, honors, rowAnchor }: { member: Climber; rankLabel: string; honors: CloudHonor[]; rowAnchor: string }) {
   const overflow = honors.length > MAX_MEDALS;
   const shown = honors.slice(0, overflow ? MAX_MEDALS - 1 : MAX_MEDALS);
   const extra = honors.length - shown.length;
@@ -33,11 +33,11 @@ export function AscentFace({ member, rankLabel, honors }: { member: Climber; ran
           <span key={h.id} className="mw-ascent-medal" style={{ ["--a" as any]: `${angle(i)}deg`, ["--i" as any]: i }} title={h.name}>{h.glyph}</span>
         ))}
         {extra > 0 && <span className="mw-ascent-medal is-more" style={{ ["--a" as any]: `${angle(slots - 1)}deg`, ["--i" as any]: slots - 1 }}>+{extra}</span>}
-        <span className="mw-ascent-caption">
-          <b>{member.name}</b>
-          <span>{honorsText}</span>
-          {streak && <span className="mw-ascent-caption-streak">☄ {streak}</span>}
-        </span>
+      </span>
+      <span className="mw-ascent-caption" style={{ positionAnchor: rowAnchor }} aria-hidden="true">
+        <b>{member.name}</b>
+        <span>{honorsText}</span>
+        {streak && <span className="mw-ascent-caption-streak">☄ {streak}</span>}
       </span>
     </span>
   );
