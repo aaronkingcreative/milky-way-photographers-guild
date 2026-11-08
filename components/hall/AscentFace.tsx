@@ -34,7 +34,7 @@ export function AscentFace({ member, rankLabel, honors, rowAnchor }: { member: C
         ))}
         {extra > 0 && <span className="mw-ascent-medal is-more" style={{ ["--a" as any]: `${angle(slots - 1)}deg`, ["--i" as any]: slots - 1 }}>+{extra}</span>}
       </span>
-      <span className="mw-ascent-caption" style={{ positionAnchor: rowAnchor }}>
+      <span className="mw-ascent-caption" style={{ positionAnchor: rowAnchor }} aria-hidden="true">
         <b>{member.name}</b>
         <span>{honorsText}</span>
         {streak && <span className="mw-ascent-caption-streak">☄ {streak}</span>}

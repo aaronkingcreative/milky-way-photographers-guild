@@ -45,12 +45,17 @@ test("email blur rules require a dotted domain", () => {
   assert.equal(emailFieldError(" ada@mail.co.uk "), null);
 });
 
-test("free join says a paid tier is planned and free members keep access", () => {
+test("free join lasts through 2027 and names no price", () => {
   for (const line of [homeLead, signupIntro]) {
     assert.match(line, /Joining is free right now/);
-    assert.match(line, /I plan a paid tier, and free members keep what they have/);
+    assert.match(line, /Free access lasts through 2027/);
+    assert.match(line, /I plan a paid tier/);
+    assert.equal(line.toLowerCase().includes("keep what they have"), false);
     assert.equal(line.includes("$"), false);
   }
+  const legal = [...privacySections, ...termsSections].flatMap((section) => section.paragraphs).join(" ");
+  assert.match(legal, /1 January 2028 Mountain time/);
+  assert.equal(legal.toLowerCase().includes("keep what they have"), false);
   assert.equal(contactLead, "Questions? Email me at");
   assert.match(resourcesNote, /I am still writing these resources/);
   assert.equal(resourcesNote.toLowerCase().includes("december"), false);

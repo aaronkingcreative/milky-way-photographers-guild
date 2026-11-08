@@ -8,8 +8,8 @@ export const rankRangeSentence = RANKS.map((rank) => {
 }).join(" ");
 
 export const homeHeadline = "Get useful notes on your Milky Way photos.";
-export const homeLead = "The private image-first, ad\u2011free community for Milky Way photographers. Joining is free right now. I plan a paid tier, and free members keep what they have.";
-export const signupIntro = "Share field reports, earn honors, and climb the Ascent. Joining is free right now. I plan a paid tier, and free members keep what they have.";
+export const homeLead = "The private image-first, ad\u2011free community for Milky Way photographers. Joining is free right now. Free access lasts through 2027. I plan a paid tier.";
+export const signupIntro = "Share field reports, earn honors, and climb the Ascent. Joining is free right now. Free access lasts through 2027. I plan a paid tier.";
 export const contactLead = "Questions? Email me at";
 export const resourcesNote = "I am still writing these resources. The course library is open while I finish them.";
 export const courseLibraryUrl = "https://onlinecourses.photogadventures.com";
