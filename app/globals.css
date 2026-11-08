@@ -1160,7 +1160,8 @@ a.mw-header-join {
   letter-spacing: .06em;
   text-transform: uppercase;
   line-height: 1.2;
-  white-space: nowrap;
+  white-space: normal;
+  max-width: 100%;
 }
 a.mw-header-signin {
   color: #f6e2b0;
@@ -1226,9 +1227,26 @@ a.mw-header-signin,
 a.mw-header-join {
   text-wrap: balance;
 }
-/* Three words, not two. A pair kept together is still a two-word last line. */
+/* Three words stay together when they fit. A pair kept together is still a two-word last line.
+   If the group is wider than the column, it wraps instead of being clipped. Enlarged text wins. */
 .mw-keep {
-  white-space: nowrap;
+  display: inline-block;
+  max-width: 100%;
+  white-space: normal;
+  text-wrap: pretty;
+  overflow-wrap: break-word;
+}
+.mw-public :is(h1, h2, h3, p, figcaption, a, .mw-join-title, .mw-join-intro, .mw-auth-card-title, .mw-brand-eyebrow),
+.mw-public .grid > *,
+.mw-join-inner > * {
+  min-width: 0;
+}
+.mw-public :is(h1, h2, h3, p, figcaption, a, .mw-join-title, .mw-join-intro, .mw-auth-card-title, .mw-brand-eyebrow) {
+  overflow-wrap: break-word;
+}
+@media (max-width: 560px) {
+  .mw-header-nav { height: auto; min-height: var(--mw-header-h); align-items: center; }
+  .mw-header-actions { min-width: 0; max-width: 100%; flex-wrap: wrap; justify-content: flex-end; }
 }
 /* The four-word brand eyebrow cannot wrap without a one-word or two-word last line. Keep it one line on narrow screens by easing the tracking, not the type size. */
 @media (max-width: 460px) {

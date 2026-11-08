@@ -29,7 +29,7 @@ export default async function Home() {
 
   return (
     <div className="mw-public overflow-hidden">
-      <section className="starfield relative px-5 py-20 sm:py-24 lg:py-32">
+      <section className="starfield relative px-3 py-20 min-[380px]:px-5 sm:py-24 lg:py-32">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_68%_18%,rgba(231,159,43,.20),transparent_22rem),radial-gradient(circle_at_24%_30%,rgba(47,68,93,.44),transparent_24rem)]" />
         <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[.86fr_1.14fr] xl:grid-cols-[.8fr_1.2fr]">
           <div className="lg:col-span-2">
