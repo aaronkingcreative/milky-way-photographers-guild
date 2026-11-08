@@ -137,7 +137,7 @@ export function HeaderClient({
             </div>
           </>
         ) : (
-          <div className="mw-header-actions"><Link href="/login" className="mw-btn-secondary px-4 py-2 text-xs">Sign in</Link><Link href="/signup" className="mw-btn-primary px-4 py-2 text-xs">Join free</Link></div>
+          <div className="mw-header-actions"><Link href="/login" className="mw-header-signin">Sign in</Link><Link href="/signup" className="mw-header-join">Join free</Link></div>
         )}
       </nav>
       {showProfileNudge && userId ? <ProfileNudge userId={userId} missingName={missingName} missingPhoto={missingPhoto} /> : null}

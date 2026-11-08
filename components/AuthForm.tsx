@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getAuthCallbackUrl } from "@/lib/site-url";
 import { signUpMember } from "@/app/signup/actions";
+import { emailFieldError } from "@/lib/email-address";
+import { SIGNUP_REASSURANCE } from "@/lib/signup-messages";
 
 const errorMessages: Record<string, string> = {
   auth_callback_failed: "We could not finish signing you in. Please request a new email link and try again.",
@@ -17,19 +19,40 @@ export function AuthForm({ mode, formToken }: { mode: "login" | "signup"; formTo
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [msg, setMsg] = useState("");
+  const [messageTone, setMessageTone] = useState<"error" | "status">("status");
+  const [emailError, setEmailError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [honeypot, setHoneypot] = useState("");
+  const emailRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const authError = searchParams.get("error");
-  const displayMessage = msg || (authError ? errorMessages[authError] || authError : "");
+  const queryMessage = authError ? errorMessages[authError] || authError : "";
+  const displayMessage = msg || queryMessage;
+  const displayTone = msg ? messageTone : queryMessage ? "error" : "status";
+
+  function show(message: string, tone: "error" | "status") {
+    setMsg(message);
+    setMessageTone(tone);
+  }
+
+  function syncEmailError(value: string) {
+    const problem = emailFieldError(value);
+    setEmailError(problem ?? "");
+    return problem;
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setMsg("");
-    setIsSubmitting(true);
-
     const trimmedEmail = email.trim();
+    const problem = syncEmailError(trimmedEmail);
+    if (problem) {
+      emailRef.current?.focus();
+      return;
+    }
+
+    setIsSubmitting(true);
 
     if (mode === "signup") {
       const formData = new FormData();
@@ -41,14 +64,14 @@ export function AuthForm({ mode, formToken }: { mode: "login" | "signup"; formTo
       const result = await signUpMember(formData);
       setIsSubmitting(false);
       if (!result.ok || result.message !== "signed_in") {
-        setMsg(result.message);
+        show(result.message, result.ok ? "status" : "error");
         return;
       }
     } else {
       const res = await createClient().auth.signInWithPassword({ email: trimmedEmail, password });
       setIsSubmitting(false);
       if (res.error) {
-        setMsg(res.error.message);
+        show(res.error.message, "error");
         return;
       }
     }
@@ -60,9 +83,9 @@ export function AuthForm({ mode, formToken }: { mode: "login" | "signup"; formTo
   async function sendMagicLink() {
     setMsg("");
     const trimmedEmail = email.trim();
-
-    if (!trimmedEmail) {
-      setMsg("Enter your email address first.");
+    const problem = syncEmailError(trimmedEmail);
+    if (problem) {
+      emailRef.current?.focus();
       return;
     }
 
@@ -73,15 +96,19 @@ export function AuthForm({ mode, formToken }: { mode: "login" | "signup"; formTo
     });
     setIsSubmitting(false);
 
-    setMsg(error && !/signups? not allowed|user not found/i.test(error.message) ? error.message : "If that email has a Guild account, a magic sign-in link is on its way.");
+    if (error && !/signups? not allowed|user not found/i.test(error.message)) {
+      show(error.message, "error");
+      return;
+    }
+    show("If that email has a Guild account, a magic sign-in link is on its way.", "status");
   }
 
   async function sendPasswordReset() {
     setMsg("");
     const trimmedEmail = email.trim();
-
-    if (!trimmedEmail) {
-      setMsg("Enter your email address first.");
+    const problem = syncEmailError(trimmedEmail);
+    if (problem) {
+      emailRef.current?.focus();
       return;
     }
 
@@ -91,26 +118,79 @@ export function AuthForm({ mode, formToken }: { mode: "login" | "signup"; formTo
     });
     setIsSubmitting(false);
 
-    setMsg(error ? error.message : "Check your email for a password reset link.");
+    show(error ? error.message : "Check your email for a password reset link.", error ? "error" : "status");
   }
 
+  const emailErrorId = "auth-email-error";
+  const statusId = "auth-status";
+
   return (
-    <form onSubmit={submit} className="mw-auth-card">
+    <form onSubmit={submit} noValidate className="mw-auth-card">
       <h2 className="mw-auth-card-title">{mode === "login" ? "Sign in" : "Create your account"}</h2>
       {mode === "signup" && (
-        <label className="mt-6 block text-sm">
+        <p className="mt-4 text-base leading-7 text-[#e7eef6]">
+          {SIGNUP_REASSURANCE} <Link className="text-[#f6e2b0] underline underline-offset-4" href="/privacy">privacy notes</Link> and the <Link className="text-[#f6e2b0] underline underline-offset-4" href="/terms">terms</Link>.
+        </p>
+      )}
+      {mode === "signup" && (
+        <label className="mt-6 block text-base" htmlFor="auth-name">
           Your name
-          <input required minLength={2} maxLength={80} autoComplete="name" className="input mt-2" value={name} onChange={(e) => setName(e.target.value)} />
-          <span className="mt-1 block text-xs text-[#b8c4d4]">Shown beside your field reports. You can change it later.</span>
+          <input
+            id="auth-name"
+            name="name"
+            required
+            minLength={2}
+            maxLength={80}
+            autoComplete="name"
+            className="input mt-2"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <span className="mt-2 block text-base leading-6 text-[#d5deea]">Shown beside your field reports. You can change it later.</span>
         </label>
       )}
-      <label className="mt-6 block text-sm">
+      <label className="mt-6 block text-base" htmlFor="auth-email">
         Email
-        <input type="email" required className="input mt-2" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <input
+          ref={emailRef}
+          id="auth-email"
+          name="email"
+          type="email"
+          inputMode="email"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          autoComplete="email"
+          required
+          aria-invalid={emailError ? true : undefined}
+          aria-describedby={emailError ? emailErrorId : undefined}
+          className="input mt-2"
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (emailError) syncEmailError(e.target.value);
+          }}
+          onBlur={() => syncEmailError(email)}
+        />
       </label>
-      <label className="mt-4 block text-sm">
+      {emailError ? (
+        <p id={emailErrorId} className="mw-field-error" role="alert">
+          {emailError}
+        </p>
+      ) : null}
+      <label className="mt-4 block text-base" htmlFor="auth-password">
         Password
-        <input type="password" required minLength={6} className="input mt-2" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <input
+          id="auth-password"
+          name="password"
+          type="password"
+          required
+          minLength={6}
+          autoComplete={mode === "signup" ? "new-password" : "current-password"}
+          className="input mt-2"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
       </label>
       {mode === "signup" && (
         <div aria-hidden="true" style={{ position: "absolute", left: "-10000px", top: "auto", width: 1, height: 1, overflow: "hidden" }}>
@@ -120,21 +200,27 @@ export function AuthForm({ mode, formToken }: { mode: "login" | "signup"; formTo
           </label>
         </div>
       )}
-      {displayMessage && <p className="mt-4 text-[#f4bd61]">{displayMessage}</p>}
-      <button className="btn btn-primary mt-6 w-full" disabled={isSubmitting}>
+      <div aria-live="assertive" aria-atomic="true">
+        {displayMessage ? (
+          <p id={statusId} className={displayTone === "error" ? "mw-form-error" : "mw-form-success"} role={displayTone === "error" ? "alert" : "status"}>
+            {displayMessage}
+          </p>
+        ) : null}
+      </div>
+      <button className="btn btn-primary mt-6 w-full" disabled={isSubmitting} aria-busy={isSubmitting}>
         {isSubmitting ? "Please wait..." : mode === "login" ? "Sign in" : "Create account"}
       </button>
       {mode === "login" && (
-        <div className="mt-4 flex flex-col gap-2 text-sm text-[#b8c4d4]">
-          <button type="button" className="text-left text-[#f4bd61]" onClick={sendPasswordReset} disabled={isSubmitting}>Forgot password?</button>
-          <button type="button" className="text-left text-[#f4bd61]" onClick={sendMagicLink} disabled={isSubmitting}>Email me a magic link</button>
+        <div className="mt-4 flex flex-col gap-2 text-base text-[#d5deea]">
+          <button type="button" className="text-left text-[#f6e2b0]" onClick={sendPasswordReset} disabled={isSubmitting}>Forgot password?</button>
+          <button type="button" className="text-left text-[#f6e2b0]" onClick={sendMagicLink} disabled={isSubmitting}>Email me a magic link</button>
         </div>
       )}
-      <p className="mt-4 text-sm text-[#b8c4d4]">
+      <p className="mt-4 text-base text-[#d5deea]">
         {mode === "login" ? (
-          <>Need an account? <Link className="text-[#f4bd61]" href="/signup">Sign up</Link></>
+          <>Need an account? <Link className="text-[#f6e2b0] underline underline-offset-4" href="/signup">Sign up</Link></>
         ) : (
-          <>Already have access? <Link className="text-[#f4bd61]" href="/login">Sign in</Link></>
+          <>Already have access? <Link className="text-[#f6e2b0] underline underline-offset-4" href="/login">Sign in</Link></>
         )}
       </p>
     </form>
