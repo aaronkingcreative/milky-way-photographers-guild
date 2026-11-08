@@ -1236,12 +1236,12 @@ a.mw-header-join {
   text-wrap: pretty;
   overflow-wrap: break-word;
 }
-.mw-public :is(h1, h2, h3, p, figcaption, a, .mw-join-title, .mw-join-intro, .mw-auth-card-title, .mw-brand-eyebrow),
+.mw-public :is(h1, h2, h3, p, blockquote, figcaption, a, .mw-join-title, .mw-join-intro, .mw-auth-card-title, .mw-brand-eyebrow),
 .mw-public .grid > *,
 .mw-join-inner > * {
   min-width: 0;
 }
-.mw-public :is(h1, h2, h3, p, figcaption, a, .mw-join-title, .mw-join-intro, .mw-auth-card-title, .mw-brand-eyebrow) {
+.mw-public :is(h1, h2, h3, p, blockquote, figcaption, a, .mw-join-title, .mw-join-intro, .mw-auth-card-title, .mw-brand-eyebrow) {
   overflow-wrap: break-word;
 }
 @media (max-width: 560px) {
@@ -1253,4 +1253,77 @@ a.mw-header-join {
   .mw-brand-eyebrow {
     letter-spacing: 0.12em;
   }
+}
+
+/* Page zoom that does not shrink the layout viewport. The visible slice is the
+   wrapping width, so the guild name, headline, and paragraph stay whole. */
+html.mw-zoom-fit > body > header,
+html.mw-zoom-fit > body > main,
+html.mw-zoom-fit > body > footer {
+  width: var(--mw-zoom-w);
+  max-width: var(--mw-zoom-w);
+}
+
+/* Narrow header: the wordmark and the actions each take a row so Sign in,
+   Join free, and Submit Image cannot cover the guild name. The query uses the
+   header's own width, including when page zoom has narrowed that box. */
+.mw-app-header { container-type: inline-size; container-name: mw-header; }
+@container mw-header (max-width: 340px) {
+  .mw-header-nav {
+    display: flex;
+    flex-wrap: wrap;
+    height: auto;
+    min-height: var(--mw-header-h);
+    align-items: center;
+    row-gap: .45rem;
+  }
+  .mw-header-brand { flex: 1 1 100%; max-width: 100%; }
+  .mw-header-logo-link { display: block; flex: 1 1 auto; min-width: 0; max-width: 100%; }
+  .mw-header-logo {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 44px;
+    object-fit: contain;
+    object-position: left center;
+  }
+  .mw-header-actions {
+    flex: 1 1 100%;
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+    justify-content: flex-end;
+  }
+}
+
+/* Field Desk intro can wrap at enlarged text instead of widening the page. */
+.fd-intro > * { min-width: 0; max-width: 100%; }
+.fd-intro h1, .fd-intro p { overflow-wrap: break-word; }
+.fd-outline-button { max-width: 100%; white-space: normal; text-align: center; }
+
+/* Guild Hall. display:contents children are the flex items, so they need the
+   minimum size. Long tokens wrap. Invisible ascent captions do not widen the page. */
+@media (max-width: 1100px) {
+  .mw-hall-rail > * { min-width: 0; max-width: 100%; }
+}
+.mw-aaron-body,
+.mw-feed-title,
+.mw-feed-excerpt,
+.mw-feed-name,
+.mw-guild-page-subtitle,
+.mw-rail-comment-body {
+  overflow-wrap: break-word;
+}
+.mw-rail-comment-who { min-width: 0; max-width: 100%; }
+.mw-rail-comment-who b { min-width: 0; }
+.mw-ascent-cloud { overflow: hidden; }
+.mw-ascent-caption {
+  max-width: min(16rem, calc(100vw - 2.5rem));
+  white-space: normal;
+  overflow-wrap: break-word;
+  text-align: center;
+}
+@media (hover: hover) and (pointer: fine) {
+  .mw-ascent-slot:hover .mw-ascent-cloud,
+  .mw-ascent-slot:focus-within .mw-ascent-cloud { overflow: visible; }
 }
