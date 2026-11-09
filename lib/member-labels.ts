@@ -1,4 +1,48 @@
+import { seededAchievementDefinitions } from "@/lib/achievements";
+
 /** Display strings and counts for Field Desk and Progress. No data access. */
+
+/** Same rule member stats use for the earned count. Rank milestones are not Field Honors. */
+export function countsAsFieldHonor(achievementId: string | null | undefined, countsTowardRank: boolean | null | undefined) {
+  if (String(achievementId || "").startsWith("rank_")) return false;
+  return countsTowardRank !== false;
+}
+
+export type HonorBadgeModel = { id: string; name: string; glyph: string; earned: boolean };
+
+/** Real honors a member can still earn, in catalog order. Not a second set of names. */
+export function fieldDeskHonorCatalog() {
+  return seededAchievementDefinitions
+    .filter((item) => item.isActive && item.category !== "rank" && item.countsTowardRank !== false)
+    .map((item) => ({ id: item.id, name: item.name, glyph: item.glyph }));
+}
+
+/**
+ * Gold only for honors this member was actually awarded.
+ * Locked previews fill out a short row when fewer than six are earned, and they are never marked earned.
+ */
+export function fieldDeskHonorBadges(
+  earned: { id: string; name: string; glyph?: string | null }[],
+  catalog: { id: string; name: string; glyph?: string | null }[],
+): HonorBadgeModel[] {
+  const seen = new Set<string>();
+  const earnedBadges: HonorBadgeModel[] = [];
+  for (const honor of earned) {
+    if (!honor?.id || seen.has(honor.id)) continue;
+    seen.add(honor.id);
+    earnedBadges.push({ id: honor.id, name: honor.name, glyph: honor.glyph || "✦", earned: true });
+  }
+  const locked: HonorBadgeModel[] = [];
+  if (earnedBadges.length < 6) {
+    for (const honor of catalog) {
+      if (!honor?.id || seen.has(honor.id)) continue;
+      seen.add(honor.id);
+      locked.push({ id: honor.id, name: honor.name, glyph: honor.glyph || "✦", earned: false });
+      if (earnedBadges.length + locked.length >= 6) break;
+    }
+  }
+  return [...earnedBadges, ...locked];
+}
 
 export function honorsToGo(count: number): string {
   const n = Math.max(0, Math.trunc(count));

@@ -19,16 +19,21 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 const heroPhoto = "/join/island-in-the-sky-milky-way.jpg";
 
-/** Break "photographers" only when the line cannot hold it, without a hidden character. */
+/** Keep "photographers" whole. The rest of the sentence still wraps, and KeepTail holds the ending together. */
 function HomeLead({ text }: { text: string }) {
   const marker = "photographers";
   const at = text.indexOf(marker);
   if (at < 0) return <KeepTail text={text} />;
   const before = text.slice(0, at).trimEnd();
-  const after = text.slice(at + marker.length).replace(/^\.\s*/, "");
+  let rest = text.slice(at + marker.length);
+  let period = "";
+  if (rest.startsWith(".")) {
+    period = ".";
+    rest = rest.slice(1).trimStart();
+  }
   return (
     <>
-      <KeepTail text={before} /> photo<wbr />graphers. <KeepTail text={after} />
+      <KeepTail text={before} /> <span className="mw-unbreakable">{`${marker}${period}`}</span>{rest ? <> <KeepTail text={rest} /></> : null}
     </>
   );
 }

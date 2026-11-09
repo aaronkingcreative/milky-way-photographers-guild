@@ -9,6 +9,7 @@ import { titleCaseLabel } from "@/lib/display";
 import { IotwVotingModal } from "@/components/iotw/IotwVotingModal";
 import { ProfileNudge } from "@/components/ProfileNudge";
 import { HeaderNotice } from "@/components/HeaderNotice";
+import { navPointerShouldClose } from "@/lib/nav-menu";
 
 const logoUrl =
   "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/site-assets/logos/MWPG_Logo.png";
@@ -86,15 +87,33 @@ export function HeaderClient({
 
   useEffect(() => {
     if (!navOpen) return;
-    const firstLink = navPanelRef.current?.querySelector("a");
-    firstLink?.focus();
+    const toggle = navToggleRef.current;
+    const panel = navPanelRef.current;
+    // Focus the panel, not the first link. Moving focus onto a link while Enter
+    // is still down activates that link on keyup and closes the menu.
+    panel?.setAttribute("tabindex", "-1");
+    panel?.focus();
     function onKey(event: KeyboardEvent) {
       if (event.key !== "Escape") return;
+      event.preventDefault();
       setNavOpen(false);
-      navToggleRef.current?.focus();
+      toggle?.focus();
     }
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    function onPointerDown(event: PointerEvent) {
+      if (!navPointerShouldClose(event.composedPath(), toggle, panel)) return;
+      setNavOpen(false);
+    }
+    // The opening click has already finished. Listen on the next frame so that
+    // same gesture cannot bubble out and close the menu it just opened.
+    const frame = window.requestAnimationFrame(() => {
+      document.addEventListener("keydown", onKey);
+      document.addEventListener("pointerdown", onPointerDown);
+    });
+    return () => {
+      window.cancelAnimationFrame(frame);
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onPointerDown);
+    };
   }, [navOpen]);
 
   return (
@@ -102,7 +121,7 @@ export function HeaderClient({
       <nav className="mw-header-nav mx-auto max-w-[1680px]">
         <div className="mw-header-brand">
           {user && (
-            <button ref={navToggleRef} type="button" className={`mw-nav-toggle ${navOpen ? "is-open" : ""}`} aria-label={navOpen ? "Close menu" : "Open menu"} aria-expanded={navOpen} aria-controls="mw-primary-nav" onClick={() => setNavOpen((open) => !open)}>
+            <button ref={navToggleRef} type="button" className={`mw-nav-toggle ${navOpen ? "is-open" : ""}`} aria-label={navOpen ? "Close menu" : "Open menu"} aria-expanded={navOpen} aria-controls="mw-primary-nav" onKeyDown={(event) => { if (event.repeat || (event.key !== "Enter" && event.key !== " ")) return; event.preventDefault(); setNavOpen((open) => !open); }} onClick={(event) => { event.stopPropagation(); if (event.detail === 0) return; setNavOpen((open) => !open); }}>
               <span aria-hidden="true" />
             </button>
           )}

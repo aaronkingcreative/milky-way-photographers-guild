@@ -38,3 +38,9 @@ export async function getIotwSchedule(supabase:any,now=new Date()){
 }
 /** Short Mountain time, e.g. "Sun, Nov 8, 12:00 PM MST". */
 export function formatMountainShort(iso:string){return new Intl.DateTimeFormat('en-US',{timeZone:TZ,weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}).format(new Date(iso));}
+
+/** Confirmation after a member locks a ballot. The deadline is the ballot's own close, in America/Denver. */
+export function voteLockConfirmation(placeCount: number, closesAt: string) {
+  const count = Math.max(1, Math.min(3, Math.trunc(placeCount) || 1));
+  return `Your Top ${count} is locked in. You can change it until ${formatMountainShort(closesAt)}.`;
+}
