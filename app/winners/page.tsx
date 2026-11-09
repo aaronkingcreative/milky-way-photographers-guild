@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { KeepTail } from "@/components/KeepTail";
 import { requireAccess } from "@/lib/guards";
 import { formatMountainShort, getIotwSchedule } from "@/lib/iotw";
+import { momentOfEnvyCopy } from "@/lib/public-copy";
 import { IotwSchedule } from "@/components/iotw/IotwSchedule";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getAvatarDisplay, publicMemberName } from "@/lib/avatar";
@@ -57,6 +59,7 @@ export default async function Page() {
       <p className="eyebrow">Guild Honors</p>
       <h1 className="mt-2 font-display text-5xl uppercase">Image of the Week Winners</h1>
       <p className="mt-3 max-w-3xl text-white/68">Every IOTW winner, newest first. Open any winning image to read its field report.</p>
+      <p className="mt-3 max-w-3xl text-white/68"><KeepTail text={momentOfEnvyCopy} /></p>
       <div className="max-w-3xl"><IotwSchedule entry={schedule.entry} voting={schedule.voting} /></div>
       {decided.length ? (
         <div className="mw-winners-list">{decided.map((w) => <WinnerEntry key={w.ballot.id} week={w} />)}</div>

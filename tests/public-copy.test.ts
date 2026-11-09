@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { EMAIL_DOT_MESSAGE, EMAIL_REQUIRED_MESSAGE, EMAIL_SHAPE_MESSAGE, emailFieldError } from "../lib/email-address.ts";
-import { contactLead, courseLibraryUrl, homeFeatures, homeLead, privacySections, rankNameList, resourcesNote, signupIntro, termsSections } from "../lib/public-copy.ts";
+import { readFileSync } from "node:fs";
+import { contactLead, courseLibraryUrl, homeFeatures, homeLead, momentOfEnvyCopy, privacySections, rankNameList, resourcesNote, signupIntro, termsSections } from "../lib/public-copy.ts";
 import { RANKS } from "../lib/ranks.ts";
 import { CHECK_EMAIL_MESSAGE, DISPOSABLE_EMAIL_MESSAGE, SIGNUP_REASSURANCE, STALE_FORM_MESSAGE, TOO_FAST_MESSAGE } from "../lib/signup-messages.ts";
 import { WEEKLY_SUBMISSION_LIMIT } from "../lib/images.ts";
@@ -67,4 +68,25 @@ test("free join lasts through 2027 and names no price", () => {
 
 test("the weekly upload cap stays unlimited", () => {
   assert.equal(WEEKLY_SUBMISSION_LIMIT, null);
+});
+
+test("monday moment of envy uses one first-person definition", () => {
+  const card = homeFeatures.find((item) => item.title === "Monday Moment of Envy");
+  assert.equal(card?.body, momentOfEnvyCopy);
+  assert.equal(termsSections.flatMap((section) => section.paragraphs).includes(momentOfEnvyCopy), true);
+  assert.match(momentOfEnvyCopy, /I celebrate the vote winner and my Photog Phavorite, and sometimes the runner-up/);
+  assert.equal(momentOfEnvyCopy.toLowerCase().includes("outside the top 3"), false);
+  assert.equal(momentOfEnvyCopy.toLowerCase().includes("personal pick"), false);
+  assert.equal(momentOfEnvyCopy.includes("\u2014"), false);
+  assert.equal(momentOfEnvyCopy.includes(":"), false);
+  for (const file of ["app/field-desk/page.tsx", "app/winners/page.tsx", "app/page.tsx"]) {
+    const source = readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
+    assert.equal(source.toLowerCase().includes("outside the top 3"), false, file);
+    assert.equal(source.toLowerCase().includes("personal pick"), false, file);
+    assert.equal(source.includes("photo<wbr"), false, file);
+    assert.equal(source.includes("<wbr"), false, file);
+  }
+  assert.equal(readFileSync(new URL("../app/field-desk/page.tsx", import.meta.url), "utf8").includes("momentOfEnvyCopy"), true);
+  assert.equal(readFileSync(new URL("../app/winners/page.tsx", import.meta.url), "utf8").includes("momentOfEnvyCopy"), true);
+  assert.equal(readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8").includes("mw-unbreakable"), true);
 });

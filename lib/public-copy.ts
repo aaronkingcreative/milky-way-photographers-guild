@@ -16,6 +16,11 @@ export const courseLibraryUrl = "https://onlinecourses.photogadventures.com";
 export const courseLibraryLabel = "Open the course library";
 export const homeSectionTitle = "Feedback, voting, and ranks do different jobs.";
 
+/** One definition, first person, on the home card, Field Desk, Winners, and Terms. */
+export const momentOfEnvyCopy =
+  "The Monday Moment of Envy is a video where I celebrate the vote winner and my Photog Phavorite, and sometimes the runner-up.";
+export const momentOfEnvyPending = "No Moment of Envy yet.";
+
 export const homeFeatures: { title: string; body: string }[] = [
   {
     title: "Field reports",
@@ -35,7 +40,7 @@ export const homeFeatures: { title: string; body: string }[] = [
   },
   {
     title: "Monday Moment of Envy",
-    body: "The Monday Moment of Envy celebrates the Image of the Week winner. It is a celebration, not a rank.",
+    body: momentOfEnvyCopy,
   },
   {
     title: "Field Honors",
@@ -125,6 +130,7 @@ export const termsSections: LegalSection[] = [
     heading: "Feedback, voting, and ranks",
     paragraphs: [
       "Feedback is a written note on a field report. It is there to help the photographer. Voting is the Image of the Week ballot, with a first, second, and third choice among other members' images. Ranks are the Ascent names, and they move when Field Honors are verified. A note does not cast a vote. A vote does not award a rank.",
+      momentOfEnvyCopy,
       `The rank names are ${rankNameList}. ${rankRangeSentence}`,
     ],
   },

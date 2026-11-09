@@ -1,6 +1,7 @@
 import { nextRankForCount, rankForCount } from "@/lib/achievements";
 import { consecutiveMonthStreakFromCoverage } from "@/lib/coverage";
 import { isPublicName, publicMemberName, resolveAvatarUrl } from "@/lib/avatar";
+import { countsAsFieldHonor } from "@/lib/member-labels";
 import { fetchMilkyWayYears, milkyWayStreak } from "@/lib/streak";
 
 export const EARNED_ACHIEVEMENT_STATUSES = ["auto_awarded_pending_review", "verified"];
@@ -22,6 +23,8 @@ export type MemberStats = {
   /** Header pill crop, falls back to the circle in the header when missing. */
   avatar_pill_url: string | null;
   earned_honor_count: number;
+  /** Rank-counting honors behind earned_honor_count, one row per award. */
+  earned_honors: { id: string; name: string; glyph: string }[];
   rank: string;
   rank_short: string;
   next_rank: string | null;
@@ -64,11 +67,20 @@ async function loadProfile(supabase: SupabaseClient, id: string) {
 export async function getMemberStats(supabase: SupabaseClient, user: AuthUser): Promise<MemberStats> {
   const [{ data: profile }, { data: achievements }, { data: coverage }, milkyWayYears] = await Promise.all([
     loadProfile(supabase, user.id),
-    supabase.from("user_achievements").select("achievement_id,status,achievement_definitions(counts_toward_rank)").eq("user_id", user.id).in("status", EARNED_ACHIEVEMENT_STATUSES),
+    supabase.from("user_achievements").select("achievement_id,status,achievement_definitions(name,glyph,counts_toward_rank)").eq("user_id", user.id).in("status", EARNED_ACHIEVEMENT_STATUSES),
     supabase.from("user_field_coverage").select("capture_year,capture_month").eq("user_id", user.id),
     fetchMilkyWayYears(supabase, [user.id]),
   ]);
-  const earned = new Set((achievements || []).filter((row: any) => row.achievement_definitions?.counts_toward_rank !== false && !String(row.achievement_id || "").startsWith("rank_")).map((row: any) => row.achievement_id)).size;
+  const earnedHonors: { id: string; name: string; glyph: string }[] = [];
+  const seenHonors = new Set<string>();
+  for (const row of achievements || []) {
+    if (!countsAsFieldHonor(row.achievement_id, row.achievement_definitions?.counts_toward_rank)) continue;
+    if (seenHonors.has(row.achievement_id)) continue;
+    seenHonors.add(row.achievement_id);
+    const def = Array.isArray(row.achievement_definitions) ? row.achievement_definitions[0] : row.achievement_definitions;
+    earnedHonors.push({ id: row.achievement_id, name: def?.name || "Field Honor", glyph: def?.glyph || "✦" });
+  }
+  const earned = earnedHonors.length;
   const rank = rankForCount(earned);
   const nextRank = nextRankForCount(earned);
   const streak = milkyWayStreak((milkyWayYears.get(user.id) || []).map((row) => row.year));
@@ -82,6 +94,7 @@ export async function getMemberStats(supabase: SupabaseClient, user: AuthUser): 
     avatar_path,
     avatar_pill_url: (profile as any)?.avatar_pill_path ? resolveAvatarUrl((profile as any).avatar_pill_path) : null,
     earned_honor_count: earned,
+    earned_honors: earnedHonors,
     rank: rank.full,
     rank_short: rank.short,
     next_rank: nextRank?.short || null,
