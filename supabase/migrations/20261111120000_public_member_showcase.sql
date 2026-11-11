@@ -64,7 +64,7 @@ as $$
       join public.achievement_definitions ad on ad.id = ua.achievement_id
       where ua.status in ('auto_awarded_pending_review', 'verified')
         and ad.category <> 'rank'
-        and pg_catalog.coalesce(ad.counts_toward_rank, true)
+        and coalesce(ad.counts_toward_rank, true)
         and pg_catalog.strpos(ua.achievement_id, 'rank_') <> 1
     )
   );
@@ -110,7 +110,7 @@ begin
     return;
   end if;
 
-  take := pg_catalog.least(available, 5 + pg_catalog.floor(pg_catalog.random() * 3)::int);
+  take := least(available, 5 + pg_catalog.floor(pg_catalog.random() * 3)::int);
 
   return query
   select gi.image_url::text, p.avatar_url::text
