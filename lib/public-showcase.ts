@@ -67,7 +67,8 @@ export const PUBLIC_SHOWCASE_STATS: { key: "comments" | "pics" | "honors"; label
 
 const REQUIRED_KEYS = PUBLIC_SHOWCASE_STATS.map((stat) => stat.key);
 const OPTIONAL_COUNT_KEYS = ["members", "reactions", "regions", "countries", "week_pics"] as const;
-const OPTIONAL_TO_CAMEL: Record<(typeof OPTIONAL_COUNT_KEYS)[number], keyof PublicCounts> = {
+type OptionalScalarKey = "members" | "reactions" | "regions" | "countries" | "weekPics";
+const OPTIONAL_TO_CAMEL: Record<(typeof OPTIONAL_COUNT_KEYS)[number], OptionalScalarKey> = {
   members: "members",
   reactions: "reactions",
   regions: "regions",

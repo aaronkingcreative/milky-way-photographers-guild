@@ -10,11 +10,11 @@ export const US_MAP_VIEWBOX = "0 0 1000 620";
 
 /** Approximate label anchors for a compact continental layout, with AK and HI as insets. */
 export const US_STATE_ANCHORS: StateAnchor[] = [
-  { code: "WA", x: 145, y: 78 },
-  { code: "OR", x: 132, y: 145 },
-  { code: "CA", x: 118, y: 255 },
+  { code: "WA", x: 168, y: 88 },
+  { code: "OR", x: 158, y: 150 },
+  { code: "CA", x: 148, y: 262 },
   { code: "ID", x: 205, y: 128 },
-  { code: "NV", x: 168, y: 215 },
+  { code: "NV", x: 188, y: 214 },
   { code: "UT", x: 225, y: 228 },
   { code: "AZ", x: 205, y: 312 },
   { code: "MT", x: 305, y: 88 },
@@ -43,7 +43,7 @@ export const US_STATE_ANCHORS: StateAnchor[] = [
   { code: "OH", x: 688, y: 238 },
   { code: "WV", x: 728, y: 278 },
   { code: "GA", x: 668, y: 398 },
-  { code: "FL", x: 728, y: 498 },
+  { code: "FL", x: 708, y: 468 },
   { code: "PA", x: 768, y: 218 },
   { code: "VA", x: 768, y: 298 },
   { code: "NC", x: 778, y: 348 },
