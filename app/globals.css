@@ -1613,12 +1613,12 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
     left: 0;
     z-index: 2;
     max-width: 16rem;
-    padding: 0 1.1rem .7rem 0;
-    background: linear-gradient(180deg, #06101c 42%, rgba(6, 16, 28, 0));
+    padding: 0 1.4rem 1rem 0;
+    background: radial-gradient(ellipse at 0 0, #06101c 46%, rgba(6, 16, 28, 0) 72%);
     pointer-events: none;
   }
   .mw-stats-pics-lead .mw-stats-label { margin-top: .08rem; }
-  .mw-stats-pics-lead .mw-stats-note { margin-top: .2rem; }
+  .mw-stats-pics-lead .mw-stats-note { margin-top: .28rem; color: rgba(213, 222, 234, .86); }
   .mw-stats-spark {
     flex: 1 1 auto;
     display: flex;
@@ -1637,8 +1637,10 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
   .mw-public .mw-showcase-honors { margin-top: .85rem; }
   .mw-stats-hero-pair .mw-showcase-honors {
     grid-column: 1 / -1;
-    margin-top: .6rem;
-    font-size: 1.18rem;
+    margin-top: 1.25rem;
+    max-width: 36rem;
+    font-size: 1.42rem;
+    line-height: 1.75;
   }
   .mw-stats-band {
     grid-column: 1 / -1;
@@ -1657,21 +1659,23 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
     gap: 2.4rem;
     min-width: 0;
   }
-  .mw-stats-band-right { padding-left: 1.7rem; }
+  .mw-stats-band-right { padding-left: 0; }
   .mw-stats-band .mw-stats-side { display: flex; align-items: baseline; gap: .75rem; }
   .mw-stats-band .mw-stats-label { margin: 0; white-space: nowrap; }
 
   .mw-stats-hero-pair {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
-    gap: .25rem 1.5rem;
+    gap: .55rem 1.6rem;
     align-items: start;
   }
   .mw-stats-hero-figure { min-width: 0; }
-  .mw-stats-hero-pair .mw-stats-bars { margin-top: .55rem; gap: .55rem; }
-  .mw-stats-hero-pair .mw-stats-bar-track { height: 4px; }
-  .mw-stats-hero-value { font-size: clamp(7.2rem, 10.5vw, 10.25rem); }
-  .mw-stats-supporting-value { font-size: calc(0.6 * clamp(7.2rem, 10.5vw, 10.25rem)); }
+  .mw-stats-hero-label { font-size: 2rem; margin-top: .12rem; }
+  .mw-stats-hero-pair .mw-stats-bars { margin-top: .9rem; gap: .85rem; }
+  .mw-stats-hero-pair .mw-stats-bar-track { height: 5px; }
+  .mw-stats-hero-pair .mw-stats-bar-label { font-size: .8rem; }
+  .mw-stats-hero-value { font-size: clamp(8.2rem, 12.2vw, 11.25rem); }
+  .mw-stats-supporting-value { font-size: calc(0.6 * clamp(8.2rem, 12.2vw, 11.25rem)); }
   .mw-stats-place-value { font-size: clamp(3.4rem, 5vw, 5.1rem); }
   .mw-stats-map-art { margin: 0 -.85rem .05rem; }
   .mw-stats-side {
@@ -1697,8 +1701,8 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
   .mw-showcase { max-width: 96rem; padding-left: 2.5rem; padding-right: 2.5rem; }
   .mw-stats { column-gap: 3.4rem; }
   .mw-stats-band { column-gap: 3.4rem; }
-  .mw-stats-hero-value { font-size: clamp(8.6rem, 9.4vw, 11.5rem); }
-  .mw-stats-supporting-value { font-size: calc(0.6 * clamp(8.6rem, 9.4vw, 11.5rem)); }
+  .mw-stats-hero-value { font-size: clamp(12rem, 13.2vw, 13.5rem); }
+  .mw-stats-supporting-value { font-size: calc(0.6 * clamp(12rem, 13.2vw, 13.5rem)); }
   .mw-stats-side-value { font-size: 3.8rem; }
   .mw-stats-place-value { font-size: 5.4rem; }
 }
@@ -1706,8 +1710,8 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
   .mw-showcase { max-width: 108rem; padding-left: 3rem; padding-right: 3rem; }
   .mw-stats { column-gap: 4rem; }
   .mw-stats-band { column-gap: 4rem; }
-  .mw-stats-hero-value { font-size: 12rem; }
-  .mw-stats-supporting-value { font-size: 7.2rem; }
+  .mw-stats-hero-value { font-size: 14.5rem; }
+  .mw-stats-supporting-value { font-size: 8.7rem; }
 }
 .mw-print-pile { margin: 1.15rem 0 0; }
 .mw-print-table {

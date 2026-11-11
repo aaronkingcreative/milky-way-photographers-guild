@@ -19,8 +19,8 @@ export const PRINT_SAFE: PrintSafe = {
 
 /** Looser casual spread for wide tables. Leaves a margin so rotated prints stay inside. */
 export const PRINT_SAFE_WIDE: PrintSafe = {
-  minX: 11,
-  maxX: 89,
+  minX: 8,
+  maxX: 92,
   minY: 28,
   maxY: 72,
   maxRotate: 11,
