@@ -44,6 +44,13 @@ export function ProfileSettingsForm({ profile }: { profile: any }) {
       <label className="mw-field-label">Display name<input className="mw-input mt-2" name="display_name" maxLength={80} autoComplete="name" placeholder="The name members see on your work" defaultValue={currentProfile?.display_name || (isPublicName(currentProfile?.full_name) ? currentProfile.full_name : "")}/></label>
       <LocationSelects defaults={{ country: currentProfile?.country, state_or_province: currentProfile?.state_or_province || currentProfile?.region, specific_location_name: currentProfile?.specific_location_name || currentProfile?.specific_location }} />
       <p className="profile-private-note">Specific location is optional.</p>
+      <label className="profile-showcase-choice">
+        <input className="mw-iotw-checkbox" type="checkbox" name="public_showcase" defaultChecked={Boolean(currentProfile?.public_showcase)} />
+        <span>
+          <span className="profile-showcase-title">Show my photos on the public Guild page</span>
+          <span className="profile-private-note">This stays off until you turn it on. The public Guild page can show your photos and your profile picture, without your name. You can turn it off any time.</span>
+        </span>
+      </label>
       <button className="mw-btn-primary profile-save-button" disabled={saving}>{saving ? "Saving..." : saveState.status === "success" && !dirty ? "Saved" : "Save Profile"}</button>
       {notice && <p className={`profile-save-message ${saveState.status === "error" ? "profile-save-message-error" : ""}`} role="status">{notice}</p>}
     </form>

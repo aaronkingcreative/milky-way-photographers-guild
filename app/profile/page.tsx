@@ -8,7 +8,7 @@ import { fetchMilkyWayYears } from "@/lib/streak";
 export default async function Page() {
   const { user } = await requireLogin();
   const supabase = await createServerSupabaseClient();
-  const { data: profile } = await supabase.from("profiles").select("display_name,full_name,email,avatar_url,avatar_path,avatar_pill_path,avatar_original_path,avatar_crop,country,region,state_or_province,specific_location,specific_location_name").eq("id", user.id).maybeSingle();
+  const { data: profile } = await supabase.from("profiles").select("display_name,full_name,email,avatar_url,avatar_path,avatar_pill_path,avatar_original_path,avatar_crop,country,region,state_or_province,specific_location,specific_location_name,public_showcase").eq("id", user.id).maybeSingle();
 
   const milkyWayYears = await fetchMilkyWayYears(supabase, [user.id]).catch(() => new Map());
 

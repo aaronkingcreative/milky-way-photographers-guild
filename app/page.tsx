@@ -1,7 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { KeepTail } from "@/components/KeepTail";
+import { PublicShowcase } from "@/components/PublicShowcase";
 import { isBeforeGuildLaunch } from "@/lib/launch";
 import {
   afterFeaturesLead,
@@ -103,6 +105,10 @@ export default async function Home() {
           </figure>
         </div>
       </section>
+
+      <Suspense fallback={null}>
+        <PublicShowcase />
+      </Suspense>
 
       <section className="mx-auto max-w-7xl px-5 py-16 sm:py-20">
         <div className="max-w-3xl">
