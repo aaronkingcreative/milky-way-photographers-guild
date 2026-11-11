@@ -1,10 +1,11 @@
+import { KeepTail } from "@/components/KeepTail";
 import { fieldHonorsPublicLine } from "@/lib/public-copy";
 import { getPublicShowcase } from "@/lib/public-showcase-data";
 import { formatShowcaseCount, PUBLIC_SHOWCASE_STATS } from "@/lib/public-showcase";
 
 const photoAlt = "Night sky photograph from a Guild member";
 
-/** Live totals, and a nameless photo strip when at least five photos qualify. */
+/** Live totals, and a nameless photo strip when at least one photo qualifies. */
 export async function PublicShowcase() {
   const showcase = await getPublicShowcase();
   if (!showcase) return null;
@@ -23,7 +24,7 @@ export async function PublicShowcase() {
           </div>
         ))}
       </dl>
-      <p className="mw-showcase-honors">{fieldHonorsPublicLine}</p>
+      <p className="mw-showcase-honors"><KeepTail text={fieldHonorsPublicLine} /></p>
       {photos.length > 0 && (
         <ul className="mw-showcase-strip">
           {photos.map((photo) => (

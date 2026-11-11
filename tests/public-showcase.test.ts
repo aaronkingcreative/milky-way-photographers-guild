@@ -19,16 +19,20 @@ test("counts accept only the three public numbers", () => {
   assert.equal(parsePublicCounts(null), null);
 });
 
-test("the photo strip stays hidden under five and never keeps a name", () => {
-  assert.deepEqual(parseShowcasePhotos([photo(1), photo(2), photo(3), photo(4)]), []);
-  const five = parseShowcasePhotos([1, 2, 3, 4, 5].map((index) => photo(index, { display_name: "Ada Lovelace", user_id: "secret" })));
-  assert.equal(five.length, SHOWCASE_MIN);
-  assert.deepEqual(Object.keys(five[0]).sort(), ["avatarUrl", "imageUrl"]);
-  assert.equal(JSON.stringify(five).includes("Ada"), false);
-  assert.equal(JSON.stringify(five).includes("secret"), false);
+test("the photo strip shows whatever valid photos exist and never keeps a name", () => {
+  assert.deepEqual(parseShowcasePhotos([]), []);
+  const few = parseShowcasePhotos([photo(1), photo(2)]);
+  assert.equal(few.length, 2);
+  assert.deepEqual(Object.keys(few[0]).sort(), ["avatarUrl", "imageUrl"]);
+  const named = parseShowcasePhotos([1, 2, 3].map((index) => photo(index, { display_name: "Ada Lovelace", user_id: "secret" })));
+  assert.equal(named.length, 3);
+  assert.equal(JSON.stringify(named).includes("Ada"), false);
+  assert.equal(JSON.stringify(named).includes("secret"), false);
   const many = parseShowcasePhotos(Array.from({ length: 9 }, (_, index) => photo(index)));
   assert.equal(many.length, SHOWCASE_MAX);
-  assert.deepEqual(parseShowcasePhotos([{ image_url: "http://cdn.example.com/a.jpg", avatar_url: "https://cdn.example.com/a.jpg" }, photo(2), photo(3), photo(4), photo(5)]), []);
+  const mixed = parseShowcasePhotos([{ image_url: "http://cdn.example.com/a.jpg", avatar_url: "https://cdn.example.com/a.jpg" }, photo(2), photo(3)]);
+  assert.equal(mixed.length, 2);
+  assert.equal(SHOWCASE_MIN, 1);
 });
 
 test("the showcase migration stays a counts-and-urls function for anon", () => {
@@ -60,6 +64,26 @@ test("the owner-fill migration keeps the default off and only returns urls", () 
   assert.equal(sql.includes("pg_catalog.coalesce"), false);
   assert.match(sql, /if available < 5 then/);
   assert.match(sql, /returns table \(image_url text, avatar_url text\)/);
-  assert.equal(sql.toLowerCase().includes("display_name"), false);
   assert.equal(sql.toLowerCase().includes("grant select on public.profiles to anon"), false);
+});
+
+test("the hide-setting migration defaults to shown and only returns urls", () => {
+  const sql = readFileSync(new URL("../supabase/migrations/20261111163300_public_showcase_hide_setting.sql", import.meta.url), "utf8");
+  assert.match(sql, /hide_from_public_showcase boolean not null default false/);
+  assert.match(sql, /security definer/);
+  assert.match(sql, /set search_path = ''/);
+  assert.match(sql, /grant execute on function public\.public_showcase_photos\(\) to anon, service_role/);
+  assert.match(sql, /revoke all on function public\.public_showcase_photos\(\) from public, anon, authenticated/);
+  assert.match(sql, /grant update \(hide_from_public_showcase\) on public.profiles to authenticated/);
+  assert.match(sql, /revoke all on public.member_profiles from public, anon/);
+  assert.equal(/hide_from_public_showcase\s*=\s*true/i.test(sql), false);
+  assert.equal(/public_showcase\s*=\s*not/i.test(sql), false);
+  assert.equal(sql.includes("pg_catalog.least"), false);
+  assert.equal(sql.includes("pg_catalog.coalesce"), false);
+  assert.match(sql, /if available < 1 then/);
+  assert.match(sql, /if available < 5 then/);
+  assert.match(sql, /not p.hide_from_public_showcase/);
+  assert.match(sql, /returns table \(image_url text, avatar_url text\)/);
+  assert.equal(sql.toLowerCase().includes("grant select on public.profiles to anon"), false);
+  assert.equal(sql.toLowerCase().includes("grant select on public.member_profiles to anon"), false);
 });
