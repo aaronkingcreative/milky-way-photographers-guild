@@ -124,6 +124,15 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
     });
   }, [visible]);
 
+  const markAvatarReady = useCallback((imageUrl: string) => {
+    setReadyAvatars((current) => {
+      if (current.has(imageUrl)) return current;
+      const next = new Set(current);
+      next.add(imageUrl);
+      return next;
+    });
+  }, []);
+
   const markPhotoReady = useCallback((imageUrl: string, image: HTMLImageElement) => {
     const aspect = aspectFromImage(image);
     if (aspect) {
@@ -319,16 +328,10 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
                   decoding="async"
                   fetchPriority={priority ? "high" : "auto"}
                   draggable={false}
-                  onLoad={() => {
-                    setReadyAvatars((current) => {
-                      if (current.has(photo.imageUrl)) return current;
-                      const next = new Set(current);
-                      next.add(photo.imageUrl);
-                      return next;
-                    });
-                  }}
+                  onLoad={() => markAvatarReady(photo.imageUrl)}
                   onError={(event) => {
                     if (event.currentTarget.src.includes(DEFAULT_PRINT_AVATAR) || event.currentTarget.getAttribute("src") === DEFAULT_PRINT_AVATAR) {
+                      markAvatarReady(photo.imageUrl);
                       return;
                     }
                     const currentStage = avatarStages[photo.avatarUrl] ?? "webp";
@@ -338,6 +341,12 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
                       return;
                     }
                     setFailedAvatars((current) => new Set(current).add(photo.avatarUrl));
+                    markAvatarReady(photo.imageUrl);
+                  }}
+                  ref={(image) => {
+                    if (image && image.complete && (image.naturalWidth > 0 || (image.currentSrc || image.src || "").endsWith(".svg"))) {
+                      markAvatarReady(photo.imageUrl);
+                    }
                   }}
                 />
               </span>
@@ -387,6 +396,12 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
                   alt=""
                   decoding="async"
                   draggable={false}
+                  onLoad={() => markAvatarReady(focusedPhoto.imageUrl)}
+                  ref={(image) => {
+                    if (image && image.complete && (image.naturalWidth > 0 || (image.currentSrc || image.src || "").endsWith(".svg"))) {
+                      markAvatarReady(focusedPhoto.imageUrl);
+                    }
+                  }}
                 />
               </span>
             </figure>

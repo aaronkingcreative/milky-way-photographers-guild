@@ -20,6 +20,20 @@ test("a seed from the same keys stays stable and a scatter stays on the table", 
   assert.notDeepEqual(poses, shuffled);
 });
 
+test("a phone scatter uses more of the table and stays inside the narrow safe box", () => {
+  const poses = scatterPrints(9, 42, PRINT_SAFE);
+  const xs = poses.map((pose) => pose.x);
+  const ys = poses.map((pose) => pose.y);
+  const xSpan = Math.max(...xs) - Math.min(...xs);
+  const ySpan = Math.max(...ys) - Math.min(...ys);
+  assert.ok(xSpan > 24, String(xSpan));
+  assert.ok(ySpan > 20, String(ySpan));
+  for (const pose of poses) {
+    assert.ok(pose.x >= PRINT_SAFE.minX && pose.x <= PRINT_SAFE.maxX, String(pose.x));
+    assert.ok(pose.y >= PRINT_SAFE.minY && pose.y <= PRINT_SAFE.maxY, String(pose.y));
+  }
+});
+
 test("a wide scatter uses more of the table and stays inside the wide safe box", () => {
   const poses = scatterPrints(9, 42, PRINT_SAFE_WIDE);
   assert.equal(poses.length, 9);
