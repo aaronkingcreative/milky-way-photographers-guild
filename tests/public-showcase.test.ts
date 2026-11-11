@@ -46,3 +46,20 @@ test("the showcase migration stays a counts-and-urls function for anon", () => {
   assert.match(sql, /field_reports/);
   assert.match(sql, /user_achievements/);
 });
+
+test("the owner-fill migration keeps the default off and only returns urls", () => {
+  const sql = readFileSync(new URL("../supabase/migrations/20261111153000_public_showcase_owner_fill.sql", import.meta.url), "utf8");
+  assert.match(sql, /cf99ddfd-5e79-4a01-b1f6-2ec9200db881/);
+  assert.match(sql, /security definer/);
+  assert.match(sql, /set search_path = ''/);
+  assert.match(sql, /grant execute on function public\.public_showcase_photos\(\) to anon, service_role/);
+  assert.match(sql, /revoke all on function public\.public_showcase_photos\(\) from public, anon, authenticated/);
+  assert.equal(/update\s+public\.profiles/i.test(sql), false);
+  assert.equal(/public_showcase\s*=\s*true/i.test(sql), false);
+  assert.equal(sql.includes("pg_catalog.least"), false);
+  assert.equal(sql.includes("pg_catalog.coalesce"), false);
+  assert.match(sql, /if available < 5 then/);
+  assert.match(sql, /returns table \(image_url text, avatar_url text\)/);
+  assert.equal(sql.toLowerCase().includes("display_name"), false);
+  assert.equal(sql.toLowerCase().includes("grant select on public.profiles to anon"), false);
+});
