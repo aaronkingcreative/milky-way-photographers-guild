@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent } from "react";
 import { createPortal } from "react-dom";
 import { KeepTail } from "@/components/KeepTail";
 import { nextPrintLabel, previousPrintLabel, putPrintBackLabel, shufflePileLabel } from "@/lib/public-copy";
@@ -184,7 +184,7 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
               onPointerMove={onPointerMove}
               onPointerUp={onPointerUp}
               onPointerCancel={onPointerUp}
-              onKeyDown={(event: KeyboardEvent<HTMLButtonElement>) => {
+              onKeyDown={(event: ReactKeyboardEvent<HTMLButtonElement>) => {
                 if (event.key === "Enter" || event.key === " ") {
                   event.preventDefault();
                   openFocus(index);
