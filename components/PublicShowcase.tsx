@@ -26,7 +26,7 @@ export async function PublicShowcase() {
       <p className="mw-showcase-honors"><KeepTail text={fieldHonorsPublicLine} /></p>
       {photos.length > 0 && (
         <>
-          <p className="mw-showcase-pile-lead"><KeepTail text={pileLead} /></p>
+          <p className="mw-showcase-pile-lead"><KeepTail text={pileLead} keep={6} /></p>
           <PublicPrintPile photos={photos} />
         </>
       )}

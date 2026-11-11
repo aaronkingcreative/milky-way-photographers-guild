@@ -34,6 +34,10 @@ test("the photo strip shows whatever valid photos exist and never keeps a name",
   const mixed = parseShowcasePhotos([{ image_url: "http://cdn.example.com/a.jpg", avatar_url: "https://cdn.example.com/a.jpg" }, photo(2), photo(3)]);
   assert.equal(mixed.length, 2);
   assert.equal(SHOWCASE_MIN, 1);
+  const noAvatar = parseShowcasePhotos([{ image_url: "https://cdn.example.com/photos/bare.jpg" }]);
+  assert.equal(noAvatar.length, 1);
+  assert.equal(noAvatar[0].imageUrl, "https://cdn.example.com/photos/bare.jpg");
+  assert.equal(noAvatar[0].avatarUrl, "");
 });
 
 test("the showcase migration stays a counts-and-urls function for anon", () => {

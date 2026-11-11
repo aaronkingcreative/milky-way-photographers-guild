@@ -1,4 +1,5 @@
-import { parsePublicCounts, parseShowcasePhotos, PUBLIC_SHOWCASE_CACHE_TAG, type PublicShowcase } from "@/lib/public-showcase";
+import { parsePublicCounts, parseShowcasePhotos, PUBLIC_SHOWCASE_CACHE_TAG, type PublicShowcase, type ShowcasePhoto } from "@/lib/public-showcase";
+import { isReachableImage, showcaseThumbUrl } from "@/lib/showcase-images";
 
 const COUNTS_RPC = "public_guild_counts";
 const PHOTOS_RPC = "public_showcase_photos";
@@ -34,6 +35,22 @@ async function rpc(name: string): Promise<unknown> {
 }
 
 /**
+ * Drop photos whose thumbnail is clearly gone. A timeout or network blip leaves the row
+ * in place so the client can still try, then remove it if the image errors.
+ */
+async function keepReachablePhotos(photos: ShowcasePhoto[]): Promise<ShowcasePhoto[]> {
+  if (photos.length === 0) return photos;
+  const checks = await Promise.all(photos.map(async (photo) => {
+    const thumb = showcaseThumbUrl(photo.imageUrl);
+    const thumbState = await isReachableImage(thumb);
+    if (thumbState === "yes" || thumbState === "unknown") return photo;
+    const originalState = await isReachableImage(photo.imageUrl);
+    return originalState === "no" ? null : photo;
+  }));
+  return checks.filter((photo): photo is ShowcasePhoto => photo !== null);
+}
+
+/**
  * Cached about five minutes. A counts failure throws so the caller can hide the section.
  * A photo failure leaves the totals up and hides the strip.
  */
@@ -43,7 +60,7 @@ export async function loadPublicShowcase(): Promise<PublicShowcase> {
   const counts = parsePublicCounts(countsResult.value);
   if (!counts) throw new Error("Public showcase counts were not numbers.");
   const photos = photosResult.status === "fulfilled" ? parseShowcasePhotos(photosResult.value) : [];
-  return { counts, photos };
+  return { counts, photos: await keepReachablePhotos(photos) };
 }
 
 export async function getPublicShowcase(): Promise<PublicShowcase | null> {
