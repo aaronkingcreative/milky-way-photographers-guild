@@ -60,9 +60,13 @@ export const closingLead = "The field reports live here. Join the Guild and brin
 export const fieldHonorsPublicLine =
   "Most sites call them achievements. In the Guild they are Field Honors, and you earn them out in the field with real photos and real\u00A0adventures.";
 
-/** Same sentence on Terms and Privacy. The choice is off until a member turns it on. */
+/** Same sentence on Terms and Privacy. Published photos may show unless a member hides them. */
 export const publicPhotoChoiceCopy =
-  "You can choose to show your photos and your profile picture, without your name, on the public Guild page. That choice is off unless you turn it on, and you can turn it off any time in settings.";
+  "Published photos and profile pictures may show on public Guild pages without your name. You can turn that off in settings, and I remove any photo on request.";
+
+export const hidePhotosTitle = "Hide my photos from the public Guild page";
+export const hidePhotosHelp =
+  "Your published photos can show on the public Guild page without your name. Turn this on to keep yours off.";
 
 export const notFoundTitle = "I cannot find that page.";
 export const notFoundBody = "The address may be mistyped, or the page may have moved. Head back to the Guild, or join if you are new.";

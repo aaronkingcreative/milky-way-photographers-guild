@@ -6,6 +6,8 @@ import { updateProfileLocation, type ProfileSaveState } from "@/app/actions";
 import { PortraitEditor } from "@/components/PortraitEditor";
 import { LocationSelects } from "@/components/images/LocationSelects";
 import { getAvatarDisplay, isPublicName } from "@/lib/avatar";
+import { hidePhotosHelp, hidePhotosTitle } from "@/lib/public-copy";
+import { KeepTail } from "@/components/KeepTail";
 
 const initialSaveState: ProfileSaveState = { status: "idle" };
 
@@ -45,10 +47,10 @@ export function ProfileSettingsForm({ profile }: { profile: any }) {
       <LocationSelects defaults={{ country: currentProfile?.country, state_or_province: currentProfile?.state_or_province || currentProfile?.region, specific_location_name: currentProfile?.specific_location_name || currentProfile?.specific_location }} />
       <p className="profile-private-note">Specific location is optional.</p>
       <label className="profile-showcase-choice">
-        <input className="mw-iotw-checkbox" type="checkbox" name="public_showcase" defaultChecked={Boolean(currentProfile?.public_showcase)} />
+        <input className="mw-iotw-checkbox" type="checkbox" name="hide_from_public_showcase" defaultChecked={Boolean(currentProfile?.hide_from_public_showcase)} />
         <span>
-          <span className="profile-showcase-title">Show my photos on the public Guild page</span>
-          <span className="profile-private-note">This stays off until you turn it on. The public Guild page can show your photos and your profile picture, without your name. You can turn it off any time.</span>
+          <span className="profile-showcase-title"><KeepTail text={hidePhotosTitle} /></span>
+          <span className="profile-private-note"><KeepTail text={hidePhotosHelp} /></span>
         </span>
       </label>
       <button className="mw-btn-primary profile-save-button" disabled={saving}>{saving ? "Saving..." : saveState.status === "success" && !dirty ? "Saved" : "Save Profile"}</button>

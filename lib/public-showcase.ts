@@ -1,11 +1,11 @@
 /**
- * Public Guild totals and the opt-in photo strip.
+ * Public Guild totals and the public photo strip.
  * Counts come from public_guild_counts. Photos come from public_showcase_photos.
  * Neither payload is allowed to carry a name, a handle, or a member row.
  */
 
 export const PUBLIC_SHOWCASE_CACHE_TAG = "public-showcase";
-export const SHOWCASE_MIN = 5;
+export const SHOWCASE_MIN = 1;
 export const SHOWCASE_MAX = 7;
 
 export type PublicCounts = {
@@ -71,7 +71,7 @@ function httpsUrl(value: unknown): string | null {
 }
 
 /**
- * Keep image and avatar URLs only. Hide the strip when fewer than five survive.
+ * Keep image and avatar URLs only. Show the strip when at least one photo survives.
  * Extra fields such as a name or id are dropped and never returned.
  */
 export function parseShowcasePhotos(value: unknown): ShowcasePhoto[] {
