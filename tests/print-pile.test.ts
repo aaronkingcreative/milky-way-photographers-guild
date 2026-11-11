@@ -55,14 +55,22 @@ test("one print sits in the middle of the table", () => {
 test("Supabase public object URLs become sized render URLs", () => {
   const photo = "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/field-report-images/users/a/original.jpg";
   const avatar = "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/profile-avatars/users/a/avatar.jpg";
-  assert.equal(
-    showcaseThumbUrl(photo),
-    `https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/render/image/public/field-report-images/users/a/original.jpg?width=${PILE_PHOTO_WIDTH}&quality=75`,
-  );
-  assert.equal(
-    showcaseAvatarUrl(avatar),
-    `https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/render/image/public/profile-avatars/users/a/avatar.jpg?width=${PILE_AVATAR_WIDTH}&quality=75`,
-  );
+  const photoThumb = new URL(showcaseThumbUrl(photo, "webp"));
+  assert.equal(photoThumb.origin, "https://lzeljgbudkqpbmbbbsex.supabase.co");
+  assert.equal(photoThumb.pathname, "/storage/v1/render/image/public/field-report-images/users/a/original.jpg");
+  assert.equal(photoThumb.searchParams.get("width"), String(PILE_PHOTO_WIDTH));
+  assert.equal(photoThumb.searchParams.get("height"), String(PILE_PHOTO_WIDTH));
+  assert.equal(photoThumb.searchParams.get("resize"), "contain");
+  assert.equal(photoThumb.searchParams.get("quality"), "75");
+  assert.equal(photoThumb.searchParams.get("format"), "webp");
+  const jpegThumb = new URL(showcaseThumbUrl(photo));
+  assert.equal(jpegThumb.searchParams.get("resize"), "contain");
+  assert.equal(jpegThumb.searchParams.get("format"), null);
+  const avatarThumb = new URL(showcaseAvatarUrl(avatar, "webp"));
+  assert.equal(avatarThumb.searchParams.get("width"), String(PILE_AVATAR_WIDTH));
+  assert.equal(avatarThumb.searchParams.get("height"), String(PILE_AVATAR_WIDTH));
+  assert.equal(avatarThumb.searchParams.get("resize"), "cover");
+  assert.equal(avatarThumb.searchParams.get("format"), "webp");
   assert.equal(showcaseThumbUrl("https://cdn.example.com/photo.jpg"), "https://cdn.example.com/photo.jpg");
   assert.equal(showcaseAvatarUrl(""), DEFAULT_PRINT_AVATAR);
   assert.equal(showcaseAvatarUrl(DEFAULT_PRINT_AVATAR), DEFAULT_PRINT_AVATAR);

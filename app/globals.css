@@ -1502,6 +1502,7 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
   position: relative;
   display: block;
   width: 100%;
+  max-height: var(--print-long);
   aspect-ratio: var(--photo-aspect, 1.333);
   overflow: hidden;
   background: #122033;
