@@ -4,7 +4,7 @@ import { formatShowcaseCount, PUBLIC_SHOWCASE_STATS } from "@/lib/public-showcas
 
 const photoAlt = "Night sky photograph from a Guild member";
 
-/** Live totals, and a nameless photo strip when at least five members have opted in. */
+/** Live totals, and a nameless photo strip when at least five photos qualify. */
 export async function PublicShowcase() {
   const showcase = await getPublicShowcase();
   if (!showcase) return null;
