@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { EMAIL_DOT_MESSAGE, EMAIL_REQUIRED_MESSAGE, EMAIL_SHAPE_MESSAGE, emailFieldError } from "../lib/email-address.ts";
 import { readFileSync } from "node:fs";
-import { contactLead, courseLibraryUrl, fieldHonorsPublicLine, hidePhotosHelp, hidePhotosTitle, homeFeatures, homeLead, momentOfEnvyCopy, privacySections, publicPhotoChoiceCopy, rankNameList, resourcesNote, signupIntro, termsSections } from "../lib/public-copy.ts";
+import { contactLead, courseLibraryUrl, fieldHonorsPublicLine, hidePhotosHelp, hidePhotosTitle, homeFeatures, homeLead, momentOfEnvyCopy, nextPrintLabel, pileLead, previousPrintLabel, privacySections, publicPhotoChoiceCopy, putPrintBackLabel, rankNameList, resourcesNote, shufflePileLabel, signupIntro, termsSections } from "../lib/public-copy.ts";
 import { RANKS } from "../lib/ranks.ts";
 import { CHECK_EMAIL_MESSAGE, DISPOSABLE_EMAIL_MESSAGE, SIGNUP_REASSURANCE, STALE_FORM_MESSAGE, TOO_FAST_MESSAGE } from "../lib/signup-messages.ts";
 import { WEEKLY_SUBMISSION_LIMIT } from "../lib/images.ts";
@@ -20,7 +20,7 @@ test("new customer copy has no em dash, colon, or the retired domain", () => {
     privacySections,
     termsSections,
     rankNameList,
-    messages: [CHECK_EMAIL_MESSAGE, TOO_FAST_MESSAGE, STALE_FORM_MESSAGE, DISPOSABLE_EMAIL_MESSAGE, SIGNUP_REASSURANCE, EMAIL_DOT_MESSAGE, EMAIL_REQUIRED_MESSAGE, EMAIL_SHAPE_MESSAGE, homeLead, signupIntro, contactLead, resourcesNote, fieldHonorsPublicLine, publicPhotoChoiceCopy, hidePhotosTitle, hidePhotosHelp],
+    messages: [CHECK_EMAIL_MESSAGE, TOO_FAST_MESSAGE, STALE_FORM_MESSAGE, DISPOSABLE_EMAIL_MESSAGE, SIGNUP_REASSURANCE, EMAIL_DOT_MESSAGE, EMAIL_REQUIRED_MESSAGE, EMAIL_SHAPE_MESSAGE, homeLead, signupIntro, contactLead, resourcesNote, fieldHonorsPublicLine, publicPhotoChoiceCopy, hidePhotosTitle, hidePhotosHelp, pileLead, shufflePileLabel, putPrintBackLabel, nextPrintLabel, previousPrintLabel],
   });
   for (const line of copy) {
     assert.equal(line.includes("\u2014"), false, line);
@@ -101,6 +101,10 @@ test("terms and privacy share one hide line for the public photo strip", () => {
   assert.match(publicPhotoChoiceCopy, /I remove any photo on request/);
   assert.equal(hidePhotosTitle, "Hide my photos from the public Guild page");
   assert.match(hidePhotosHelp, /Turn this on to keep yours off/);
+  assert.equal(shufflePileLabel, "Shuffle the pile");
+  assert.equal(putPrintBackLabel, "Put it back");
+  assert.match(pileLead, /Drag the prints around the table/);
+
   assert.equal(fieldHonorsPublicLine.endsWith("real\u00A0adventures."), true);
   assert.equal(fieldHonorsPublicLine.includes("\u2014"), false);
   assert.equal(fieldHonorsPublicLine.includes(":"), false);

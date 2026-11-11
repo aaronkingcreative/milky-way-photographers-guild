@@ -68,6 +68,12 @@ export const hidePhotosTitle = "Hide my photos from the public Guild page";
 export const hidePhotosHelp =
   "Your published photos can show on the public Guild page without your name. Turn this on to keep yours off.";
 
+export const pileLead = "Drag the prints around the table, or pick one up to look closer.";
+export const shufflePileLabel = "Shuffle the pile";
+export const putPrintBackLabel = "Put it back";
+export const nextPrintLabel = "Look at the next print";
+export const previousPrintLabel = "Look at the previous print";
+
 export const notFoundTitle = "I cannot find that page.";
 export const notFoundBody = "The address may be mistyped, or the page may have moved. Head back to the Guild, or join if you are new.";
 

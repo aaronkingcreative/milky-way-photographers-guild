@@ -28,8 +28,9 @@ test("the photo strip shows whatever valid photos exist and never keeps a name",
   assert.equal(named.length, 3);
   assert.equal(JSON.stringify(named).includes("Ada"), false);
   assert.equal(JSON.stringify(named).includes("secret"), false);
-  const many = parseShowcasePhotos(Array.from({ length: 9 }, (_, index) => photo(index)));
+  const many = parseShowcasePhotos(Array.from({ length: 12 }, (_, index) => photo(index)));
   assert.equal(many.length, SHOWCASE_MAX);
+  assert.equal(SHOWCASE_MAX, 9);
   const mixed = parseShowcasePhotos([{ image_url: "http://cdn.example.com/a.jpg", avatar_url: "https://cdn.example.com/a.jpg" }, photo(2), photo(3)]);
   assert.equal(mixed.length, 2);
   assert.equal(SHOWCASE_MIN, 1);
@@ -86,4 +87,18 @@ test("the hide-setting migration defaults to shown and only returns urls", () =>
   assert.match(sql, /returns table \(image_url text, avatar_url text\)/);
   assert.equal(sql.toLowerCase().includes("grant select on public.profiles to anon"), false);
   assert.equal(sql.toLowerCase().includes("grant select on public.member_profiles to anon"), false);
+});
+
+test("the print-pile migration keeps url-only rows and raises the cap to nine", () => {
+  const sql = readFileSync(new URL("../supabase/migrations/20261111164500_public_showcase_print_pile.sql", import.meta.url), "utf8");
+  assert.match(sql, /security definer/);
+  assert.match(sql, /set search_path = ''/);
+  assert.match(sql, /grant execute on function public\.public_showcase_photos\(\) to anon, service_role/);
+  assert.match(sql, /revoke all on function public\.public_showcase_photos\(\) from public, anon, authenticated/);
+  assert.match(sql, /least\(available, 9\)/);
+  assert.match(sql, /not p.hide_from_public_showcase/);
+  assert.match(sql, /returns table \(image_url text, avatar_url text\)/);
+  assert.equal(sql.includes("pg_catalog.least"), false);
+  assert.equal(sql.includes("pg_catalog.coalesce"), false);
+  assert.equal(sql.toLowerCase().includes("grant select on public.profiles to anon"), false);
 });
