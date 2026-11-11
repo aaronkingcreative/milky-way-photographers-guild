@@ -5,8 +5,8 @@ export function WeeklySubmissionStatus({ filed, hasCandidate, iotwLabel }: { fil
   const unlimited = weeklySubmissionsUnlimited();
   const limit = WEEKLY_SUBMISSION_LIMIT ?? 0;
   const used = unlimited ? filed : Math.min(filed, limit);
-  const iotw = iotwLabel ? `IOTW ${iotwLabel}` : "Image of the Week";
-  const iotwState = (hasCandidate ? "IOTW candidate set" : `IOTW ${iotwLabel || ""} open`).replace("  ", " ");
+  const iotw = iotwLabel ? `Image of the Week ${iotwLabel}` : "Image of the Week";
+  const iotwState = hasCandidate ? "Entry filed" : "Open for an entry";
 
   return <div className="fd-panel fd-weekly-status">
     <p className="fd-label fd-label-muted">This Week&apos;s Field Reports</p>
@@ -15,6 +15,6 @@ export function WeeklySubmissionStatus({ filed, hasCandidate, iotwLabel }: { fil
     <p>{unlimited
       ? `Unlimited Guild images this week. One may be entered for ${iotw}. The week still turns over Sunday at 12:00 PM MT.`
       : `Up to ${limit} Guild images per week. One may be entered for ${iotw}. Slots reset Sunday at 12:00 PM MT.`}</p>
-    <Link href="/submit">+ New Field Report</Link>
+    <Link href="/submit">File a Field Report</Link>
   </div>;
 }

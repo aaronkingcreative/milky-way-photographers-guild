@@ -12,7 +12,7 @@ import { fetchWinningImageIds } from "@/lib/ranks";
 import { publicMemberName } from "@/lib/avatar";
 import { formatMountainShort, getIotwSchedule } from "@/lib/iotw";
 import { fetchDecidedIotwWeeks, fetchLatestPhotogPhavorite, type IotwDecidedWeek, type IotwPlacement, type PhotogPhavoritePick } from "@/lib/iotw-winners";
-import { IotwSchedule } from "@/components/iotw/IotwSchedule";
+import { IotwSchedule, type BallotThumb } from "@/components/iotw/IotwSchedule";
 import { fieldDeskGreeting, fieldDeskHonorBadges, fieldDeskHonorCatalog, honorsToGo } from "@/lib/member-labels";
 import { momentOfEnvyCopy, momentOfEnvyPending } from "@/lib/public-copy";
 import { countReceivedReactions } from "@/lib/received-reactions";
@@ -49,6 +49,17 @@ function WinnerSlot({ placement, place, featured, weekLabel }: { placement: Iotw
   );
 }
 
+async function loadBallotThumbs(supabase: any, ballotId: string): Promise<BallotThumb[]> {
+  const { data: entries } = await supabase.from("iotw_ballot_entries").select("field_report_id,submitted_at").eq("ballot_id", ballotId).order("submitted_at", { ascending: false }).limit(4);
+  const reportIds = (entries || []).map((entry: any) => entry.field_report_id);
+  if (!reportIds.length) return [];
+  const { data: reports } = await supabase.from("field_reports").select("id,guild_image_id,title").in("id", reportIds);
+  const imageIds = (reports || []).map((report: any) => report.guild_image_id).filter(Boolean);
+  if (!imageIds.length) return [];
+  const { data: images } = await supabase.from("guild_images").select("id,image_url,title").in("id", imageIds).is("hidden_at", null).is("deleted_at", null);
+  return (images || []).map((image: any) => ({ id: image.id, image_url: image.image_url || null, title: image.title || "Ballot photo" }));
+}
+
 function ContenderPreview({ image }: { image: any }) {
   return (
     <Link href={`/images/${image.id}`} className="fd-contender-card">
@@ -69,6 +80,8 @@ export default async function Page() {
   let ownReports: Awaited<ReturnType<typeof fetchOwnReportPage>> = { ok: true, reports: [], next: null };
   let lastWeek: IotwDecidedWeek | null = null, contenders: any[] = [];
   let phavorite: PhotogPhavoritePick | null = null;
+  let hasVote = false;
+  let ballotThumbs: BallotThumb[] = [];
 
   if (hasAccess && user) {
     const week = getWeekStart();
@@ -105,6 +118,14 @@ export default async function Page() {
         contenders = (imgs2 || []).map((i: any) => ({ ...i, is_weekly_candidate: true, iotw_badge: badges.get(i.id) || null })).sort((a: any, b: any) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
       }
     }
+    if (schedule.voting?.id) {
+      const [{ data: voteRow }, thumbs] = await Promise.all([
+        supabase.from("iotw_votes").select("ballot_id").eq("ballot_id", schedule.voting.id).eq("voter_user_id", user.id).maybeSingle(),
+        loadBallotThumbs(supabase, schedule.voting.id),
+      ]);
+      hasVote = Boolean(voteRow);
+      ballotThumbs = thumbs;
+    }
   }
 
   const first = stats?.first_name || "Guild member";
@@ -115,7 +136,7 @@ export default async function Page() {
   const entryLabel = iotwSchedule?.entry.label;
   const place = (n: 1 | 2 | 3) => lastWeek?.placements.find((p) => p.place === n) || null;
   const pending = iotwSchedule?.voting || iotwSchedule?.entry || null;
-  const throneCopy = lastWeek ? `IOTW ${lastWeek.label} winner and the Top 3` : pending ? `IOTW ${pending.label} winner is announced ${formatMountainShort(pending.voting_closes_at)}` : "The first IOTW winner will appear here";
+  const throneCopy = lastWeek ? `Image of the Week ${lastWeek.label} winner and the Top 3` : pending ? `Image of the Week ${pending.label} winner is announced ${formatMountainShort(pending.voting_closes_at)}` : "The first Image of the Week winner will appear here";
   const contenderCopy = entryLabel ? `${candidateCount} entered${iotwSchedule ? `, entries close ${formatMountainShort(iotwSchedule.entry.entries_close_at)}` : ""}` : "Cast your vote in the Gallery";
 
   return <section className="mw-page-wide fd-page">{hasAccess ? <>
@@ -137,16 +158,16 @@ export default async function Page() {
       <div className="fd-rank-track"><div className="fd-rank-line" />{ranks.map((r) => <div key={r} className="fd-rank-step"><span className={ranks.indexOf(r) <= ranks.indexOf(stats?.rank_short || "Beginner") ? `complete ${r === stats?.rank_short ? "active" : ""}` : ""} /><strong className={ranks.indexOf(r) <= ranks.indexOf(stats?.rank_short || "Beginner") ? "complete" : ""}>{r}</strong></div>)}</div>
     </section>
 
-    <section className="fd-stats">{([[myCount, "Guild Submissions", "Your first field report starts the climb."], [honorCount, "Achievements Earned", "Claim an honor when you submit."], [receivedReactions, "Reactions Received", "Reactions arrive as the Guild sees your work."], [iotwWins, "Image of the Week Wins", "Enter a contender this week."]] as [number, string, string][]).map(([n, l, hint], i) => <div key={l} className="fd-stat-card"><strong className={i % 2 ? "gold" : ""}>{n}</strong><span>{l}</span>{!n && <small className="fd-stat-hint">{hint}</small>}</div>)}</section>
+    <section className="fd-stats">{([[myCount, "Guild Submissions", "Your first field report starts the climb."], [honorCount, "Field Honors earned", "Claim an honor when you file a report."], [receivedReactions, "Reactions Received", "Reactions arrive as the Guild sees your work."], [iotwWins, "Image of the Week Wins", "Enter a contender this week."]] as [number, string, string][]).map(([n, l, hint], i) => <div key={l} className="fd-stat-card"><strong className={i % 2 ? "gold" : ""}>{n}</strong><span>{l}</span>{!n && <small className="fd-stat-hint">{hint}</small>}</div>)}</section>
 
     <section className="fd-panel fd-throne"><div className="fd-section-head"><span>✪</span><FieldDeskLabel>The Winners&apos; Throne</FieldDeskLabel><p>{throneCopy}</p><Link href="/winners" className="fd-throne-archive">All winners →</Link></div><div className="fd-throne-grid"><WinnerSlot placement={place(2)} place="2" weekLabel={lastWeek?.label} /><WinnerSlot placement={place(1)} place="1" featured weekLabel={lastWeek?.label} /><WinnerSlot placement={place(3)} place="3" weekLabel={lastWeek?.label} /></div></section>
 
-    <div className="fd-main-grid"><section className="fd-panel fd-phavorite"><div className="fd-section-head"><span>✪</span><FieldDeskLabel>Photog Phavorite, Moment of Envy</FieldDeskLabel></div>{phavorite ? <Link href={`/images/${phavorite.imageId}`} className="fd-phavorite-image"><img src={phavorite.imageUrl} alt={phavorite.title} /><div /><div className="fd-phavorite-copy"><span>Photog Phavorite</span><h3>{phavorite.title}</h3><p>{phavorite.photographerName}{phavorite.location ? `, ${phavorite.location}` : ""}{phavorite.weekLabel ? `, IOTW ${phavorite.weekLabel}` : ""}</p></div></Link> : <div className="fd-empty fd-empty-large">{momentOfEnvyPending}</div>}<div className="fd-phavorite-foot"><p><KeepTail text={momentOfEnvyCopy} /></p>{phavorite && <Link href={`/images/${phavorite.imageId}`}>View →</Link>}</div></section>
+    <div className="fd-main-grid"><section className="fd-panel fd-phavorite"><div className="fd-section-head"><span>✪</span><FieldDeskLabel>Photog Phavorite, Moment of Envy</FieldDeskLabel></div>{phavorite ? <Link href={`/images/${phavorite.imageId}`} className="fd-phavorite-image"><img src={phavorite.imageUrl} alt={phavorite.title} /><div /><div className="fd-phavorite-copy"><span>Photog Phavorite</span><h3>{phavorite.title}</h3><p>{phavorite.photographerName}{phavorite.location ? `, ${phavorite.location}` : ""}{phavorite.weekLabel ? `, Image of the Week ${phavorite.weekLabel}` : ""}</p></div></Link> : <div className="fd-empty fd-empty-large">{momentOfEnvyPending}</div>}<div className="fd-phavorite-foot"><p><KeepTail text={momentOfEnvyCopy} /></p>{phavorite && <Link href={`/images/${phavorite.imageId}`}>View →</Link>}</div></section>
       <div className="fd-side-stack"><WeeklySubmissionStatus filed={filedThisWeek} hasCandidate={hasCandidate} iotwLabel={iotwSchedule?.entry.label} /><OwnReportsPanel initial={ownReports.reports} initialNext={ownReports.next} initialError={!ownReports.ok} /></div>
     </div>
 
-    <section className="fd-panel fd-honors"><div className="fd-honors-head"><div><FieldDeskLabel muted>Field Honors</FieldDeskLabel><span>{honorCount} earned</span></div><Link href="/progress">View All Honors →</Link></div><div className="fd-honor-legend"><span><i className="earned" />Earned</span><span><i />Locked</span></div><div className="fd-honor-grid">{honorBadges.map((badge) => <div key={badge.id} aria-label={`${badge.name}, ${badge.earned ? "earned" : "locked"}`}><div className={badge.earned ? "fd-honor-badge earned" : "fd-honor-badge"}>{badge.glyph}</div><p>{badge.name}</p></div>)}</div></section>
+    <section className="fd-panel fd-honors"><div className="fd-honors-head"><div><FieldDeskLabel muted>Field Honors</FieldDeskLabel><span>{honorCount} earned</span></div><Link href="/progress">View All Honors →</Link></div><div className="fd-honor-legend"><span><i className="earned" />Earned</span><span><i />Locked</span></div><div className="fd-honor-grid">{honorBadges.map((badge) => <div key={badge.id} aria-label={`${badge.name}, ${badge.earned ? "earned" : "locked"}`}><div className={badge.earned ? "fd-honor-badge earned" : "fd-honor-badge"}>{badge.glyph}</div><p>{badge.name.replaceAll("Milky Way", "Milky\u00A0Way")}</p></div>)}</div></section>
 
-    <section className="fd-contenders"><div className="fd-contender-head"><div><FieldDeskLabel muted>{entryLabel ? `IOTW ${entryLabel} Contenders` : "This Week's Contenders"}</FieldDeskLabel><span>{contenderCopy}</span></div><Link href="/feed">Open Gallery →</Link></div>{iotwSchedule && <IotwSchedule entry={iotwSchedule.entry} voting={iotwSchedule.voting} />}{contendersPreview.length ? <div className={contendersPreview.length === 1 ? "fd-contender-grid fd-contender-grid-single" : "fd-contender-grid"}>{contendersPreview.map((i) => <ContenderPreview key={i.id} image={i} />)}</div> : <div className="fd-panel fd-empty fd-empty-large">{entryLabel ? `No contenders for IOTW ${entryLabel} yet. Enter one of your field reports before entries close.` : "No contenders have been filed yet."}</div>}</section>
+    <section className="fd-contenders"><div className="fd-contender-head"><div><FieldDeskLabel muted>Two weeks at once</FieldDeskLabel><span>Voting is one week. The photos in Open for entries are the next week, not the&nbsp;ballot. {contenderCopy}</span></div><Link href="/feed">Open Gallery →</Link></div>{iotwSchedule ? <IotwSchedule entry={iotwSchedule.entry} voting={iotwSchedule.voting} ballotThumbs={ballotThumbs} hasVote={hasVote} entryImages={contendersPreview.length ? <div className={contendersPreview.length === 1 ? "fd-contender-grid fd-contender-grid-single" : "fd-contender-grid"}>{contendersPreview.map((i) => <ContenderPreview key={i.id} image={i} />)}</div> : <div className="fd-panel fd-empty fd-empty-large">{entryLabel ? `No entries for Image of the Week ${entryLabel} yet. File a field report before entries close.` : "No entries have been filed yet."}</div>} /> : <div className="fd-panel fd-empty fd-empty-large">No Image of the Week is open yet.</div>}</section>
   </> : <div className="mt-8"><AccessNeededPanel /></div>}</section>;
 }

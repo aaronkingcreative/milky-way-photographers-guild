@@ -93,7 +93,7 @@ export default async function Page({ params }: { params: Promise<{ memberId: str
 
       <div className="mt-8 grid gap-5 lg:grid-cols-2">
         <section className="mw-card-gold rounded-lg p-5">
-          <p className="mw-eyebrow">Badges and Achievements</p>
+          <p className="mw-eyebrow">Badges and Field Honors</p>
           {honorList.length ? (
             <ul className="mt-4 space-y-3">
               {honorList.map((h) => (

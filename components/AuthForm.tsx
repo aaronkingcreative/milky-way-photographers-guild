@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getAuthCallbackUrl } from "@/lib/site-url";
 import { signUpMember } from "@/app/signup/actions";
 import { emailFieldError } from "@/lib/email-address";
 import { KeepTail } from "@/components/KeepTail";
-import { SIGNUP_REASSURANCE } from "@/lib/signup-messages";
+import { CHECK_EMAIL_MESSAGE, SIGNUP_REASSURANCE } from "@/lib/signup-messages";
 
 const errorMessages: Record<string, string> = {
   auth_callback_failed: "We could not finish signing you in. Please request a new email link and try again.",
@@ -22,10 +22,10 @@ export function AuthForm({ mode, formToken }: { mode: "login" | "signup"; formTo
   const [msg, setMsg] = useState("");
   const [messageTone, setMessageTone] = useState<"error" | "status">("status");
   const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [honeypot, setHoneypot] = useState("");
   const emailRef = useRef<HTMLInputElement>(null);
-  const router = useRouter();
   const searchParams = useSearchParams();
   const authError = searchParams.get("error");
   const queryMessage = authError ? errorMessages[authError] || authError : "";
@@ -43,6 +43,13 @@ export function AuthForm({ mode, formToken }: { mode: "login" | "signup"; formTo
     return problem;
   }
 
+  function syncPasswordError(value: string) {
+    if (mode !== "signup") return null;
+    const problem = value.length < 6 ? "Use at least 6 characters." : null;
+    setPasswordError(problem ?? "");
+    return problem;
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setMsg("");
@@ -52,6 +59,7 @@ export function AuthForm({ mode, formToken }: { mode: "login" | "signup"; formTo
       emailRef.current?.focus();
       return;
     }
+    if (syncPasswordError(password)) return;
 
     setIsSubmitting(true);
 
@@ -63,22 +71,21 @@ export function AuthForm({ mode, formToken }: { mode: "login" | "signup"; formTo
       formData.set("mw_extra", honeypot);
       formData.set("form_token", formToken || "");
       const result = await signUpMember(formData);
-      setIsSubmitting(false);
       if (!result.ok || result.message !== "signed_in") {
+        setIsSubmitting(false);
         show(result.message, result.ok ? "status" : "error");
         return;
       }
     } else {
       const res = await createClient().auth.signInWithPassword({ email: trimmedEmail, password });
-      setIsSubmitting(false);
       if (res.error) {
+        setIsSubmitting(false);
         show(res.error.message, "error");
         return;
       }
     }
 
-    router.push("/guild-hall");
-    router.refresh();
+    window.location.assign("/guild-hall");
   }
 
   async function sendMagicLink() {
@@ -122,6 +129,24 @@ export function AuthForm({ mode, formToken }: { mode: "login" | "signup"; formTo
     show(error ? error.message : "Check your email for a password reset link.", error ? "error" : "status");
   }
 
+  async function resendConfirmation() {
+    setMsg("");
+    const trimmedEmail = email.trim();
+    const problem = syncEmailError(trimmedEmail);
+    if (problem) {
+      emailRef.current?.focus();
+      return;
+    }
+    setIsSubmitting(true);
+    const { error } = await createClient().auth.resend({
+      type: "signup",
+      email: trimmedEmail,
+      options: { emailRedirectTo: getAuthCallbackUrl() },
+    });
+    setIsSubmitting(false);
+    show(error ? error.message : "I sent another confirmation email. Check your inbox.", error ? "error" : "status");
+  }
+
   const emailErrorId = "auth-email-error";
   const statusId = "auth-status";
 
@@ -130,7 +155,7 @@ export function AuthForm({ mode, formToken }: { mode: "login" | "signup"; formTo
       <h2 className="mw-auth-card-title"><KeepTail text={mode === "login" ? "Sign in" : "Create your account"} /></h2>
       {mode === "signup" && (
         <p className="mt-4 text-base leading-7 text-[#e7eef6]">
-          {SIGNUP_REASSURANCE} <Link className="mw-auth-link" href="/privacy">privacy notes</Link> <span className="mw-keep">and the <Link className="mw-auth-link" href="/terms">terms</Link>.</span>
+          {SIGNUP_REASSURANCE} <Link className="mw-auth-link" href="/privacy">privacy&nbsp;notes</Link> <span className="mw-keep">and the <Link className="mw-auth-link" href="/terms">terms</Link>.</span>
         </p>
       )}
       {mode === "signup" && (
@@ -188,11 +213,23 @@ export function AuthForm({ mode, formToken }: { mode: "login" | "signup"; formTo
           required
           minLength={6}
           autoComplete={mode === "signup" ? "new-password" : "current-password"}
+          aria-invalid={passwordError ? true : undefined}
+          aria-describedby={mode === "signup" ? "auth-password-help" : undefined}
           className="input mt-2"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            if (passwordError) syncPasswordError(e.target.value);
+          }}
+          onBlur={() => syncPasswordError(password)}
         />
       </label>
+      {mode === "signup" ? (
+        <span id="auth-password-help" className="mt-2 block text-base leading-6 text-[#d5deea]">At least 6 characters.</span>
+      ) : null}
+      {passwordError ? (
+        <p className="mw-field-error" role="alert">{passwordError}</p>
+      ) : null}
       {mode === "signup" && (
         <div aria-hidden="true" style={{ position: "absolute", left: "-10000px", top: "auto", width: 1, height: 1, overflow: "hidden" }}>
           <label>
@@ -209,8 +246,13 @@ export function AuthForm({ mode, formToken }: { mode: "login" | "signup"; formTo
         ) : null}
       </div>
       <button className="btn btn-primary mt-6 w-full" disabled={isSubmitting} aria-busy={isSubmitting}>
-        {isSubmitting ? "Please wait..." : mode === "login" ? "Sign in" : "Create account"}
+        {isSubmitting ? (mode === "login" ? "Signing you in..." : "Please wait...") : mode === "login" ? "Sign in" : "Create account"}
       </button>
+      {mode === "signup" && displayMessage === CHECK_EMAIL_MESSAGE ? (
+        <button type="button" className="mw-auth-link mt-4 text-left" onClick={resendConfirmation} disabled={isSubmitting}>
+          Resend the confirmation email
+        </button>
+      ) : null}
       {mode === "login" && (
         <div className="mt-4 flex flex-col gap-2 text-base text-[#d5deea]">
           <button type="button" className="mw-auth-link text-left" onClick={sendPasswordReset} disabled={isSubmitting}>Forgot password?</button>

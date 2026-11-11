@@ -11,7 +11,7 @@ export function AchievementWidget({ achievements, earnedIds, selectedId, setSele
   const perfectYearCount = coverage ? Math.min(12, 1) : 0;
   return <aside className="mw-submit-achievement-widget">
     <h2>Claim One Field Honor</h2>
-    <p>Pick the one Field Honor this image earns. Month, season, year, and streak coverage are tracked automatically.</p>
+    <p>Pick the one Field Honor this image earns. Month, season, year, and streak coverage are tracked&nbsp;automatically.</p>
     <input type="hidden" name="achievement_id" value={selectedId} />
     <div className="mt-5 space-y-5">
       {grouped.map((group) => group.items.length > 0 && <section key={group.category}>

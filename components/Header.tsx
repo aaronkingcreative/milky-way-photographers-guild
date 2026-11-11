@@ -40,7 +40,7 @@ export async function Header() {
     if (withNotes.length) {
       const first: any = withNotes[0];
       const honor = (Array.isArray(first.achievement_definitions) ? first.achievement_definitions[0] : first.achievement_definitions)?.name || "Field Honor";
-      reviewNotice = { count: withNotes.length, text: withNotes.length === 1 ? (first.original_achievement_id ? `The Guild verified your claim as ${honor} and left you a note` : `The Guild reviewed your ${honor} claim and left you a note`) : `The Guild left notes on ${withNotes.length} of your achievement claims` };
+      reviewNotice = { count: withNotes.length, text: withNotes.length === 1 ? (first.original_achievement_id ? `The Guild verified your claim as ${honor} and left you a note` : `The Guild reviewed your ${honor} claim and left you a note`) : `The Guild left notes on ${withNotes.length} of your Field Honor claims` };
     }
   }
   const streakLabel = stats?.year_streak ? `${stats.year_streak} Year Streak` : undefined;

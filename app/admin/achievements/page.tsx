@@ -91,8 +91,8 @@ export default async function Page() {
   return <section className="mx-auto max-w-7xl px-5 py-14">
     <Link href="/admin" className="font-display uppercase tracking-[.16em] text-[#f0bd66]">← Admin</Link>
     <p className="eyebrow mt-6">Verification Desk</p>
-    <h1 className="mt-2 font-display text-5xl uppercase">Achievement Claims</h1>
-    <p className="mt-3 max-w-3xl text-white/68">Compare each image with the Field Honor claimed for it. Notes are optional. Verify or reject, and the claim leaves this list. If they picked the wrong honor, use Verify as a different achievement. Capture dates are on the honor system.</p>
+    <h1 className="mt-2 font-display text-5xl uppercase">Field Honor claims</h1>
+    <p className="mt-3 max-w-3xl text-white/68">Compare each image with the Field Honor claimed for it. Notes are optional. Verify or reject, and the claim leaves this list. If they picked the wrong honor, use Verify as a different Field Honor. Capture dates are on the honor system.</p>
     <h2 className="mt-8 font-display text-2xl uppercase text-white">Pending review <span className="text-[#f0bd66]">({pendingClaims.length})</span></h2>
     <ClaimDesk claims={pendingClaims} actions={["verified", "rejected"]} emptyText="All caught up. No claims are waiting for review." />
     {reviewedClaims.length > 0 && <details className="mt-12">

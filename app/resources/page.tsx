@@ -8,7 +8,7 @@ export default async function Page() {
       <h1 className="text-4xl font-bold">Resources</h1>
       <p className="mt-6 text-lg leading-8 text-[#e7eef6]">{resourcesNote}</p>
       <p className="mt-6">
-        <a className="text-[#f4bd61] underline underline-offset-4" href={courseLibraryUrl}>
+        <a className="btn btn-secondary" href={courseLibraryUrl}>
           {courseLibraryLabel}
         </a>
       </p>

@@ -9,8 +9,8 @@ import { fetchAllEnteredImageIds, fetchBallotImageIds, fetchIotwBadges } from "@
 
 const filters = [
   ["all", "All Submissions"],
-  ["contenders", "IOTW Contenders"],
-  ["entries", "IOTW Entries"],
+  ["contenders", "Image of the Week ballot"],
+  ["entries", "Image of the Week entries"],
   ["winners", "Image of the Week"],
   ["mine", "My Field Reports"],
 ] as const;
@@ -78,10 +78,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ f
           </nav>
         </div>
         <Link className="mw-btn-primary rounded-sm" href="/submit">
-          + New Field Report
+          File a Field Report
         </Link>
       </div>
-      <div className="mw-sort-list"><ImageGrid images={decorated} reactions={reactions || []} emptyLabel={filter === "all" ? undefined : filter === "contenders" && !schedule?.voting ? (schedule?.entry ? `No IOTW week is open for voting yet. IOTW ${schedule.entry.label} voting opens ${formatMountainShort(schedule.entry.voting_opens_at)}. See IOTW Entries for everything entered so far.` : "No IOTW week is open for voting yet.") : "Nothing here yet. Try another filter."} /></div>
+      <div className="mw-sort-list"><ImageGrid images={decorated} reactions={reactions || []} emptyLabel={filter === "all" ? undefined : filter === "contenders" && !schedule?.voting ? (schedule?.entry ? `No Image of the Week is open for voting yet. Image of the Week ${schedule.entry.label} voting opens ${formatMountainShort(schedule.entry.voting_opens_at)}. See Image of the Week entries for everything entered so far.` : "No Image of the Week is open for voting yet.") : "Nothing here yet. Try another filter."} /></div>
     </section>
   );
 }
