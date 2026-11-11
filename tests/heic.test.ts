@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { HEIC_HOWTO, HEIC_SELECTED_ERROR, isHeicFile } from "../lib/heic.ts";
+import { HEIC_HOWTO, HEIC_SELECTED_ERROR, isHeicFile, jpegNameFor } from "../lib/heic.ts";
 
 test("HEIC detection uses the type or the file name", () => {
   assert.equal(isHeicFile({ type: "image/heic", name: "IMG_1.HEIC" }), true);
@@ -19,4 +19,10 @@ test("HEIC guidance stays in Aaron's voice and names the JPEG path", () => {
   }
   assert.match(HEIC_HOWTO, /30 MB/);
   assert.match(HEIC_SELECTED_ERROR, /This photo is HEIC/);
+});
+
+test("converted HEIC files get a .jpg name", () => {
+  assert.equal(jpegNameFor("IMG_2044.HEIC"), "IMG_2044.jpg");
+  assert.equal(jpegNameFor("night.heif"), "night.jpg");
+  assert.equal(jpegNameFor(""), "photo.jpg");
 });

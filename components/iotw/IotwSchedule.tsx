@@ -44,7 +44,7 @@ export function IotwSchedule({
             ) : (
               <p className="mw-iotw-ballot-note">This ballot is a different week from the photos still open for entries.</p>
             )}
-            <OpenVoteButton className="mw-btn-secondary mw-iotw-ballot-cta" label={hasVote ? "Edit your vote" : "See this week's ballot"} />
+            {!compact && <OpenVoteButton className="mw-btn-secondary mw-iotw-ballot-cta" label={hasVote ? "Edit your vote" : "See this week's ballot"} />}
           </>
         ) : (
           <>

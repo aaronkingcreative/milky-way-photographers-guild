@@ -3,6 +3,7 @@ import { useActionState, useMemo, useState } from "react";
 import { submitImage } from "@/app/actions";
 import { createClient } from "@/lib/supabase/client";
 import { HEIC_HOWTO, HEIC_SELECTED_ERROR, isHeicFile } from "@/lib/heic";
+import { convertHeicToJpeg } from "@/lib/heic-convert";
 import { ALLOWED_IMAGE_TYPES, FIELD_REPORT_IMAGE_BUCKET, fieldReportOriginalPath, MAX_UPLOAD_BYTES, storagePublicUrl } from "@/lib/storage";
 import { WEEKLY_SUBMISSION_LIMIT, weeklySubmissionsUnlimited } from "@/lib/images";
 import { AchievementWidget, type AchievementOption } from "./AchievementWidget";
@@ -18,17 +19,21 @@ async function readImageSize(file: File) {
 
 export function SubmitImageForm({ hasCandidate, achievements = [], earnedAchievementIds = [], currentHonorCount = 0, iotwEntry }: { iotwEntry?: { label: string; closes: string; votingCloses: string; votingNow?: string | null }; hasCandidate: boolean; achievements?: AchievementOption[]; earnedAchievementIds?: string[]; currentHonorCount?: number }) {
   const [state, formAction] = useActionState<SubmitState, FormData>(async (_: SubmitState, fd: FormData) => submitImage(fd), {});
-  const [upload, setUpload] = useState<{ path?: string; type?: string; size?: number; width?: number; height?: number; id?: string; error?: string; name?: string; busy?: boolean }>({});
+  const [upload, setUpload] = useState<{ path?: string; type?: string; size?: number; width?: number; height?: number; id?: string; error?: string; name?: string; busy?: boolean; converting?: boolean }>({});
   const [selectedId, setSelectedId] = useState("");
   const [captureDate, setCaptureDate] = useState("");
   const supabase = useMemo(() => createClient(), []);
   const previewUrl = upload.path ? storagePublicUrl(FIELD_REPORT_IMAGE_BUCKET, upload.path) : null;
 
-  async function onFile(file?: File) {
-    if (!file) return;
-    if (isHeicFile(file)) {
-      setUpload({ error: HEIC_SELECTED_ERROR, name: file.name });
-      return;
+  async function onFile(picked?: File) {
+    if (!picked) return;
+    let file: File = picked;
+    if (isHeicFile(picked)) {
+      if (picked.size > MAX_UPLOAD_BYTES) { setUpload({ error: "Upload an image up to 30 MB." }); return; }
+      setUpload({ busy: true, converting: true, name: picked.name });
+      const converted = await convertHeicToJpeg(picked);
+      if (!converted) { setUpload({ error: HEIC_SELECTED_ERROR, name: picked.name }); return; }
+      file = converted;
     }
     if (!ALLOWED_IMAGE_TYPES.includes(file.type) || file.size > MAX_UPLOAD_BYTES) {
       setUpload({ error: "Upload a JPG, PNG, or WebP image up to 30 MB." });
@@ -49,7 +54,7 @@ export function SubmitImageForm({ hasCandidate, achievements = [], earnedAchieve
 
   return <form action={formAction} className="mw-submit-column">
     <div className="space-y-6">
-      <div className="mw-submit-card p-5"><p className="mw-submit-field-label">The Image <span>*</span></p><label className="mt-3 block cursor-pointer rounded-[5px] border border-dashed border-[#e79f2b]/45 bg-[#06101c]/55 p-8 text-center"><span className="block text-3xl text-[#e79f2b]">↑</span><span className="mt-2 block font-display text-[18.5px] font-semibold text-white">Choose the image for this field report</span><span className="mt-2 block mw-help">JPG, PNG, or WebP only. Max 30 MB.</span><span className="mt-3 block text-sm leading-6 text-white/70">{HEIC_HOWTO}</span><input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" onChange={(event) => onFile(event.target.files?.[0])} /><span className="mw-btn-ghost mt-5 inline-block rounded-sm">Select Image</span></label>{previewUrl && <img src={previewUrl} alt="Uploaded field report preview" className="mt-4 max-h-72 w-full rounded object-cover" />}{upload.busy && <p className="mt-3 text-sm text-white/70">Uploading {upload.name}...</p>}{upload.path && <p className="mt-3 text-sm text-[#f0bd66]">Uploaded {upload.name}. Original kept for Guild review.</p>}{upload.error && <p className="mw-error mt-3">{upload.error}</p>}<p className="mt-3 text-sm text-[#f0bd66]">{weeklySubmissionsUnlimited() ? "Regular submissions are unlimited this week." : `Up to ${WEEKLY_SUBMISSION_LIMIT} field reports this week.`} {hasCandidate ? "You already have a weekly contender." : "You may nominate one Image of the Week contender."}</p></div>
+      <div className="mw-submit-card p-5"><p className="mw-submit-field-label">The Image <span>*</span></p><label className="mt-3 block cursor-pointer rounded-[5px] border border-dashed border-[#e79f2b]/45 bg-[#06101c]/55 p-8 text-center"><span className="block text-3xl text-[#e79f2b]">↑</span><span className="mt-2 block font-display text-[18.5px] font-semibold text-white">Choose the image for this field report</span><span className="mt-2 block mw-help">JPG, PNG, WebP, or iPhone HEIC. Max 30 MB.</span><span className="mt-3 block text-sm leading-6 text-white/70">{HEIC_HOWTO}</span><input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" onChange={(event) => onFile(event.target.files?.[0])} /><span className="mw-btn-ghost mt-5 inline-block rounded-sm">Select Image</span></label>{previewUrl && <img src={previewUrl} alt="Uploaded field report preview" className="mt-4 max-h-72 w-full rounded object-cover" />}{upload.busy && <p className="mt-3 text-sm text-white/70" role="status">{upload.converting ? `Turning ${upload.name} into a JPEG...` : `Uploading ${upload.name}...`}</p>}{upload.path && <p className="mt-3 text-sm text-[#f0bd66]">Uploaded {upload.name}. Original kept for Guild review.</p>}{upload.error && <p className="mw-error mt-3">{upload.error}</p>}<p className="mt-3 text-sm text-[#f0bd66]">{weeklySubmissionsUnlimited() ? "Regular submissions are unlimited this week." : `Up to ${WEEKLY_SUBMISSION_LIMIT} field reports this week.`} {hasCandidate ? "You already have a weekly contender." : "You may nominate one Image of the Week contender."}</p></div>
       <input type="hidden" name="submission_id" value={upload.id || ""} /><input type="hidden" name="image_original_path" value={upload.path || ""} /><input type="hidden" name="image_mime_type" value={upload.type || ""} /><input type="hidden" name="image_size_bytes" value={upload.size || ""} /><input type="hidden" name="image_width" value={upload.width || ""} /><input type="hidden" name="image_height" value={upload.height || ""} />
       {state?.error && <p className="mw-error">{state.error}</p>}
       <label className="mw-submit-field-label">Image Title <span>*</span><input className="mw-input mt-2" name="title" required placeholder="Give your image a name worth remembering" /></label>

@@ -12,8 +12,14 @@ export function isHeicFile(file: { type?: string; name?: string }) {
   return /\.(heic|heif)$/i.test(String(file.name || ""));
 }
 
+/** IMG_2044.HEIC becomes IMG_2044.jpg after the browser converts it. */
+export function jpegNameFor(name: string) {
+  const base = String(name || "").replace(/\.(heic|heif)$/i, "");
+  return `${base || "photo"}.jpg`;
+}
+
 export const HEIC_HOWTO =
-  "iPhone cameras save HEIC by default. This form stores JPG, PNG, or WebP, up to 30 MB. Open the photo, tap Share, tap Options, and save a JPEG. In Settings, then Camera, then Formats, Most Compatible makes new photos JPEG.";
+  "iPhone HEIC photos are turned into a JPEG in your browser before upload, up to 30 MB. If that does not work, open the photo, tap Share, tap Options, and save a JPEG. In Settings, then Camera, then Formats, Most Compatible makes new photos JPEG.";
 
 export const HEIC_SELECTED_ERROR =
-  "This photo is HEIC, which this form cannot store. Open it on your iPhone, tap Share, tap Options, and save a JPEG. Then choose that JPEG here. In Settings, then Camera, then Formats, Most Compatible makes new photos JPEG.";
+  "This photo is HEIC, and your browser could not turn it into a JPEG. Open it on your iPhone, tap Share, tap Options, and save a JPEG. Then choose that JPEG here. In Settings, then Camera, then Formats, Most Compatible makes new photos JPEG.";
