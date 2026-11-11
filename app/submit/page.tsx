@@ -38,11 +38,11 @@ export default async function Page() {
         <span aria-hidden="true" className="mw-submit-notice-icon">✪</span>
         <p>
           {weeklySubmissionsUnlimited()
-            ? `Unlimited field reports this week. One can enter IOTW ${schedule.entry.label}, open for entries until ${formatMountainShort(schedule.entry.entries_close_at)}.`
-            : `Up to ${WEEKLY_SUBMISSION_LIMIT} field reports a week. One of them can enter IOTW ${schedule.entry.label}, open for entries until ${formatMountainShort(schedule.entry.entries_close_at)}.`}
+            ? `Unlimited field reports this week. One can enter Image of the Week ${schedule.entry.label}, open for entries until ${formatMountainShort(schedule.entry.entries_close_at)}.`
+            : `Up to ${WEEKLY_SUBMISSION_LIMIT} field reports a week. One of them can enter Image of the Week ${schedule.entry.label}, open for entries until ${formatMountainShort(schedule.entry.entries_close_at)}.`}
         </p>
       </div>
-      <SubmitImageForm iotwEntry={{ label: schedule.entry.label, closes: formatMountainShort(schedule.entry.entries_close_at), votingCloses: formatMountainShort(schedule.entry.voting_closes_at), votingNow: schedule.voting ? `IOTW ${schedule.voting.label}` : null }} hasCandidate={(candidateCount || 0) > 0} achievements={honors.achievements} earnedAchievementIds={honors.earnedAchievementIds} currentHonorCount={honors.currentHonorCount} />
+      <SubmitImageForm iotwEntry={{ label: schedule.entry.label, closes: formatMountainShort(schedule.entry.entries_close_at), votingCloses: formatMountainShort(schedule.entry.voting_closes_at), votingNow: schedule.voting ? `Image of the Week ${schedule.voting.label}` : null }} hasCandidate={(candidateCount || 0) > 0} achievements={honors.achievements} earnedAchievementIds={honors.earnedAchievementIds} currentHonorCount={honors.currentHonorCount} />
     </section>
   );
 }

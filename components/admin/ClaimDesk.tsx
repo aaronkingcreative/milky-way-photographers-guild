@@ -104,8 +104,8 @@ function ReassignPanel({ claim, info, busy, onReassign, onReject }: { claim: Des
   const held = Boolean(target?.held) || Boolean(heldName);
   const groups = ["monthly", "seasonal", "foreground", "technique"].map((cat) => ({ cat, items: info.options.filter((o) => o.category === cat) })).filter((g) => g.items.length);
   return <details className="mw-reassign rounded border border-[#e79f2b]/35 bg-[#e79f2b]/[.05] p-4" open={Boolean(info.mismatch)}>
-    <summary className="cursor-pointer text-sm font-bold text-[#f0bd66]">Verify as a different achievement</summary>
-    <label className="mt-3 block text-xs font-bold uppercase tracking-[.1em] text-white/60">Achievement
+    <summary className="cursor-pointer text-sm font-bold text-[#f0bd66]">Verify as a different Field Honor</summary>
+    <label className="mt-3 block text-xs font-bold uppercase tracking-[.1em] text-white/60">Field Honor
       <select value={targetId} onChange={(e) => choose(e.target.value)} className="mw-input mt-1 w-full text-sm normal-case tracking-normal">
         <option value="">Choose…</option>
         {groups.map((g) => <optgroup key={g.cat} label={CATEGORY_LABEL[g.cat] || g.cat}>{g.items.map((o) => <option key={o.id} value={o.id}>{o.glyph ? `${o.glyph} ` : ""}{o.name}{o.id === info.suggestedId ? " (matches capture date)" : ""}{o.held ? " · already earned" : ""}</option>)}</optgroup>)}

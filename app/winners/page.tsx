@@ -56,9 +56,9 @@ export default async function Page() {
   const next = schedule.voting || schedule.entry;
   return (
     <section className="mx-auto max-w-6xl px-5 py-14">
-      <p className="eyebrow">Guild Honors</p>
+      <p className="eyebrow">Image of the Week</p>
       <h1 className="mt-2 font-display text-5xl uppercase">Image of the Week Winners</h1>
-      <p className="mt-3 max-w-3xl text-white/68">Every IOTW winner, newest first. Open any winning image to read its field report.</p>
+      <p className="mt-3 max-w-3xl text-white/68">Every Image of the Week winner, newest first. Open any winning image to read its field report.</p>
       <p className="mt-3 max-w-3xl text-white/68"><KeepTail text={momentOfEnvyCopy} /></p>
       <div className="max-w-3xl"><IotwSchedule entry={schedule.entry} voting={schedule.voting} /></div>
       {decided.length ? (
@@ -68,7 +68,7 @@ export default async function Page() {
           <p className="eyebrow">The throne is waiting</p>
           <h2 className="mt-2 font-display text-3xl uppercase text-[#f0bd66]">No winners crowned yet</h2>
           <p className="mt-3 text-white/68">
-            {next ? `The first winner, IOTW ${next.label}, is announced ${formatMountainShort(next.voting_closes_at)}. Every week's winner will be listed here after that.` : "Every week's winner will be listed here once voting closes."}
+            {next ? `The first winner, Image of the Week ${next.label}, is announced ${formatMountainShort(next.voting_closes_at)}. Every week's winner will be listed here after that.` : "Every week's winner will be listed here once voting closes."}
           </p>
           <Link href="/feed" className="mw-btn-secondary mt-5 inline-block px-4 py-2 text-xs">Browse the Gallery</Link>
         </div>

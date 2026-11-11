@@ -69,11 +69,15 @@ export function ImageCard({ image, reactions }: { image: any; reactions?: any[] 
           <span className="mw-card-ribbon">IOTW Contender</span>
         ) : null}
       </div>
-      <div className="flex items-center justify-between gap-4 px-4 py-3">
-        <p className="truncate mw-muted text-sm">{[placeLine(image), date].filter(Boolean).join(" · ")}</p>
-        <div className="flex shrink-0 items-center gap-1">
-          {top.map((t) => <span key={t} className="text-sm text-[#f0bd66]">{glyphs[t] || "✦"}</span>)}
-          <span className="ml-1 text-sm text-white/60">{total ? `${total} ${total === 1 ? "reaction" : "reactions"}` : "View →"}</span>
+      <div className="mw-card-foot px-4 py-3 text-sm">
+        <p className="mw-muted">{placeLine(image) || "No location listed"}</p>
+        <p className="mw-muted">{date || "No capture date"}</p>
+        <div className="mt-1 flex items-center justify-between gap-3">
+          <span className="inline-flex items-center gap-1 text-white/70">
+            {top.map((t) => <span key={t} className="text-[#f0bd66]">{glyphs[t] || "✦"}</span>)}
+            {total} {total === 1 ? "reaction" : "reactions"}
+          </span>
+          <span className="text-[#f0bd66]">View →</span>
         </div>
       </div>
     </article>

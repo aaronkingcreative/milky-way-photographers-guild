@@ -24,8 +24,8 @@ const faviconUrl =
 const SORTS = [
   { key: "recent", label: "Most Recent" },
   { key: "reactions", label: "Most Reactions" },
-  { key: "contenders", label: "IOTW Contenders" },
-  { key: "entries", label: "IOTW Entries" },
+  { key: "contenders", label: "Image of the Week ballot" },
+  { key: "entries", label: "Image of the Week entries" },
   { key: "stories", label: "Best Stories" },
 ] as const;
 type SortKey = (typeof SORTS)[number]["key"];
@@ -196,7 +196,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
           <div className="mb-8">
             <p className="mw-guild-eyebrow"><Image src={faviconUrl} alt="" width={18} height={18} />The Guild Hall</p>
             <h1 className="mw-guild-page-title">The Hall is Open</h1>
-            <p className="mw-guild-page-subtitle">Field reports from across the Guild. React with intent, leave feedback that teaches.</p>
+            <p className="mw-guild-page-subtitle">Field reports from across the Guild. React with intent, leave feedback that&nbsp;teaches.</p>
           </div>
 
           <AscentBoard ascent={ascent} cloudHonors={cloudHonors} />
@@ -241,7 +241,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
                     </article>
                   );
                 })}
-                {images.length === 0 && <div className="mw-card-soft p-8 text-center text-white/60">{sort === "contenders" ? (iotwVoting ? `No contenders on the IOTW ${iotwVoting.label} ballot.` : iotwEntry ? <>No IOTW week is open for voting yet. IOTW {iotwEntry.label} voting opens {formatMountainShort(iotwEntry.voting_opens_at)}, and its contenders will show here then. <Link href="/guild-hall?sort=entries" className="mw-member-link">See every IOTW entry</Link>.</> : "No IOTW week is open for voting yet.") : sort === "entries" ? "No images have been entered in Image of the Week yet." : "The Hall is ready. Community field reports will appear here after members submit images."}</div>}
+                {images.length === 0 && <div className="mw-card-soft p-8 text-center text-white/60">{sort === "contenders" ? (iotwVoting ? `No contenders on the Image of the Week ${iotwVoting.label} ballot.` : iotwEntry ? <>No Image of the Week is open for voting yet. Image of the Week {iotwEntry.label} voting opens {formatMountainShort(iotwEntry.voting_opens_at)}, and its contenders will show here then. <Link href="/guild-hall?sort=entries" className="mw-member-link">See every Image of the Week entry</Link>.</> : "No Image of the Week is open for voting yet.") : sort === "entries" ? "No images have been entered in Image of the Week yet." : "The Hall is ready. Community field reports will appear here after members submit images."}</div>}
               </div>
             </div>
 

@@ -66,7 +66,13 @@ export default async function Home() {
               <HomeLead text={homeLead} />
             </p>
             <p className="mt-7 max-w-3xl text-lg leading-8 text-[#b8c4d4]">
-              <KeepTail text="I rebuilt the Milky Way Photographers Guild into a better home for sharing your night-sky images, voting on each other's images to find the Image of the Week, celebrating weekly winners with a Monday Moment of Envy, while still keeping the original benefits of getting useful feedback and improving your Milky Way photography without ads or social media noise." />
+              <KeepTail text="I rebuilt the Milky Way Photographers Guild into a better home for sharing your night-sky images." />
+            </p>
+            <p className="mt-4 max-w-3xl text-lg leading-8 text-[#b8c4d4]">
+              <KeepTail text="Members vote on each other's images to find the Image of the Week, and I celebrate weekly winners with a Monday Moment of Envy." />
+            </p>
+            <p className="mt-4 max-w-3xl text-lg leading-8 text-[#b8c4d4]">
+              <KeepTail text="You still get useful feedback, and a way to improve your Milky Way photography without ads or social media noise." />
             </p>
             <p className="mt-5 text-lg font-semibold text-white">
               <KeepTail text="Aaron King of Photog Adventures." />
@@ -147,7 +153,7 @@ export default async function Home() {
             </Link>
           </div>
           <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-[#dbe5f1]">
-            <KeepTail text="You can also find all my photography content and resources through the Photog Adventures YouTube and Podcast." />
+            <KeepTail text={"You can also find all my photography content and resources through the Photog\u00A0Adventures YouTube and Podcast."} />
           </p>
           <div className="mt-5 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
             <a className="btn btn-ghost" href="https://www.youtube.com/c/PhotogAdventures">
@@ -157,7 +163,7 @@ export default async function Home() {
               Podcast
             </a>
             <a className="btn btn-ghost" href="https://www.photogadventures.com">
-              Photog Adventures
+              Photog&nbsp;Adventures
             </a>
           </div>
           <p className="mt-8 text-base text-[#d5deea]">

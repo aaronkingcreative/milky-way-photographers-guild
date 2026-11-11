@@ -70,6 +70,7 @@ export function HeaderClient({
   const pathname = usePathname();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
+  const [voted, setVoted] = useState(Boolean(iotw?.vote));
   const navToggleRef = useRef<HTMLButtonElement>(null);
   const navPanelRef = useRef<HTMLDivElement>(null);
   const initials = name
@@ -84,6 +85,12 @@ export function HeaderClient({
   // The profile prompt waits until the mandatory Image of the Week vote is done, and stays off the profile page itself.
   const voteGateBlocking = Boolean(iotw?.mustVote) && voteGateApplies(pathname);
   const showProfileNudge = user && needsProfile && Boolean(userId) && !voteGateBlocking && voteGateApplies(pathname) && !pathname.startsWith("/profile");
+
+  useEffect(() => {
+    const onVoted = () => setVoted(true);
+    window.addEventListener("mw:iotw-voted", onVoted);
+    return () => window.removeEventListener("mw:iotw-voted", onVoted);
+  }, []);
 
   useEffect(() => {
     if (!navOpen) return;
@@ -103,14 +110,11 @@ export function HeaderClient({
       if (!navPointerShouldClose(event.composedPath(), toggle, panel)) return;
       setNavOpen(false);
     }
-    // The opening click has already finished. Listen on the next frame so that
-    // same gesture cannot bubble out and close the menu it just opened.
-    const frame = window.requestAnimationFrame(() => {
-      document.addEventListener("keydown", onKey);
-      document.addEventListener("pointerdown", onPointerDown);
-    });
+    // The opening click has already finished by the time this effect runs.
+    // Attach at once so Escape and an outside click are not missed on the next frame.
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onPointerDown);
     return () => {
-      window.cancelAnimationFrame(frame);
       document.removeEventListener("keydown", onKey);
       document.removeEventListener("pointerdown", onPointerDown);
     };
@@ -131,6 +135,11 @@ export function HeaderClient({
         </div>
         {user && (
           <div ref={navPanelRef} id="mw-primary-nav" className={`mw-primary-nav ${navOpen ? "is-open" : ""}`}>
+            {iotw ? (
+              <button type="button" className="mw-nav-vote" onClick={() => { setNavOpen(false); window.dispatchEvent(new Event("mw:open-iotw")); }}>
+                {voted ? "✪ Edit Vote" : "✪ Vote"}
+              </button>
+            ) : null}
             {navItems.map(([label, href]) => {
               const active = isActive(pathname, href);
               return (
@@ -145,7 +154,7 @@ export function HeaderClient({
           <>
             <div className="mw-header-actions">
               {iotw ? <IotwVotingModal ballot={iotw.ballot} entries={iotw.entries} existingVote={iotw.vote} entryWeek={iotw.entryWeek} required={Boolean(iotw.mustVote) && voteGateApplies(pathname)} /> : null}
-              <Link href="/submit" className="mw-submit-image-button">Submit Image</Link>
+              <Link href="/submit" className="mw-submit-image-button">File a Field Report</Link>
               {isAdmin && <Link href="/admin" className="hidden mw-meta mw-header-admin-link text-white/45 hover:text-[#f0bd66] md:inline">Admin</Link>}
               <div className="mw-account-wrap">
                 <Link href="/profile" className="mw-member-cluster" aria-label="Open member profile">
@@ -180,7 +189,7 @@ export function HeaderClient({
         )}
       </nav>
       {showProfileNudge && userId ? <ProfileNudge userId={userId} missingName={missingName} missingPhoto={missingPhoto} /> : null}
-      {user && isAdmin && pendingClaims > 0 ? <HeaderNotice id="claims" text={`${pendingClaims} achievement claim${pendingClaims === 1 ? "" : "s"} waiting for review`} href="/admin/achievements" cta="Verification Desk" hideOn="/admin/achievements" /> : null}
+      {user && isAdmin && pendingClaims > 0 ? <HeaderNotice id="claims" text={`${pendingClaims} Field Honor claim${pendingClaims === 1 ? "" : "s"} waiting for review`} href="/admin/achievements" cta="Verification Desk" hideOn="/admin/achievements" /> : null}
       {user && reviewNotice && reviewNotice.count > 0 ? <HeaderNotice id="review" text={reviewNotice.text} href="/progress#guild-review" cta="See the note" hideOn="/progress" /> : null}
     </header>
   );

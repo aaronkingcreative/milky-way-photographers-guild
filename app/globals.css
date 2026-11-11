@@ -152,7 +152,10 @@ a { color: inherit; text-decoration: none; }
   .mw-header-actions .mw-streak-pill { font-size:14px; padding:2px 9px; }
   .mw-header-admin-link { font-size:.9rem; }
   @media (max-width: 1500px) { .mw-header-nav { padding:0 24px; gap:1.25rem; } .mw-primary-nav { gap:24px; } .mw-primary-nav-link { font-size:17px; } .mw-header-logo { height:70px; } }
-  @media (max-width: 1380px) { .mw-vote-chip { display:none; } .mw-header-nav { gap:1rem; padding:0 16px; } .mw-primary-nav { gap:14px; } .mw-primary-nav-link { font-size:16px; } .mw-header-logo { height:62px; } .mw-header-actions { gap:.7rem; } .mw-member-name { max-width:9rem; font-size:1.15rem; } .mw-account-wrap { padding-left:.9rem; } }
+  @media (max-width: 1380px) { .mw-header-nav { gap:1rem; padding:0 16px; } .mw-primary-nav { gap:14px; } .mw-primary-nav-link { font-size:16px; } .mw-header-logo { height:62px; } .mw-header-actions { gap:.7rem; } .mw-member-name { max-width:9rem; font-size:1.15rem; } .mw-account-wrap { padding-left:.9rem; } }
+  .mw-nav-vote { display:none; align-items:center; border:1px solid rgba(231,159,43,.62); border-radius:999px; background:rgba(231,159,43,.13); color:#e79f2b; font-family:var(--font-guild-display); font-weight:600; letter-spacing:.05em; text-transform:uppercase; white-space:nowrap; cursor:pointer; }
+  @media (max-width: 1380px) and (min-width: 1281px) { .mw-header-actions .mw-vote-chip { display:none; } .mw-primary-nav .mw-nav-vote { display:inline-flex; padding:8px 12px; font-size:15px; } }
+  @media (max-width: 1280px) { .mw-header-actions .mw-vote-chip { display:inline-flex; } .mw-primary-nav.is-open .mw-nav-vote { display:flex; width:100%; justify-content:flex-start; margin:.35rem 0 .15rem; padding:.7rem 0; font-size:18px; letter-spacing:.08em; border:0; border-radius:0; background:transparent; border-bottom:1px solid rgba(255,255,255,.06); } }
   @media (max-width: 1250px) { .mw-member-copy { display:none; } }
   /* Below 1680 the same type sizes share the row with Submit and the member cluster.
      Tighten gaps, padding, and tracking only — labels stay on one line. */
@@ -192,8 +195,8 @@ a { color: inherit; text-decoration: none; }
     .mw-primary-nav .mw-primary-nav-link-active { color:#e79f2b; }
     .mw-account-wrap { padding-left:.7rem; }
   }
-  @media (max-width: 560px) { .mw-header-nav { padding:0 12px; gap:.6rem; } .mw-header-logo { height:48px; } .mw-header-actions { gap:.5rem; } .mw-header-actions .mw-submit-image-button { padding:8px 11px; font-size:13.5px; letter-spacing:.05em; } .mw-header-actions .mw-member-avatar { width:48px; height:48px; font-size:17px; } .mw-nav-toggle { width:40px; height:40px; } .mw-account-wrap { border-left:0; padding-left:0; } }
-  @media (max-width: 380px) { .mw-header-logo { height:40px; } .mw-header-actions .mw-submit-image-button { padding:7px 9px; font-size:12.5px; } .mw-header-actions .mw-member-avatar { width:42px; height:42px; } }
+  @media (max-width: 560px) { .mw-header-nav { padding:0 12px; gap:.6rem; } .mw-header-logo { height:48px; } .mw-header-actions { gap:.5rem; } .mw-header-actions .mw-submit-image-button { max-width:7.8rem; padding:7px 8px; font-size:11px; letter-spacing:.03em; line-height:1.15; white-space:normal; text-align:center; text-wrap:balance; } .mw-header-actions .mw-vote-chip { padding:6px 8px; font-size:11px; } .mw-header-actions .mw-member-avatar { width:48px; height:48px; font-size:17px; } .mw-nav-toggle { width:40px; height:40px; } .mw-account-wrap { border-left:0; padding-left:0; } }
+  @media (max-width: 380px) { .mw-header-logo { height:40px; } .mw-header-actions .mw-submit-image-button { max-width:7.2rem; padding:6px 7px; font-size:11px; letter-spacing:.02em; line-height:1.15; white-space:normal; text-align:center; } .mw-header-actions .mw-vote-chip { padding:6px 7px; font-size:11px; } .mw-header-actions .mw-member-avatar { width:42px; height:42px; } }
 }
 
 @layer components {
@@ -378,7 +381,7 @@ a { color: inherit; text-decoration: none; }
   .progress-kicker { display:flex; align-items:center; gap:.55rem; margin-bottom:.8rem; font-family:var(--font-guild-display); font-size:.86rem; font-weight:700; letter-spacing:.26em; text-transform:uppercase; color:var(--color-gold); }
   .progress-kicker img { border-radius:999px; }
   .progress-title { margin:0 0 1.9rem; font-family:var(--font-guild-display); font-size:clamp(2.25rem,3.1vw,2.45rem); line-height:1.05; font-weight:700; letter-spacing:.01em; text-transform:none; }
-  .progress-top-grid { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(180px,.72fr) minmax(180px,.72fr); gap:1rem; margin-bottom:1.25rem; }
+  .progress-top-grid { display:grid; align-items:start; grid-template-columns:minmax(0,1.7fr) minmax(220px,.9fr) minmax(180px,.72fr); gap:1rem; margin-bottom:1.25rem; }
   .progress-member-card, .progress-streak-card, .progress-panel { border:1px solid rgba(255,255,255,.10); border-radius:6px; background:rgba(13,30,48,.62); }
   .progress-member-card { display:flex; align-items:center; gap:1.35rem; padding:1.65rem; border-color:rgba(231,159,43,.28); background:linear-gradient(155deg,rgba(47,68,93,.34),rgba(13,30,48,.66)); }
   .progress-avatar { width:120px; height:120px; flex:none; border:3px solid #e79f2b; border-radius:999px; object-fit:cover; box-shadow:0 0 0 4px rgba(231,159,43,.14); }
@@ -390,11 +393,11 @@ a { color: inherit; text-decoration: none; }
   .progress-pills span { display:inline-flex; align-items:center; border:1px solid rgba(231,159,43,.55); border-radius:999px; background:rgba(231,159,43,.16); padding:.34rem .88rem; color:#e79f2b; font-family:var(--font-guild-display); font-weight:700; font-size:1rem; letter-spacing:.04em; text-transform:uppercase; }
   .progress-muted, .progress-streak-card p, .progress-section-head p, .progress-constellation-head p, .progress-empty { color:rgba(255,255,255,.62); }
   .progress-muted { margin:.75rem 0 0; font-size:1rem; }
-  .progress-streak-card { display:flex; flex-direction:column; justify-content:center; min-height:150px; padding:1.25rem; }
+  .progress-streak-card { display:flex; flex-direction:column; justify-content:flex-start; height:auto; min-height:0; overflow:visible; padding:1.25rem 1.35rem 1.4rem; }
   .progress-streak-card strong { color:#e79f2b; font-family:var(--font-guild-display); font-size:2.9rem; line-height:1; }
   .progress-streak-card-cool strong { color:#fff; }
   .progress-streak-card span { margin-top:.2rem; font-family:var(--font-guild-display); font-weight:700; text-transform:uppercase; letter-spacing:.08em; }
-  .progress-streak-card p { margin:.35rem 0 0; font-size:.88rem; }
+  .progress-streak-card p { margin:.45rem 0 0; font-size:.95rem; line-height:1.45; overflow:visible; text-wrap:pretty; }
   .progress-panel { padding:1.45rem 1.55rem; margin-bottom:1.25rem; }
   .progress-rank-panel > div:first-child { display:flex; align-items:baseline; justify-content:space-between; gap:1rem; margin-bottom:.8rem; }
   .progress-rank-panel h2, .progress-section-head h2, .progress-constellation-head h2 { font-size:.95rem; letter-spacing:.16em; }
@@ -424,7 +427,8 @@ a { color: inherit; text-decoration: none; }
   .progress-star.locked { opacity:.76; }
   .progress-tooltip { position:absolute; left:50%; top:calc(100% + 8px); z-index:8; width:224px; transform:translate(-50%, 4px); opacity:0; visibility:hidden; border:1px solid rgba(231,159,43,.45); border-radius:5px; background:#0d1e30; padding:.82rem .95rem; text-align:left; box-shadow:0 16px 38px rgba(0,0,0,.6); transition:opacity .16s ease, transform .16s ease, visibility .16s ease; pointer-events:none; }
   .progress-star:hover, .progress-star:focus-visible { z-index:20; }
-  .progress-star:hover .progress-tooltip, .progress-star:focus-visible .progress-tooltip { opacity:1; visibility:visible; transform:translate(-50%, 0); }
+  .progress-star:hover .progress-tooltip, .progress-star:focus-visible .progress-tooltip, .progress-star.is-open .progress-tooltip, .progress-star:focus .progress-tooltip { opacity:1; visibility:visible; transform:translate(-50%, 0); }
+  .progress-star.is-open, .progress-star:focus { z-index:20; }
   .progress-tooltip strong { display:block; margin-bottom:.3rem; color:#fff; font-weight:900; font-size:.95rem; }
   .progress-tooltip em { display:block; margin-bottom:.5rem; color:rgba(255,255,255,.64); font-style:normal; font-size:.85rem; line-height:1.45; }
   .progress-tooltip b { color:#55d88a; font-size:.84rem; }
@@ -865,7 +869,7 @@ article:has(> .mw-report-stage) { container-type: inline-size; }
 @media (max-width: 820px) { .profile-settings-shell { grid-template-columns:1fr; } }
 
 /* Image of the Week two-phase schedule (voting now, open for entries) */
-.mw-iotw-schedule{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-top:12px}
+.mw-iotw-schedule{display:grid;gap:10px;align-items:start;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-top:12px}
 .mw-iotw-schedule-compact{grid-template-columns:1fr}
 .mw-iotw-phase{border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:10px 12px;background:rgba(6,16,28,.55);display:flex;flex-direction:column;gap:3px;text-align:left}
 .mw-iotw-phase strong{font-family:var(--font-display,inherit);font-size:17px;color:#fff;letter-spacing:.02em}
@@ -875,6 +879,15 @@ article:has(> .mw-report-stage) { container-type: inline-size; }
 .mw-iotw-phase-vote .mw-iotw-phase-tag{color:#f0bd66}
 .mw-iotw-phase-entry{border-color:rgba(95,175,230,.4)}
 .mw-iotw-phase-entry .mw-iotw-phase-tag{color:#7fc4f0}
+.mw-iotw-ballot-note{margin:8px 0 0;font-size:13px;line-height:1.45;color:rgba(255,255,255,.72);text-wrap:pretty}
+.mw-iotw-ballot-thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.mw-iotw-ballot-thumbs img{width:72px;height:72px;object-fit:cover;border-radius:4px}
+.mw-iotw-ballot-cta{margin-top:10px;align-self:flex-start}
+.mw-iotw-phase-entry .fd-contender-grid,.mw-iotw-phase-entry .fd-contender-grid-single{grid-template-columns:1fr;margin-top:12px}
+.mw-iotw-phase-entry .fd-contender-card img,.mw-iotw-phase-entry .fd-contender-grid-single .fd-contender-card img{height:220px}
+.mw-submit-dock{position:sticky;bottom:12px;z-index:4;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid rgba(231,159,43,.4);border-radius:8px;background:rgba(8,19,33,.96);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.mw-submit-dock .mw-iotw-submit-card{margin:0;flex:1 1 16rem}
+.mw-submit-dock .mw-btn-primary{flex:none}
 
 /* IOTW vote modal: portaled to <body>, always fully on screen, scrolls inside on short screens. */
 .mw-iotw-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;overflow-y:auto;overscroll-behavior:contain;padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom))}
@@ -1041,7 +1054,7 @@ html[data-list-loading] .mw-sort-list::before{content:"";position:absolute;z-ind
 .progress-star.future .progress-tooltip strong { color:rgba(255,255,255,.82); }
 .progress-sky .progress-star.tip-left .progress-tooltip { left:0; transform:translate(0,4px); }
 .progress-sky .progress-star.tip-right .progress-tooltip { left:auto; right:0; transform:translate(0,4px); }
-.progress-sky .progress-star.tip-left:is(:hover,:focus,:focus-visible) .progress-tooltip, .progress-sky .progress-star.tip-right:is(:hover,:focus,:focus-visible) .progress-tooltip { transform:translate(0,0); }
+.progress-sky .progress-star.tip-left:is(:hover,:focus,:focus-visible,.is-open) .progress-tooltip, .progress-sky .progress-star.tip-right:is(:hover,:focus,:focus-visible,.is-open) .progress-tooltip { transform:translate(0,0); }
 .progress-sky .progress-star.tip-up .progress-tooltip { top:auto; bottom:calc(100% + 8px); }
 .progress-legend i.future { width:12px; height:12px; background:rgba(120,145,180,.3); }
 @media (max-width: 1000px) { .progress-sky { height:auto; } }
@@ -1057,11 +1070,11 @@ html[data-list-loading] .mw-sort-list::before{content:"";position:absolute;z-ind
   .progress-sky .progress-star-shape { font-size:calc(11px * var(--star, 1)); }
   .progress-sky .progress-star.future { width:16px; height:16px; }
   .progress-sky .progress-star.tip-left .progress-tooltip, .progress-sky .progress-star.tip-right .progress-tooltip { left:50%; right:auto; transform:translate(-50%,4px); }
-  .progress-sky .progress-star.tip-left:is(:hover,:focus,:focus-visible) .progress-tooltip, .progress-sky .progress-star.tip-right:is(:hover,:focus,:focus-visible) .progress-tooltip { transform:translate(-50%,0); }
+  .progress-sky .progress-star.tip-left:is(:hover,:focus,:focus-visible,.is-open) .progress-tooltip, .progress-sky .progress-star.tip-right:is(:hover,:focus,:focus-visible,.is-open) .progress-tooltip { transform:translate(-50%,0); }
   .progress-sky .progress-star.tip-up .progress-tooltip { top:calc(100% + 8px); bottom:auto; }
   .progress-sky .progress-star.mtip-left .progress-tooltip { left:0; right:auto; transform:translate(0,4px); }
   .progress-sky .progress-star.mtip-right .progress-tooltip { left:auto; right:0; transform:translate(0,4px); }
-  .progress-sky .progress-star.mtip-left:is(:hover,:focus,:focus-visible) .progress-tooltip, .progress-sky .progress-star.mtip-right:is(:hover,:focus,:focus-visible) .progress-tooltip { transform:translate(0,0); }
+  .progress-sky .progress-star.mtip-left:is(:hover,:focus,:focus-visible,.is-open) .progress-tooltip, .progress-sky .progress-star.mtip-right:is(:hover,:focus,:focus-visible,.is-open) .progress-tooltip { transform:translate(0,0); }
   .progress-sky .progress-star.mtip-up .progress-tooltip { top:auto; bottom:calc(100% + 8px); }
   .progress-tooltip { width:200px; }
 }
@@ -1373,6 +1386,9 @@ a.mw-header-join {
 }
 .fd-intro h1 { text-wrap: balance; }
 .fd-intro p { text-wrap: pretty; }
+main :is(p, li, blockquote, figcaption, small, .mw-help, .mw-muted, .mw-guild-page-subtitle, .profile-avatar-help, .fd-stat-hint, .progress-empty) { text-wrap: pretty; }
+main :is(h1, h2, h3, h4) { text-wrap: balance; }
+.fd-honor-grid p { text-wrap: balance; overflow-wrap: normal; }
 .fd-learn { display:flex; flex-wrap:wrap; gap:.75rem 1.25rem; margin:0 0 1.75rem; }
 .fd-learn a { color:#f0bd66; font-weight:700; text-decoration:underline; text-underline-offset:3px; }
 .mw-unbreakable { white-space:nowrap; hyphens:none; overflow-wrap:normal; word-break:keep-all; }

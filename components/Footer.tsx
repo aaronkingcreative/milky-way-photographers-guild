@@ -9,6 +9,7 @@ export function Footer() {
       <nav aria-label="Policies" className="mt-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-base">
         <Link className="text-[#f6e2b0] underline-offset-4 hover:underline" href="/privacy">Privacy</Link>
         <Link className="text-[#f6e2b0] underline-offset-4 hover:underline" href="/terms">Terms</Link>
+        <a className="text-[#f6e2b0] underline-offset-4 hover:underline" href="mailto:aaron@photogadventures.com">Questions? aaron@photogadventures.com</a>
       </nav>
     </footer>
   );

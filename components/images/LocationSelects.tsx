@@ -17,7 +17,7 @@ export function LocationSelects({ defaults, required = false }: { required?: boo
   return (
     <div className="grid gap-4 md:grid-cols-3">
       <label className="mw-submit-field-label">Country<select className="mw-input mt-2" name="country" required={required} value={country} onChange={(e) => { setCountry(e.target.value); setRegion(""); }}>{!country || !required ? <option value="">Choose a country</option> : null}{countries.map((c) => <option key={c} value={c}>{c}</option>)}</select></label>
-      <label className="mw-submit-field-label">State / province / region<select className="mw-input mt-2" name="state_or_province" required={required} value={region} onChange={(e) => setRegion(e.target.value)} disabled={!country}><option value="">{country ? "Choose a state or region" : "Choose a country first"}</option>{regions.map((r) => <option key={r} value={r}>{r}</option>)}</select></label>
+      <label className="mw-submit-field-label">State / province / region<select className="mw-input mt-2" name="state_or_province" required={required} value={region} onChange={(e) => setRegion(e.target.value)} disabled={!country}><option value="">{country ? (country === "United States" ? "Choose a state" : "Choose a region") : "Choose a country first"}</option>{regions.map((r) => <option key={r} value={r}>{r}</option>)}</select></label>
       <label className="mw-submit-field-label">Specific location <span>(optional)</span><input className="mw-input mt-2" name="specific_location_name" defaultValue={defaults?.specific_location_name || ""} placeholder="Mesa Arch, Southern Utah..." /></label>
     </div>
   );

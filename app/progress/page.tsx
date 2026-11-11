@@ -8,6 +8,7 @@ import { moreHonorsToRank, rankProgressPercent } from "@/lib/member-labels";
 import { fetchFieldYearCoverage, fetchHonorEvidence, formatEvidenceDate, type HonorEvidence } from "@/lib/field-year";
 import { finishedLeagueYears, leagueForMonths, nextLeagueForMonths } from "@/lib/leagues";
 import { SKY_VIEW, SkyLayoutKey, buildSkyMap } from "@/lib/sky-constellations";
+import { HonorStar } from "@/components/progress/HonorStar";
 
 const favicon = "/launch/mwpg/MWPG_Logo_FAVICON.png";
 const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -112,10 +113,10 @@ export default async function Page() {
         {stats.avatar_url ? <Image src={stats.avatar_url} alt="" width={120} height={120} unoptimized className="progress-avatar" /> : <div className="progress-avatar progress-avatar-initials">{initials}</div>}
         <div><p className="progress-panel-label">Member Standing</p><h2>{name}</h2><div className="progress-pills"><span>{rank.short}</span>{yearStreak > 0 && <span>☄ {yearStreak}-yr Milky Way streak</span>}</div><p className="progress-muted">{earnedCount} field honors earned, {rank.full}</p></div>
       </div>
-      <div className="progress-streak-card"><strong>{yearStreak}</strong><span>Year Streak</span><p>Upload a Milky Way image from a year and declare when you shot it. Each consecutive year adds to your streak. <a href="/profile#streak" className="underline">See your years</a></p></div>
+      <div className="progress-streak-card"><strong>{yearStreak}</strong><span>Year Streak</span><p>Upload a Milky Way image from a year and declare when you shot it. Each consecutive year adds to your streak. <a href="/profile#streak" className="underline">See&nbsp;your&nbsp;years</a></p></div>
       <div className="progress-streak-card progress-streak-card-cool"><strong>{monthStreak}</strong><span>Month Streak</span><p>Earned calendar month honors</p></div>
     </section>
-    {reviewNotes.length > 0 && <section id="guild-review" className="progress-panel progress-review-notes"><div className="progress-section-head"><h2>Guild review notes</h2><p>What the Verification Desk said about your achievement claims</p></div><ul>{reviewNotes.map((n) => <li key={n.id} className={`progress-review-note ${n.status}`}><span className="progress-review-glyph" aria-hidden="true">{n.glyph}</span><div><p className="progress-review-head">{n.headline}{n.isNew && <span className="progress-review-new">New</span>}</p>{n.title && <p className="progress-muted">{n.title}{n.date ? ` · reviewed ${n.date}` : ""}</p>}{n.note && <blockquote>“{n.note}”</blockquote>}</div></li>)}</ul></section>}
+    {reviewNotes.length > 0 && <section id="guild-review" className="progress-panel progress-review-notes"><div className="progress-section-head"><h2>Guild review notes</h2><p>What the Verification Desk said about your Field Honor claims</p></div><ul>{reviewNotes.map((n) => <li key={n.id} className={`progress-review-note ${n.status}`}><span className="progress-review-glyph" aria-hidden="true">{n.glyph}</span><div><p className="progress-review-head">{n.headline}{n.isNew && <span className="progress-review-new">New</span>}</p>{n.title && <p className="progress-muted">{n.title}{n.date ? ` · reviewed ${n.date}` : ""}</p>}{n.note && <blockquote>“{n.note}”</blockquote>}</div></li>)}</ul></section>}
     <section className="progress-panel progress-rank-panel"><div><h2>Progress to {nextRank?.short ?? "Master"}</h2><p>{nextRank ? moreHonorsToRank(stats.honors_to_next_rank) : "Master rank reached"}</p></div><div className="progress-bar"><span style={{ width: `${progressPct}%` }} /></div></section>
     <section className="progress-panel progress-punch" aria-labelledby="field-year-title">
       <div className="progress-section-head"><h2 id="field-year-title">{fieldYear} Field Year</h2><p>{yearCount > 0 ? `You went out for the Milky Way ${yearCount} of 12 months this year.` : "No Milky Way months logged yet this year. Upload an image and declare its capture date to punch a month."}</p></div>
@@ -147,8 +148,8 @@ export default async function Page() {
         </div>;
       })}</div>
     </section>
-    <section className="progress-panel progress-decade"><div className="progress-section-head"><h2>❖ A Decade Under the Stars</h2><p>Credibility bonus for Milky Way images captured across different years.</p></div>{decadeAchievements.length ? <div className="progress-year-chips">{decadeAchievements.map((achievement) => <span key={achievement.id} title={achievement.name}>{DECADE_BADGE_LABEL} · 10 yrs</span>)}</div> : <p className="progress-empty">Not earned yet. Capture the Milky Way in ten different calendar years.</p>}</section>
-    <section className="progress-constellation-head"><h2>The Constellation of Honors</h2><p>Hover any star for details, a fully earned cluster lights its constellation gold</p></section>
+    <section className="progress-panel progress-decade"><div className="progress-section-head"><h2>❖ A Decade Under the Stars</h2><p>Credibility bonus for Milky Way images captured across different years.</p></div>{decadeAchievements.length ? <div className="progress-year-chips">{decadeAchievements.map((achievement) => <span key={achievement.id} title={achievement.name}>{DECADE_BADGE_LABEL} · 10 yrs</span>)}</div> : <p className="progress-empty">Not earned yet. Capture the Milky Way in ten different calendar&nbsp;years.</p>}</section>
+    <section className="progress-constellation-head"><h2>The Constellation of Honors</h2><p>Open any star for details. A fully earned cluster lights its constellation gold</p></section>
     <section className="progress-sky">
       {(["desktop", "mobile"] as const).map((layout) => <svg key={layout} className={`progress-sky-lines progress-sky-${layout}`} viewBox={`0 0 ${SKY_VIEW[layout].w} ${SKY_VIEW[layout].h}`} preserveAspectRatio="none" aria-hidden="true">
         {sky.constellations.map((constellation) => <g key={constellation.id} className={completeConstellations.has(constellation.id) ? "progress-sky-figure complete" : "progress-sky-figure"}>
@@ -162,15 +163,15 @@ export default async function Page() {
         const earned = Boolean(record);
         const style = { "--dx": pct(star.pos.desktop.x, "desktop", "w"), "--dy": pct(star.pos.desktop.y, "desktop", "h"), "--mx": pct(star.pos.mobile.x, "mobile", "w"), "--my": pct(star.pos.mobile.y, "mobile", "h"), "--star": starSize(star.mag) } as React.CSSProperties;
         const tips = `${tipClass(star.pos.desktop.x, star.pos.desktop.y)} ${tipClassMobile(star.pos.mobile.x, star.pos.mobile.y)}`.trim();
-        if (!definition) return <button key={star.key} type="button" className={`progress-star future ${tips}`} style={style} aria-label={`Future honor, ${star.starName}`}><span className="progress-star-shape" /><span className="progress-tooltip"><strong>Future honor</strong><em>Reserved for an honor the Guild has not added yet.</em><small>{star.starName}, {star.constellationName}</small></span></button>;
-        return <button key={star.key} type="button" className={`progress-star ${earned ? "earned" : "locked"}${completeConstellations.has(star.constellationId) ? " in-complete" : ""} ${tips}`} style={style}><span className="progress-star-shape"><span>{definition.glyph}</span></span><span className="progress-tooltip"><strong>{definition.name}</strong><em>{definition.requirement}</em><b>{earned ? (record?.earnedAt ? `✓ Earned ${earnedDate(record.earnedAt)}` : "✓ Earned") : "Locked"}</b><small>{star.starName}, {star.constellationName}</small></span></button>;
+        if (!definition) return <HonorStar key={star.key} className={`progress-star future ${tips}`} style={style} label={`Future honor, ${star.starName}`}><span className="progress-star-shape" /><span className="progress-tooltip"><strong>Future honor</strong><em>Reserved for an honor the Guild has not added yet.</em><small>{star.starName}, {star.constellationName}</small></span></HonorStar>;
+        return <HonorStar key={star.key} className={`progress-star ${earned ? "earned" : "locked"}${completeConstellations.has(star.constellationId) ? " in-complete" : ""} ${tips}`} style={style} label={definition.name}><span className="progress-star-shape"><span>{definition.glyph}</span></span><span className="progress-tooltip"><strong>{definition.name}</strong><em>{definition.requirement}</em><b>{earned ? (record?.earnedAt ? `✓ Earned ${earnedDate(record.earnedAt)}` : "✓ Earned") : "Locked"}</b><small>{star.starName}, {star.constellationName}</small></span></HonorStar>;
       })}
     </section>
     <div className="progress-legend"><span><i className="earned" />Earned honor</span><span><i />Locked, not yet earned</span>{sky.stars.some((s) => !s.achievement) ? <span><i className="future" />Future honor</span> : null}<span><i className="line" />Gold line joins two earned honors, a fully earned constellation glows gold</span></div>
 
     <section className="progress-achievement-library" aria-labelledby="achievement-library-title">
       <div className="progress-library-heading">
-        <p className="progress-panel-label">Achievement Library</p>
+        <p className="progress-panel-label">Field Honor Library</p>
         <h2 id="achievement-library-title">Every Field Honor, streak tracker, and rank milestone in the Guild.</h2>
       </div>
       <div className="progress-honor-explainer">
@@ -179,7 +180,7 @@ export default async function Page() {
       </div>
       <div className="progress-library-notes">
         <span>One submitted image can claim one rank-counting Field Honor.</span>
-        <span>Perfect Year is automatic when all 12 months have coverage in the same calendar year.</span>
+        <span>Perfect Year is automatic when all 12 months have coverage in the same calendar&nbsp;year.</span>
         <span>Seasons are automatic: hold all three months of a season, in any years, and the season is yours.</span>
         <span>Raw coverage and streaks are tracking only.</span>
       </div>

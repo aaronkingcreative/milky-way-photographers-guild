@@ -207,7 +207,7 @@ export function PortraitEditor({ profile, initials, onSaved }: { profile: any; i
           );
         })}
       </div>
-      <p className="profile-avatar-help">{source ? "Frame each shape on its own. Drag inside a shape to move the photo, slide to zoom. Zoom the circle all the way out for head and shoulders." : "Pick a photo of you. Any size works, we shrink it for you."}</p>
+      <p className="profile-avatar-help">{source ? "Frame each shape on its own. Drag inside a shape to move the photo, slide to zoom. Zoom the circle all the way out for head and shoulders." : "Pick a photo of you. Any size works, and it is resized for\u00A0you."}</p>
       <input ref={fileRef} className="sr-only" type="file" accept="image/*" onChange={(e) => { choose(e.target.files?.[0]); e.target.value = ""; }} />
       <div className="mw-portrait-actions">
         <button className="profile-avatar-button" type="button" disabled={busy} onClick={() => fileRef.current?.click()}>{source ? "New photo" : "Choose photo"}</button>
