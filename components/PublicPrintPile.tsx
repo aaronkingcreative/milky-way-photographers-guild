@@ -8,6 +8,20 @@ import { DRAG_THRESHOLD_PX, PRINT_SAFE, PRINT_SAFE_WIDE, clampPose, isWidePrintS
 import type { ShowcasePhoto } from "@/lib/public-showcase";
 import { DEFAULT_PRINT_AVATAR, isDefaultPrintAvatar, showcaseAvatarUrl, showcaseThumbUrl } from "@/lib/showcase-images";
 
+type PhotoSrcStage = "webp" | "jpeg" | "original";
+
+function pilePhotoSrc(imageUrl: string, stage: PhotoSrcStage): string {
+  if (stage === "webp") return showcaseThumbUrl(imageUrl, "webp");
+  if (stage === "jpeg") return showcaseThumbUrl(imageUrl);
+  return imageUrl;
+}
+
+function nextPhotoStage(stage: PhotoSrcStage): PhotoSrcStage | null {
+  if (stage === "webp") return "jpeg";
+  if (stage === "jpeg") return "original";
+  return null;
+}
+
 const photoAlt = "Guild member photo";
 const DEFAULT_ASPECT = 4 / 3;
 
@@ -32,9 +46,10 @@ function aspectFromImage(image: HTMLImageElement): number | null {
   return image.naturalWidth / image.naturalHeight;
 }
 
-function avatarSrc(url: string, failed: boolean): string {
+function avatarSrc(url: string, failed: boolean, stage: PhotoSrcStage = "webp"): string {
   if (failed || isDefaultPrintAvatar(url)) return DEFAULT_PRINT_AVATAR;
-  return showcaseAvatarUrl(url);
+  if (stage === "original") return url;
+  return showcaseAvatarUrl(url, stage === "webp" ? "webp" : undefined);
 }
 
 export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
@@ -58,7 +73,8 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
   const [readyUrls, setReadyUrls] = useState<Set<string>>(() => new Set());
   const [readyAvatars, setReadyAvatars] = useState<Set<string>>(() => new Set());
   const [failedAvatars, setFailedAvatars] = useState<Set<string>>(() => new Set());
-  const [fullfallbacks, setFullFallbacks] = useState<Set<string>>(() => new Set());
+  const [photoStages, setPhotoStages] = useState<Record<string, PhotoSrcStage>>({});
+  const [avatarStages, setAvatarStages] = useState<Record<string, PhotoSrcStage>>({});
   const tableRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<DragState | null>(null);
   const swipeRef = useRef<{ x: number; y: number } | null>(null);
@@ -241,7 +257,7 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
           const isDragging = dragging === index;
           const aspect = aspects[photo.imageUrl] ?? DEFAULT_ASPECT;
           const ready = readyUrls.has(photo.imageUrl);
-          const pileSrc = fullfallbacks.has(photo.imageUrl) ? photo.imageUrl : showcaseThumbUrl(photo.imageUrl);
+          const pileSrc = pilePhotoSrc(photo.imageUrl, photoStages[photo.imageUrl] ?? "webp");
           const priority = visible.length - z < 3;
           const avatarReady = readyAvatars.has(photo.imageUrl) || isDefaultPrintAvatar(photo.avatarUrl) || failedAvatars.has(photo.avatarUrl);
           return (
@@ -282,8 +298,10 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
                     draggable={false}
                     onLoad={(event) => markPhotoReady(photo.imageUrl, event.currentTarget)}
                     onError={() => {
-                      if (!fullfallbacks.has(photo.imageUrl) && pileSrc !== photo.imageUrl) {
-                        setFullFallbacks((current) => new Set(current).add(photo.imageUrl));
+                      const currentStage = photoStages[photo.imageUrl] ?? "webp";
+                      const next = nextPhotoStage(currentStage);
+                      if (next) {
+                        setPhotoStages((current) => ({ ...current, [photo.imageUrl]: next }));
                         return;
                       }
                       dropPhoto(photo.imageUrl);
@@ -295,7 +313,7 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
                 </span>
                 <img
                   className="mw-print-avatar"
-                  src={avatarSrc(photo.avatarUrl, failedAvatars.has(photo.avatarUrl))}
+                  src={avatarSrc(photo.avatarUrl, failedAvatars.has(photo.avatarUrl), avatarStages[photo.avatarUrl] ?? "webp")}
                   alt=""
                   loading="eager"
                   decoding="async"
@@ -311,6 +329,12 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
                   }}
                   onError={(event) => {
                     if (event.currentTarget.src.includes(DEFAULT_PRINT_AVATAR) || event.currentTarget.getAttribute("src") === DEFAULT_PRINT_AVATAR) {
+                      return;
+                    }
+                    const currentStage = avatarStages[photo.avatarUrl] ?? "webp";
+                    const next = nextPhotoStage(currentStage);
+                    if (next && next !== "original") {
+                      setAvatarStages((current) => ({ ...current, [photo.avatarUrl]: next }));
                       return;
                     }
                     setFailedAvatars((current) => new Set(current).add(photo.avatarUrl));
@@ -359,7 +383,7 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
                 </span>
                 <img
                   className="mw-print-avatar"
-                  src={avatarSrc(focusedPhoto.avatarUrl, failedAvatars.has(focusedPhoto.avatarUrl))}
+                  src={avatarSrc(focusedPhoto.avatarUrl, failedAvatars.has(focusedPhoto.avatarUrl), avatarStages[focusedPhoto.avatarUrl] ?? "webp")}
                   alt=""
                   decoding="async"
                   draggable={false}

@@ -41,9 +41,12 @@ async function rpc(name: string): Promise<unknown> {
 async function keepReachablePhotos(photos: ShowcasePhoto[]): Promise<ShowcasePhoto[]> {
   if (photos.length === 0) return photos;
   const checks = await Promise.all(photos.map(async (photo) => {
-    const thumb = showcaseThumbUrl(photo.imageUrl);
-    const thumbState = await isReachableImage(thumb);
-    if (thumbState === "yes" || thumbState === "unknown") return photo;
+    const webp = showcaseThumbUrl(photo.imageUrl, "webp");
+    const webpState = await isReachableImage(webp);
+    if (webpState === "yes" || webpState === "unknown") return photo;
+    const jpeg = showcaseThumbUrl(photo.imageUrl);
+    const jpegState = await isReachableImage(jpeg);
+    if (jpegState === "yes" || jpegState === "unknown") return photo;
     const originalState = await isReachableImage(photo.imageUrl);
     return originalState === "no" ? null : photo;
   }));
