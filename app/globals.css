@@ -1505,7 +1505,10 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
 .mw-stats-bar-n { color: #f4bd61; font-size: .82rem; letter-spacing: .04em; text-align: right; }
 .mw-stats-places-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: .15rem .7rem; }
 .mw-stats-place-label { margin: 0; max-width: 12rem; line-height: 1.35; }
-.mw-stats-map-art { margin: .15rem -.4rem .55rem; }
+.mw-stats-map-art { margin: .15rem -.4rem 0; }
+.mw-stats-map-art .mw-stats-caption { margin-top: .3rem; }
+.mw-stats-places-list-label { margin: .95rem 0 0; }
+.mw-stats-places .mw-stats-bars { margin-top: .5rem; }
 .mw-stats-map-art svg { display: block; width: 100%; height: auto; }
 .mw-stats-land { fill: rgba(244, 189, 97, .07); stroke: rgba(244, 189, 97, .34); stroke-width: 1.5; }
 .mw-stats-lakes { fill: #06101c; stroke: none; }
@@ -1535,7 +1538,11 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
   padding-top: 1.05rem;
   border-top: 1px solid rgba(244, 189, 97, .28);
 }
-.mw-stats-pics { margin: 0; }
+.mw-stats-main { display: contents; }
+.mw-stats-hero { order: 1; }
+.mw-stats-places { order: 2; }
+.mw-stats-pics { order: 3; margin: 0; }
+.mw-stats-band { order: 4; }
 .mw-public .mw-showcase-honors { max-width: 34rem; margin: 1.1rem 0 0; color: #e7eef6; font-size: 1.08rem; line-height: 1.65; text-wrap: balance; }
 .mw-public .mw-showcase-pile-lead { max-width: 36rem; margin: 1.35rem 0 0; color: #d5deea; font-size: 1.05rem; line-height: 1.65; text-wrap: pretty; }
 @media (min-width: 900px) {
@@ -1543,16 +1550,27 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
     display: grid;
     grid-template-columns: minmax(0, 1.14fr) minmax(22rem, .94fr);
     grid-template-areas:
-      "hero places"
-      "pics places"
+      "main places"
       "band band";
     column-gap: 2.6rem;
     row-gap: 1.15rem;
     align-items: start;
   }
-  .mw-stats-hero { grid-area: hero; min-width: 0; }
+  .mw-stats-main {
+    display: flex;
+    flex-direction: column;
+    gap: .85rem;
+    grid-area: main;
+    min-width: 0;
+  }
+  .mw-stats-hero,
+  .mw-stats-pics,
+  .mw-stats-places,
+  .mw-stats-band { order: unset; }
+  .mw-stats-hero { min-width: 0; }
   .mw-stats-places { grid-area: places; min-width: 0; padding-left: 1.7rem; border-left: 1px solid rgba(244, 189, 97, .22); }
-  .mw-stats-pics { grid-area: pics; min-width: 0; padding-top: .15rem; }
+  .mw-stats-pics { min-width: 0; padding-top: 0; }
+  .mw-public .mw-showcase-honors { margin-top: .85rem; }
   .mw-stats-band { grid-area: band; margin-top: .2rem; gap: 1.2rem 2.4rem; justify-content: space-between; }
   .mw-stats-band .mw-stats-side { display: flex; align-items: baseline; gap: .75rem; }
   .mw-stats-band .mw-stats-label { margin: 0; }
