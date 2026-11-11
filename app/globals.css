@@ -1611,7 +1611,7 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
   max-height: 85vh;
   touch-action: pan-y;
 }
-.mw-print-focused {
+.mw-print.mw-print-focused {
   --print-long: min(90vw, calc(100vw - 6.5rem));
   position: relative;
   left: auto;
@@ -1671,6 +1671,11 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
     --rot: var(--rot-wide, 0deg);
     left: var(--x-wide, 50%);
     top: var(--y-wide, 50%);
+  }
+  .mw-print-focused {
+    left: auto;
+    top: auto;
+    --rot: 0deg;
   }
   .mw-print-avatar {
     width: 2.25rem;
