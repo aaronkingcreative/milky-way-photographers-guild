@@ -110,8 +110,10 @@ test("terms and privacy share one hide line for the public photo strip", () => {
   assert.equal(fieldHonorsPublicLine.includes("\u2014"), false);
   assert.equal(fieldHonorsPublicLine.includes(":"), false);
   const showcase = readFileSync(new URL("../components/PublicShowcase.tsx", import.meta.url), "utf8");
+  const stats = readFileSync(new URL("../components/PublicGuildStats.tsx", import.meta.url), "utf8");
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
-  assert.equal(showcase.includes("mw-showcase-honors"), true);
+  assert.equal(stats.includes("mw-showcase-honors"), true);
+  assert.equal(stats.includes("fieldHonorsPublicLine"), true);
   assert.match(css, /\.mw-public \.mw-showcase-honors \{[^}]*text-wrap:\s*balance/);
   assert.equal(showcase.toLowerCase().includes("display_name"), false);
   assert.equal(showcase.toLowerCase().includes("milkywayphotographers.com"), false);

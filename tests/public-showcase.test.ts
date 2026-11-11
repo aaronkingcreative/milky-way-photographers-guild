@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
-import { SHOWCASE_MAX, SHOWCASE_MIN, parsePublicCounts, parseShowcasePhotos } from "../lib/public-showcase.ts";
+import { SHOWCASE_MAX, SHOWCASE_MIN, fillCaptureYears, parsePublicCounts, parseShowcasePhotos } from "../lib/public-showcase.ts";
 
 function photo(index: number, extra: Record<string, unknown> = {}) {
   return {
@@ -17,6 +17,43 @@ test("counts accept only the three public numbers", () => {
   assert.equal(parsePublicCounts({ comments: 1, pics: 1 }), null);
   assert.equal(parsePublicCounts({ comments: -1, pics: 1, honors: 1 }), null);
   assert.equal(parsePublicCounts(null), null);
+});
+
+test("counts keep valid extras and drop names or unknown fields", () => {
+  const parsed = parsePublicCounts({
+    comments: 43,
+    pics: 123,
+    honors: 149,
+    members: 40,
+    reactions: 158,
+    regions: 21,
+    countries: 5,
+    week_pics: 16,
+    honor_categories: [{ key: "foreground", n: 58, owner: "Ada" }, { key: "rank", n: 9 }, { key: "monthly", n: "47" }],
+    places: [{ name: "Utah", n: 35 }, { name: "Canary Islands", n: 9 }, { name: "secret_id", n: 4 }, { name: 12, n: 3 }],
+    us_states: [{ code: "UT", n: 35 }, { code: "XX", n: 4 }, { code: "ca", n: 17 }],
+    capture_years: [{ year: 2019, n: 15 }, { year: 21, n: 1 }, { year: 2026, n: 28 }],
+    display_name: "Ada",
+    email: "ada@example.com",
+  });
+  assert.ok(parsed);
+  assert.equal(JSON.stringify(parsed).includes("Ada"), false);
+  assert.equal(JSON.stringify(parsed).includes("email"), false);
+  assert.equal(JSON.stringify(parsed).includes("secret_id"), false);
+  assert.deepEqual(parsed, {
+    comments: 43,
+    pics: 123,
+    honors: 149,
+    members: 40,
+    reactions: 158,
+    regions: 21,
+    countries: 5,
+    weekPics: 16,
+    honorCategories: [{ key: "foreground", n: 58 }, { key: "monthly", n: 47 }],
+    places: [{ name: "Utah", n: 35 }, { name: "Canary Islands", n: 9 }],
+    usStates: [{ code: "UT", n: 35 }, { code: "CA", n: 17 }],
+    captureYears: [{ year: 2019, n: 15 }, { year: 2026, n: 28 }],
+  });
 });
 
 test("the photo strip shows whatever valid photos exist and never keeps a name", () => {
@@ -105,4 +142,42 @@ test("the print-pile migration keeps url-only rows and raises the cap to nine", 
   assert.equal(sql.includes("pg_catalog.least"), false);
   assert.equal(sql.includes("pg_catalog.coalesce"), false);
   assert.equal(sql.toLowerCase().includes("grant select on public.profiles to anon"), false);
+});
+
+test("capture years fill the gaps so a sparkline stays continuous", () => {
+  assert.deepEqual(
+    fillCaptureYears([{ year: 2020, n: 2 }, { year: 2022, n: 5 }], 2023),
+    [
+      { year: 2020, n: 2 },
+      { year: 2021, n: 0 },
+      { year: 2022, n: 5 },
+      { year: 2023, n: 0 },
+    ],
+  );
+});
+
+test("the counts infographic migration stays a public aggregate function for anon", () => {
+  const sql = readFileSync(new URL("../supabase/migrations/20261111223000_public_guild_counts_infographic.sql", import.meta.url), "utf8");
+  assert.match(sql, /create or replace function public\.public_guild_counts\(\)/);
+  assert.match(sql, /security definer/);
+  assert.match(sql, /set search_path = ''/);
+  assert.match(sql, /grant execute on function public\.public_guild_counts\(\) to anon, service_role/);
+  assert.match(sql, /revoke all on function public\.public_guild_counts\(\) from public, anon, authenticated/);
+  assert.match(sql, /'members'/);
+  assert.match(sql, /'reactions'/);
+  assert.match(sql, /'regions'/);
+  assert.match(sql, /'week_pics'/);
+  assert.match(sql, /'honor_categories'/);
+  assert.match(sql, /'places'/);
+  assert.match(sql, /'us_states'/);
+  assert.match(sql, /'capture_years'/);
+  assert.match(sql, /image_comments/);
+  assert.match(sql, /field_reports/);
+  assert.match(sql, /user_achievements/);
+  assert.match(sql, /image_reactions/);
+  assert.equal(sql.includes("pg_catalog.least"), false);
+  assert.equal(sql.includes("pg_catalog.coalesce"), false);
+  assert.equal(sql.toLowerCase().includes("grant select on public.profiles to anon"), false);
+  assert.equal(sql.toLowerCase().includes("display_name"), false);
+  assert.equal(sql.toLowerCase().includes("email"), false);
 });
