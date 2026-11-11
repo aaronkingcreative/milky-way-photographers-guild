@@ -227,6 +227,19 @@ export function fillCaptureYears(rows: YearCount[], throughYear?: number): YearC
   return filled;
 }
 
+/** Local high years, plus the overall high year, for sparkline markers. */
+export function peakCaptureYears(rows: YearCount[]): YearCount[] {
+  if (!rows.length) return [];
+  const high = Math.max(...rows.map((row) => row.n));
+  return rows.filter((row, index) => {
+    if (row.n <= 0) return false;
+    const prev = index > 0 ? rows[index - 1].n : -1;
+    const next = index < rows.length - 1 ? rows[index + 1].n : -1;
+    const local = row.n > prev && row.n > next;
+    return local || row.n === high;
+  });
+}
+
 function httpsUrl(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const url = value.trim();
