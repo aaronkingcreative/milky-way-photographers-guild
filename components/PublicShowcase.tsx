@@ -1,8 +1,8 @@
 import { KeepTail } from "@/components/KeepTail";
+import { PublicGuildStats } from "@/components/PublicGuildStats";
 import { PublicPrintPile } from "@/components/PublicPrintPile";
-import { fieldHonorsPublicLine, pileLead } from "@/lib/public-copy";
+import { pileLead } from "@/lib/public-copy";
 import { getPublicShowcase } from "@/lib/public-showcase-data";
-import { formatShowcaseCount, PUBLIC_SHOWCASE_STATS } from "@/lib/public-showcase";
 
 /** Live totals, and a nameless pile of Guild prints when at least one photo qualifies. */
 export async function PublicShowcase() {
@@ -15,15 +15,7 @@ export async function PublicShowcase() {
       <p id="guild-so-far" className="mw-balance mw-showcase-kicker">
         The Guild so far
       </p>
-      <dl className="mw-showcase-stats">
-        {PUBLIC_SHOWCASE_STATS.map((stat) => (
-          <div className="card mw-showcase-stat" key={stat.key}>
-            <dt>{stat.label}</dt>
-            <dd>{formatShowcaseCount(counts[stat.key])}</dd>
-          </div>
-        ))}
-      </dl>
-      <p className="mw-showcase-honors"><KeepTail text={fieldHonorsPublicLine} /></p>
+      <PublicGuildStats counts={counts} />
       {photos.length > 0 && (
         <>
           <p className="mw-showcase-pile-lead"><KeepTail text={pileLead} keep={6} /></p>
