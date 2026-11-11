@@ -1451,7 +1451,7 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
 .mw-public .mw-showcase-pile-lead { max-width: 36rem; margin: 1.15rem 0 0; color: #d5deea; font-size: 1.05rem; line-height: 1.65; text-wrap: pretty; }
 .mw-print-pile { margin: 1.15rem 0 0; }
 .mw-print-table {
-  --print-long: min(11.25rem, 42%);
+  --print-long: min(10.5rem, 54%);
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 0.86;
@@ -1468,10 +1468,12 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
 }
 .mw-print {
   --rot: var(--rot-narrow, 0deg);
+  --avatar-size: 28px;
   position: absolute;
   left: var(--x, 50%);
   top: var(--y, 50%);
   width: min(var(--print-long), calc(var(--print-long) * var(--photo-aspect, 1.333)));
+  overflow: visible;
   margin: 0;
   padding: 0;
   border: 0;
@@ -1493,8 +1495,9 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
 .mw-print-frame {
   display: block;
   position: relative;
+  overflow: visible;
   background: #f4ede0;
-  padding: .42rem .42rem 1.05rem;
+  padding: .42rem .42rem calc(var(--avatar-size, 28px) * .68 + .18rem);
   border-radius: 2px;
   box-shadow: 0 0 0 1px rgba(90, 68, 40, .12);
 }
@@ -1537,19 +1540,19 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
 .mw-print.is-ready .mw-print-photo { opacity: 1; }
 .mw-print-avatar {
   position: absolute;
-  left: .7rem;
-  bottom: .28rem;
-  width: 1.85rem;
-  height: 1.85rem;
+  z-index: 3;
+  left: .4rem;
+  bottom: .2rem;
+  width: var(--avatar-size, 28px);
+  height: var(--avatar-size, 28px);
   border-radius: 999px;
   border: 2px solid #e79f2b;
   object-fit: cover;
   background: #0d1e30;
   pointer-events: none;
-  opacity: 0;
-  transition: opacity .35s ease;
+  opacity: 1;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .35);
 }
-.mw-print.is-avatar-ready .mw-print-avatar { opacity: 1; }
 .mw-print.is-dragging {
   cursor: grabbing;
   transition: none;
@@ -1613,6 +1616,7 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
 }
 .mw-print.mw-print-focused {
   --print-long: min(90vw, calc(100vw - 6.5rem));
+  --avatar-size: 48px;
   position: relative;
   left: auto;
   top: auto;
@@ -1672,14 +1676,14 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
     left: var(--x-wide, 50%);
     top: var(--y-wide, 50%);
   }
+  .mw-print {
+    --avatar-size: 36px;
+  }
   .mw-print-focused {
     left: auto;
     top: auto;
     --rot: 0deg;
-  }
-  .mw-print-avatar {
-    width: 2.25rem;
-    height: 2.25rem;
+    --avatar-size: 48px;
   }
 }
 @media (max-width: 560px) {

@@ -8,13 +8,13 @@ export type PrintSafe = {
   maxRotate: number;
 };
 
-/** Tight cluster for the phone table, close to the original pile. */
+/** Phone and narrow tables. Wide enough to fill more of the table without spilling off. */
 export const PRINT_SAFE: PrintSafe = {
-  minX: 32,
-  maxX: 68,
-  minY: 34,
-  maxY: 66,
-  maxRotate: 13,
+  minX: 28,
+  maxX: 72,
+  minY: 28,
+  maxY: 72,
+  maxRotate: 11,
 };
 
 /** Looser casual spread for wide tables. Leaves a margin so rotated prints stay inside. */
@@ -89,8 +89,8 @@ export function scatterPrints(count: number, seed: number, safe: PrintSafe = PRI
       );
       continue;
     }
-    const angle = (index / count) * Math.PI * 2 + (rand() - 0.5) * (loose ? 0.9 : 0.7);
-    const radius = (loose ? 0.52 : 0.28) + rand() * (loose ? 0.48 : 0.55);
+    const angle = (index / count) * Math.PI * 2 + (rand() - 0.5) * (loose ? 0.9 : 0.75);
+    const radius = (loose ? 0.52 : 0.48) + rand() * (loose ? 0.48 : 0.52);
     const x =
       50 +
       Math.cos(angle) * radius * ((safe.maxX - safe.minX) / 2);
