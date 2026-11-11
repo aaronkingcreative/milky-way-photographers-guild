@@ -180,19 +180,33 @@ export function PublicGuildStats({ counts }: { counts: PublicCounts }) {
 
   return (
     <div className="mw-stats">
-      <div className="mw-stats-hero">
-        <div className="mw-stats-hero-pair">
-          <div className="mw-stats-hero-figure">
-            <p className="mw-stats-hero-value">
-              <CountUp value={counts.honors} />
-            </p>
-            <p className="mw-stats-label">Field Honors</p>
+      <div className="mw-stats-main">
+        <div className="mw-stats-hero">
+          <div className="mw-stats-hero-pair">
+            <div className="mw-stats-hero-figure">
+              <p className="mw-stats-hero-value">
+                <CountUp value={counts.honors} />
+              </p>
+              <p className="mw-stats-label">Field Honors</p>
+            </div>
+            {categories.length > 1 ? <RankedBars items={categories} /> : null}
           </div>
-          {categories.length > 1 ? <RankedBars items={categories} /> : null}
+          <p className="mw-showcase-honors">
+            <KeepTail text={fieldHonorsPublicLine} />
+          </p>
         </div>
-        <p className="mw-showcase-honors">
-          <KeepTail text={fieldHonorsPublicLine} />
-        </p>
+        <div className="mw-stats-pics">
+          <p className="mw-stats-supporting-value">
+            <CountUp value={counts.pics} />
+          </p>
+          <p className="mw-stats-label">Pics shared</p>
+          {showWeek ? (
+            <p className="mw-stats-note">{formatShowcaseCount(counts.weekPics ?? 0)} shared this week</p>
+          ) : null}
+          {counts.captureYears && counts.captureYears.length >= 4 ? (
+            <YearSparkline years={counts.captureYears} />
+          ) : null}
+        </div>
       </div>
 
       {showRegions ? (
@@ -208,25 +222,17 @@ export function PublicGuildStats({ counts }: { counts: PublicCounts }) {
           </div>
           {usStates.length >= 3 ? <FieldMap counts={usStates} /> : null}
           {places.length >= 3 ? (
-            <RankedBars
-              items={places.map((row) => ({ key: row.name, label: row.name, n: row.n }))}
-            />
+            <>
+              <p className="mw-stats-kicker mw-stats-places-list-label">
+                <KeepTail text="Top places photographed" />
+              </p>
+              <RankedBars
+                items={places.map((row) => ({ key: row.name, label: row.name, n: row.n }))}
+              />
+            </>
           ) : null}
         </div>
       ) : null}
-
-      <div className="mw-stats-pics">
-        <p className="mw-stats-supporting-value">
-          <CountUp value={counts.pics} />
-        </p>
-        <p className="mw-stats-label">Pics shared</p>
-        {showWeek ? (
-          <p className="mw-stats-note">{formatShowcaseCount(counts.weekPics ?? 0)} shared this week</p>
-        ) : null}
-        {counts.captureYears && counts.captureYears.length >= 4 ? (
-          <YearSparkline years={counts.captureYears} />
-        ) : null}
-      </div>
 
       <div className="mw-stats-band">
         {showReactions ? (

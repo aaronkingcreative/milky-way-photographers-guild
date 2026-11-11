@@ -181,3 +181,12 @@ test("the counts infographic migration stays a public aggregate function for ano
   assert.equal(sql.toLowerCase().includes("display_name"), false);
   assert.equal(sql.toLowerCase().includes("email"), false);
 });
+
+test("the places list and the map keep distinct, accurate labels", () => {
+  const stats = readFileSync(new URL("../components/PublicGuildStats.tsx", import.meta.url), "utf8");
+  assert.match(stats, /Top places photographed/);
+  assert.match(stats, /Photos made in \$\{counts\.length\} US states/);
+  const listAt = stats.indexOf("Top places photographed");
+  const mapAt = stats.indexOf("Photos made in ${counts.length} US states");
+  assert.ok(mapAt > 0 && listAt > mapAt);
+});
