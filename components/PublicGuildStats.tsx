@@ -162,7 +162,7 @@ function FieldMap({ counts }: { counts: { code: string; n: number }[] }) {
 
 export function PublicGuildStats({ counts }: { counts: PublicCounts }) {
   const categories = (counts.honorCategories ?? [])
-    .filter((row) => row.n > 0)
+    .filter((row) => row.n >= 3)
     .map((row) => ({ key: row.key, label: HONOR_CATEGORY_LABELS[row.key], n: row.n }));
   const places = (counts.places ?? []).filter((row) => row.n > 0);
   const usStates = counts.usStates ?? [];
@@ -182,15 +182,13 @@ export function PublicGuildStats({ counts }: { counts: PublicCounts }) {
     <div className="mw-stats">
       <div className="mw-stats-hero">
         <div className="mw-stats-hero-pair">
-          <p className="mw-stats-hero-value">
-            <CountUp value={counts.honors} />
-          </p>
-          <div className="mw-stats-hero-copy">
+          <div className="mw-stats-hero-figure">
+            <p className="mw-stats-hero-value">
+              <CountUp value={counts.honors} />
+            </p>
             <p className="mw-stats-label">Field Honors</p>
-            {categories.length > 1 ? (
-              <RankedBars items={categories} />
-            ) : null}
           </div>
+          {categories.length > 1 ? <RankedBars items={categories} /> : null}
         </div>
         <p className="mw-showcase-honors">
           <KeepTail text={fieldHonorsPublicLine} />
@@ -217,19 +215,20 @@ export function PublicGuildStats({ counts }: { counts: PublicCounts }) {
         </div>
       ) : null}
 
+      <div className="mw-stats-pics">
+        <p className="mw-stats-supporting-value">
+          <CountUp value={counts.pics} />
+        </p>
+        <p className="mw-stats-label">Pics shared</p>
+        {showWeek ? (
+          <p className="mw-stats-note">{formatShowcaseCount(counts.weekPics ?? 0)} shared this week</p>
+        ) : null}
+        {counts.captureYears && counts.captureYears.length >= 4 ? (
+          <YearSparkline years={counts.captureYears} />
+        ) : null}
+      </div>
+
       <div className="mw-stats-band">
-        <div className="mw-stats-pics">
-          <p className="mw-stats-supporting-value">
-            <CountUp value={counts.pics} />
-          </p>
-          <p className="mw-stats-label">Pics shared</p>
-          {showWeek ? (
-            <p className="mw-stats-note">{formatShowcaseCount(counts.weekPics ?? 0)} shared this week</p>
-          ) : null}
-          {counts.captureYears && counts.captureYears.length >= 4 ? (
-            <YearSparkline years={counts.captureYears} />
-          ) : null}
-        </div>
         {showReactions ? (
           <div className="mw-stats-side">
             <p className="mw-stats-side-value">
