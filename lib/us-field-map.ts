@@ -6,7 +6,7 @@
 export type StateAnchor = { code: string; x: number; y: number; size?: "s" | "m" };
 
 /** ViewBox width and height for the field map. */
-export const US_MAP_VIEWBOX = "0 0 1000 620";
+export const US_MAP_VIEWBOX = "80 24 880 520";
 
 /** Approximate label anchors for a compact continental layout, with AK and HI as insets. */
 export const US_STATE_ANCHORS: StateAnchor[] = [
@@ -58,8 +58,8 @@ export const US_STATE_ANCHORS: StateAnchor[] = [
   { code: "VT", x: 848, y: 138, size: "s" },
   { code: "NH", x: 872, y: 138, size: "s" },
   { code: "ME", x: 918, y: 98 },
-  { code: "AK", x: 168, y: 545 },
-  { code: "HI", x: 305, y: 555 },
+  { code: "AK", x: 238, y: 508 },
+  { code: "HI", x: 328, y: 512, size: "s" },
   { code: "DC", x: 798, y: 278, size: "s" },
 ];
 
@@ -78,7 +78,7 @@ export const US_LAND_PATHS = {
   lakes:
     "M620 95 L655 108 L670 140 L650 168 L618 155 L600 125 Z M575 88 L605 95 L600 120 L575 112 Z",
   alaska:
-    "M70 500 L150 492 L195 510 L210 545 L185 575 L140 585 L95 570 L60 545 L48 520 Z",
+    "M200 488 L248 484 L272 498 L280 520 L262 538 L232 542 L206 530 L190 510 Z",
   hawaii:
-    "M275 545 L292 542 L300 552 L290 560 L275 556 Z M308 548 L328 545 L340 558 L322 565 L308 558 Z M348 552 L362 550 L368 560 L355 564 Z",
+    "M304 500 L316 498 L322 506 L314 512 L304 508 Z M326 502 L342 500 L350 510 L336 516 L326 510 Z M354 506 L366 504 L370 512 L360 516 Z",
 };
