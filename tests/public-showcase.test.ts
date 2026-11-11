@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
-import { SHOWCASE_MAX, SHOWCASE_MIN, fillCaptureYears, parsePublicCounts, parseShowcasePhotos } from "../lib/public-showcase.ts";
+import { SHOWCASE_MAX, SHOWCASE_MIN, fillCaptureYears, parsePublicCounts, parseShowcasePhotos, peakCaptureYears } from "../lib/public-showcase.ts";
 
 function photo(index: number, extra: Record<string, unknown> = {}) {
   return {
@@ -154,6 +154,25 @@ test("capture years fill the gaps so a sparkline stays continuous", () => {
       { year: 2023, n: 0 },
     ],
   );
+});
+
+test("peak years are the local highs and the overall high", () => {
+  const rows = [
+    { year: 2015, n: 1 },
+    { year: 2016, n: 6 },
+    { year: 2017, n: 4 },
+    { year: 2018, n: 7 },
+    { year: 2019, n: 15 },
+    { year: 2020, n: 11 },
+    { year: 2024, n: 15 },
+    { year: 2025, n: 9 },
+    { year: 2026, n: 28 },
+  ];
+  assert.deepEqual(
+    peakCaptureYears(rows).map((row) => row.year),
+    [2016, 2019, 2024, 2026],
+  );
+  assert.deepEqual(peakCaptureYears([{ year: 2020, n: 2 }, { year: 2021, n: 0 }]).map((row) => row.year), [2020]);
 });
 
 test("the counts infographic migration stays a public aggregate function for anon", () => {

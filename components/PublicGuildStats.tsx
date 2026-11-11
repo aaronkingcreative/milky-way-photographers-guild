@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { KeepTail } from "@/components/KeepTail";
 import { fieldHonorsPublicLine } from "@/lib/public-copy";
 import {
   HONOR_CATEGORY_LABELS,
   fillCaptureYears,
   formatShowcaseCount,
+  peakCaptureYears,
   type PublicCounts,
   type YearCount,
 } from "@/lib/public-showcase";
@@ -80,33 +81,83 @@ function RankedBars({
 
 function YearSparkline({ years }: { years: YearCount[] }) {
   const captionId = useId();
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [size, setSize] = useState({ width: 280, height: 42 });
   const filled = fillCaptureYears(years);
+
+  useLayoutEffect(() => {
+    const el = svgRef.current;
+    if (!el) return;
+    const apply = () => {
+      const box = el.getBoundingClientRect();
+      if (box.width > 0 && box.height > 0) {
+        setSize({ width: box.width, height: box.height });
+      }
+    };
+    apply();
+    const observer = new ResizeObserver(apply);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [filled.length]);
+
   if (filled.length < 4) return null;
-  const width = 280;
-  const height = 42;
-  const padX = 2;
-  const padY = 4;
+  const width = size.width;
+  const height = size.height;
+  const padX = 8;
+  const padTop = 8;
+  const padBottom = 4;
   const max = Math.max(...filled.map((row) => row.n), 1);
-  const innerW = width - padX * 2;
-  const innerH = height - padY * 2;
-  const points = filled.map((row, index) => {
+  const innerW = Math.max(width - padX * 2, 1);
+  const innerH = Math.max(height - padTop - padBottom, 1);
+  const coords = filled.map((row, index) => {
     const x = padX + (filled.length === 1 ? innerW / 2 : (index / (filled.length - 1)) * innerW);
-    const y = padY + innerH - (row.n / max) * innerH;
-    return `${x.toFixed(1)},${y.toFixed(1)}`;
+    const y = padTop + innerH - (row.n / max) * innerH;
+    return { ...row, x, y };
   });
-  const area = `M${points[0]} L${points.join(" L")} V${height - padY} H${padX} Z`;
+  const pointAttr = coords.map((row) => `${row.x.toFixed(1)},${row.y.toFixed(1)}`).join(" ");
+  const area = `M${coords[0].x.toFixed(1)},${coords[0].y.toFixed(1)} L${pointAttr} V${height - padBottom} H${padX} Z`;
   const first = filled[0].year;
   const last = filled[filled.length - 1].year;
   const peak = filled.reduce((best, row) => (row.n > best.n ? row : best), filled[0]);
   const midIndex = Math.round((filled.length - 1) / 2);
   const mid = filled[midIndex].year;
   const ticks = [first, mid, last].filter((year, index, all) => all.indexOf(year) === index);
+  const peaks = peakCaptureYears(filled);
+  const gridLevels = [0, 0.5, 1];
+  const yearGuides = ticks
+    .map((year) => coords.find((row) => row.year === year))
+    .filter((row): row is (typeof coords)[number] => Boolean(row));
 
   return (
     <figure className="mw-stats-spark" aria-labelledby={captionId}>
-      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-hidden="true">
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${width.toFixed(1)} ${height.toFixed(1)}`}
+        preserveAspectRatio="none"
+        role="img"
+        aria-hidden="true"
+      >
+        {gridLevels.map((level) => {
+          const y = padTop + innerH * (1 - level);
+          return <line key={level} x1={padX} x2={width - padX} y1={y} y2={y} className="mw-stats-spark-grid" />;
+        })}
+        {yearGuides.map((row) => (
+          <line
+            key={row.year}
+            x1={row.x}
+            x2={row.x}
+            y1={padTop}
+            y2={height - padBottom}
+            className="mw-stats-spark-year"
+          />
+        ))}
         <path d={area} className="mw-stats-spark-area" />
-        <polyline points={points.join(" ")} className="mw-stats-spark-line" />
+        <polyline points={pointAttr} className="mw-stats-spark-line" />
+        {peaks.map((row) => {
+          const point = coords.find((item) => item.year === row.year);
+          if (!point) return null;
+          return <circle key={row.year} cx={point.x} cy={point.y} r="3.2" className="mw-stats-spark-peak" />;
+        })}
       </svg>
       <div className="mw-stats-spark-ticks" aria-hidden="true">
         {ticks.map((year) => (
