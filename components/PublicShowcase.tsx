@@ -1,11 +1,10 @@
 import { KeepTail } from "@/components/KeepTail";
-import { fieldHonorsPublicLine } from "@/lib/public-copy";
+import { PublicPrintPile } from "@/components/PublicPrintPile";
+import { fieldHonorsPublicLine, pileLead } from "@/lib/public-copy";
 import { getPublicShowcase } from "@/lib/public-showcase-data";
 import { formatShowcaseCount, PUBLIC_SHOWCASE_STATS } from "@/lib/public-showcase";
 
-const photoAlt = "Night sky photograph from a Guild member";
-
-/** Live totals, and a nameless photo strip when at least one photo qualifies. */
+/** Live totals, and a nameless pile of Guild prints when at least one photo qualifies. */
 export async function PublicShowcase() {
   const showcase = await getPublicShowcase();
   if (!showcase) return null;
@@ -26,14 +25,10 @@ export async function PublicShowcase() {
       </dl>
       <p className="mw-showcase-honors"><KeepTail text={fieldHonorsPublicLine} /></p>
       {photos.length > 0 && (
-        <ul className="mw-showcase-strip">
-          {photos.map((photo) => (
-            <li className="mw-showcase-tile" key={`${photo.imageUrl}|${photo.avatarUrl}`}>
-              <img className="mw-showcase-photo" src={photo.imageUrl} alt={photoAlt} loading="lazy" decoding="async" />
-              <img className="mw-showcase-avatar" src={photo.avatarUrl} alt="Profile picture" loading="lazy" decoding="async" />
-            </li>
-          ))}
-        </ul>
+        <>
+          <p className="mw-showcase-pile-lead"><KeepTail text={pileLead} /></p>
+          <PublicPrintPile photos={photos} />
+        </>
       )}
     </section>
   );
