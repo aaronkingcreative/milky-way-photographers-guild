@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { PRINT_SAFE, clampPose, scatterPrints, seedFromKeys } from "../lib/print-pile.ts";
+import { PRINT_SAFE, PRINT_SAFE_WIDE, PRINT_SPREAD_MIN_WIDTH, clampPose, scatterPrints, seedFromKeys } from "../lib/print-pile.ts";
+import { DEFAULT_PRINT_AVATAR, PILE_AVATAR_WIDTH, PILE_PHOTO_WIDTH, showcaseAvatarUrl, showcaseThumbUrl } from "../lib/showcase-images.ts";
 
 test("a seed from the same keys stays stable and a scatter stays on the table", () => {
   const keys = ["https://cdn.example.com/a.jpg", "https://cdn.example.com/b.jpg"];
@@ -19,11 +20,29 @@ test("a seed from the same keys stays stable and a scatter stays on the table", 
   assert.notDeepEqual(poses, shuffled);
 });
 
+test("a wide scatter uses more of the table and stays inside the wide safe box", () => {
+  const poses = scatterPrints(9, 42, PRINT_SAFE_WIDE);
+  assert.equal(poses.length, 9);
+  const xs = poses.map((pose) => pose.x);
+  const span = Math.max(...xs) - Math.min(...xs);
+  assert.ok(span > 30, String(span));
+  for (const pose of poses) {
+    assert.ok(pose.x >= PRINT_SAFE_WIDE.minX && pose.x <= PRINT_SAFE_WIDE.maxX, String(pose.x));
+    assert.ok(pose.y >= PRINT_SAFE_WIDE.minY && pose.y <= PRINT_SAFE_WIDE.maxY, String(pose.y));
+    assert.ok(Math.abs(pose.rotate) <= PRINT_SAFE_WIDE.maxRotate, String(pose.rotate));
+  }
+  assert.equal(PRINT_SPREAD_MIN_WIDTH, 800);
+});
+
 test("a dragged print is clamped back onto the table", () => {
   const pose = clampPose({ x: -20, y: 140, rotate: 40 });
   assert.equal(pose.x, PRINT_SAFE.minX);
   assert.equal(pose.y, PRINT_SAFE.maxY);
   assert.equal(pose.rotate, PRINT_SAFE.maxRotate);
+  const wide = clampPose({ x: -20, y: 140, rotate: 40 }, PRINT_SAFE_WIDE);
+  assert.equal(wide.x, PRINT_SAFE_WIDE.minX);
+  assert.equal(wide.y, PRINT_SAFE_WIDE.maxY);
+  assert.equal(wide.rotate, PRINT_SAFE_WIDE.maxRotate);
 });
 
 test("one print sits in the middle of the table", () => {
@@ -31,4 +50,20 @@ test("one print sits in the middle of the table", () => {
   assert.equal(pose.x, 50);
   assert.equal(pose.y, 50);
   assert.equal(scatterPrints(0, 1).length, 0);
+});
+
+test("Supabase public object URLs become sized render URLs", () => {
+  const photo = "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/field-report-images/users/a/original.jpg";
+  const avatar = "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/profile-avatars/users/a/avatar.jpg";
+  assert.equal(
+    showcaseThumbUrl(photo),
+    `https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/render/image/public/field-report-images/users/a/original.jpg?width=${PILE_PHOTO_WIDTH}&quality=75`,
+  );
+  assert.equal(
+    showcaseAvatarUrl(avatar),
+    `https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/render/image/public/profile-avatars/users/a/avatar.jpg?width=${PILE_AVATAR_WIDTH}&quality=75`,
+  );
+  assert.equal(showcaseThumbUrl("https://cdn.example.com/photo.jpg"), "https://cdn.example.com/photo.jpg");
+  assert.equal(showcaseAvatarUrl(""), DEFAULT_PRINT_AVATAR);
+  assert.equal(showcaseAvatarUrl(DEFAULT_PRINT_AVATAR), DEFAULT_PRINT_AVATAR);
 });

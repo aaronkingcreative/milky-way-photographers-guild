@@ -1,12 +1,34 @@
 /** Layout math for the public pile of Guild prints. Positions are percentages of the table. */
 
-export const PRINT_SAFE = {
+export type PrintSafe = {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+  maxRotate: number;
+};
+
+/** Tight cluster for the phone table, close to the original pile. */
+export const PRINT_SAFE: PrintSafe = {
   minX: 32,
   maxX: 68,
   minY: 34,
   maxY: 66,
   maxRotate: 13,
-} as const;
+};
+
+/** Looser casual spread for wide tables. Leaves a margin so rotated prints stay inside. */
+export const PRINT_SAFE_WIDE: PrintSafe = {
+  minX: 16,
+  maxX: 84,
+  minY: 30,
+  maxY: 70,
+  maxRotate: 11,
+};
+
+/** Must match the CSS media query that swaps print positions and sizes. */
+export const PRINT_SPREAD_MIN_WIDTH = 800;
+export const PRINT_SPREAD_MQ = `(min-width: ${PRINT_SPREAD_MIN_WIDTH}px)`;
 
 export type PrintPose = {
   x: number;
@@ -38,19 +60,24 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-export function clampPose(pose: PrintPose): PrintPose {
+export function clampPose(pose: PrintPose, safe: PrintSafe = PRINT_SAFE): PrintPose {
   return {
-    x: clamp(pose.x, PRINT_SAFE.minX, PRINT_SAFE.maxX),
-    y: clamp(pose.y, PRINT_SAFE.minY, PRINT_SAFE.maxY),
-    rotate: clamp(pose.rotate, -PRINT_SAFE.maxRotate, PRINT_SAFE.maxRotate),
+    x: clamp(pose.x, safe.minX, safe.maxX),
+    y: clamp(pose.y, safe.minY, safe.maxY),
+    rotate: clamp(pose.rotate, -safe.maxRotate, safe.maxRotate),
   };
 }
 
-/** A loose overlapping cluster around the middle of the table. Stable for a given seed. */
-export function scatterPrints(count: number, seed: number): PrintPose[] {
+function isLoose(safe: PrintSafe) {
+  return safe.maxX - safe.minX >= 50;
+}
+
+/** A loose overlapping cluster or, on a wide table, a casual spread. Stable for a given seed. */
+export function scatterPrints(count: number, seed: number, safe: PrintSafe = PRINT_SAFE): PrintPose[] {
   if (count < 1) return [];
   const rand = mulberry32(seed);
   const poses: PrintPose[] = [];
+  const loose = isLoose(safe);
   for (let index = 0; index < count; index += 1) {
     if (count === 1) {
       poses.push(
@@ -58,22 +85,26 @@ export function scatterPrints(count: number, seed: number): PrintPose[] {
           x: 50,
           y: 50,
           rotate: (rand() - 0.5) * 8,
-        }),
+        }, safe),
       );
       continue;
     }
-    const angle = (index / count) * Math.PI * 2 + (rand() - 0.5) * 0.7;
-    const radius = 0.28 + rand() * 0.55;
+    const angle = (index / count) * Math.PI * 2 + (rand() - 0.5) * (loose ? 0.9 : 0.7);
+    const radius = (loose ? 0.52 : 0.28) + rand() * (loose ? 0.48 : 0.55);
     const x =
       50 +
-      Math.cos(angle) * radius * ((PRINT_SAFE.maxX - PRINT_SAFE.minX) / 2);
+      Math.cos(angle) * radius * ((safe.maxX - safe.minX) / 2);
     const y =
       50 +
-      Math.sin(angle) * radius * ((PRINT_SAFE.maxY - PRINT_SAFE.minY) / 2);
-    const rotate = (rand() - 0.5) * 2 * PRINT_SAFE.maxRotate;
-    poses.push(clampPose({ x, y, rotate }));
+      Math.sin(angle) * radius * ((safe.maxY - safe.minY) / 2);
+    const rotate = (rand() - 0.5) * 2 * safe.maxRotate;
+    poses.push(clampPose({ x, y, rotate }, safe));
   }
   return poses;
+}
+
+export function isWidePrintSpread(): boolean {
+  return typeof window !== "undefined" && window.matchMedia(PRINT_SPREAD_MQ).matches;
 }
 
 export const DRAG_THRESHOLD_PX = 8;

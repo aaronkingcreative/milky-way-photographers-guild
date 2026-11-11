@@ -81,8 +81,8 @@ export function parseShowcasePhotos(value: unknown): ShowcasePhoto[] {
     if (!row || typeof row !== "object") continue;
     const record = row as Record<string, unknown>;
     const imageUrl = httpsUrl(record.image_url);
-    const avatarUrl = httpsUrl(record.avatar_url);
-    if (!imageUrl || !avatarUrl) continue;
+    if (!imageUrl) continue;
+    const avatarUrl = httpsUrl(record.avatar_url) ?? "";
     photos.push({ imageUrl, avatarUrl });
     if (photos.length >= SHOWCASE_MAX) break;
   }

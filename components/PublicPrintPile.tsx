@@ -4,10 +4,12 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, 
 import { createPortal } from "react-dom";
 import { KeepTail } from "@/components/KeepTail";
 import { nextPrintLabel, previousPrintLabel, putPrintBackLabel, shufflePileLabel } from "@/lib/public-copy";
-import { DRAG_THRESHOLD_PX, clampPose, scatterPrints, seedFromKeys, type PrintPose } from "@/lib/print-pile";
+import { DRAG_THRESHOLD_PX, PRINT_SAFE, PRINT_SAFE_WIDE, clampPose, isWidePrintSpread, scatterPrints, seedFromKeys, type PrintPose } from "@/lib/print-pile";
 import type { ShowcasePhoto } from "@/lib/public-showcase";
+import { DEFAULT_PRINT_AVATAR, isDefaultPrintAvatar, showcaseAvatarUrl, showcaseThumbUrl } from "@/lib/showcase-images";
 
 const photoAlt = "Guild member photo";
+const DEFAULT_ASPECT = 4 / 3;
 
 type DragState = {
   index: number;
@@ -16,19 +18,47 @@ type DragState = {
   startY: number;
   origX: number;
   origY: number;
+  origRotate: number;
   moved: boolean;
 };
 
+type PosePair = {
+  narrow: PrintPose;
+  wide: PrintPose;
+};
+
+function aspectFromImage(image: HTMLImageElement): number | null {
+  if (!image.naturalWidth || !image.naturalHeight) return null;
+  return image.naturalWidth / image.naturalHeight;
+}
+
+function avatarSrc(url: string, failed: boolean): string {
+  if (failed || isDefaultPrintAvatar(url)) return DEFAULT_PRINT_AVATAR;
+  return showcaseAvatarUrl(url);
+}
+
 export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
-  const keys = useMemo(() => photos.map((photo) => photo.imageUrl), [photos]);
+  const [failedUrls, setFailedUrls] = useState<Set<string>>(() => new Set());
+  const visible = useMemo(
+    () => photos.filter((photo) => !failedUrls.has(photo.imageUrl)),
+    [photos, failedUrls],
+  );
+  const keys = useMemo(() => visible.map((photo) => photo.imageUrl), [visible]);
   const [shuffleSeed, setShuffleSeed] = useState(0);
   const baseSeed = useMemo(() => seedFromKeys(keys), [keys]);
-  const layouts = useMemo(() => scatterPrints(photos.length, (baseSeed + shuffleSeed) >>> 0), [photos.length, baseSeed, shuffleSeed]);
-  const [overrides, setOverrides] = useState<Record<number, PrintPose>>({});
-  const [order, setOrder] = useState(() => photos.map((_, index) => index));
+  const seed = (baseSeed + shuffleSeed) >>> 0;
+  const narrowLayouts = useMemo(() => scatterPrints(visible.length, seed, PRINT_SAFE), [visible.length, seed]);
+  const wideLayouts = useMemo(() => scatterPrints(visible.length, seed, PRINT_SAFE_WIDE), [visible.length, seed]);
+  const [overrides, setOverrides] = useState<Record<number, PosePair>>({});
+  const [order, setOrder] = useState(() => visible.map((_, index) => index));
   const [dragging, setDragging] = useState<number | null>(null);
   const [focus, setFocus] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [aspects, setAspects] = useState<Record<string, number>>({});
+  const [readyUrls, setReadyUrls] = useState<Set<string>>(() => new Set());
+  const [readyAvatars, setReadyAvatars] = useState<Set<string>>(() => new Set());
+  const [failedAvatars, setFailedAvatars] = useState<Set<string>>(() => new Set());
+  const [fullfallbacks, setFullFallbacks] = useState<Set<string>>(() => new Set());
   const tableRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<DragState | null>(null);
   const swipeRef = useRef<{ x: number; y: number } | null>(null);
@@ -37,10 +67,11 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
   useEffect(() => setMounted(true), []);
   useEffect(() => {
     setOverrides({});
-    setOrder(photos.map((_, index) => index));
-  }, [layouts, photos]);
+    setOrder(visible.map((_, index) => index));
+  }, [narrowLayouts, wideLayouts, visible]);
 
-  const poses = layouts.map((pose, index) => overrides[index] ?? pose);
+  const narrowPoses = narrowLayouts.map((pose, index) => overrides[index]?.narrow ?? pose);
+  const widePoses = wideLayouts.map((pose, index) => overrides[index]?.wide ?? pose);
 
   const bringToFront = useCallback((index: number) => {
     setOrder((current) => {
@@ -58,10 +89,37 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
 
   const stepFocus = useCallback((delta: number) => {
     setFocus((current) => {
-      if (current === null || photos.length < 2) return current;
-      return (current + delta + photos.length) % photos.length;
+      if (current === null || visible.length < 2) return current;
+      return (current + delta + visible.length) % visible.length;
     });
-  }, [photos.length]);
+  }, [visible.length]);
+
+  const dropPhoto = useCallback((imageUrl: string) => {
+    setFailedUrls((current) => {
+      if (current.has(imageUrl)) return current;
+      const next = new Set(current);
+      next.add(imageUrl);
+      return next;
+    });
+    setFocus((current) => {
+      if (current === null) return current;
+      const url = visible[current]?.imageUrl;
+      return url === imageUrl ? null : current;
+    });
+  }, [visible]);
+
+  const markPhotoReady = useCallback((imageUrl: string, image: HTMLImageElement) => {
+    const aspect = aspectFromImage(image);
+    if (aspect) {
+      setAspects((current) => (current[imageUrl] === aspect ? current : { ...current, [imageUrl]: aspect }));
+    }
+    setReadyUrls((current) => {
+      if (current.has(imageUrl)) return current;
+      const next = new Set(current);
+      next.add(imageUrl);
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     if (focus === null) return;
@@ -92,7 +150,8 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
     const table = tableRef.current;
     if (!table) return;
     event.currentTarget.setPointerCapture(event.pointerId);
-    const pose = poses[index];
+    const wide = isWidePrintSpread();
+    const pose = (wide ? widePoses : narrowPoses)[index];
     dragRef.current = {
       index,
       pointerId: event.pointerId,
@@ -100,6 +159,7 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
       startY: event.clientY,
       origX: pose.x,
       origY: pose.y,
+      origRotate: pose.rotate,
       moved: false,
     };
   }
@@ -117,12 +177,20 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
       bringToFront(drag.index);
     }
     const rect = table.getBoundingClientRect();
+    const wide = isWidePrintSpread();
     const next = clampPose({
       x: drag.origX + (dx / rect.width) * 100,
       y: drag.origY + (dy / rect.height) * 100,
-      rotate: poses[drag.index].rotate,
-    });
-    setOverrides((current) => ({ ...current, [drag.index]: next }));
+      rotate: drag.origRotate,
+    }, wide ? PRINT_SAFE_WIDE : PRINT_SAFE);
+    const index = drag.index;
+    setOverrides((current) => ({
+      ...current,
+      [index]: {
+        narrow: wide ? (current[index]?.narrow ?? narrowLayouts[index]) : next,
+        wide: wide ? next : (current[index]?.wide ?? wideLayouts[index]),
+      },
+    }));
   }
 
   function onPointerUp(event: PointerEvent<HTMLButtonElement>) {
@@ -160,25 +228,36 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
     stepFocus(dx < 0 ? 1 : -1);
   }
 
-  const focusedPhoto = focus !== null ? photos[focus] : null;
+  const focusedPhoto = focus !== null ? visible[focus] : null;
+  if (visible.length === 0) return null;
 
   return (
     <div className="mw-print-pile">
       <div ref={tableRef} className="mw-print-table" aria-label="A pile of Guild prints">
-        {photos.map((photo, index) => {
-          const pose = poses[index];
+        {visible.map((photo, index) => {
+          const narrow = narrowPoses[index];
+          const wide = widePoses[index];
           const z = order.indexOf(index) + 1;
           const isDragging = dragging === index;
+          const aspect = aspects[photo.imageUrl] ?? DEFAULT_ASPECT;
+          const ready = readyUrls.has(photo.imageUrl);
+          const pileSrc = fullfallbacks.has(photo.imageUrl) ? photo.imageUrl : showcaseThumbUrl(photo.imageUrl);
+          const priority = visible.length - z < 3;
+          const avatarReady = readyAvatars.has(photo.imageUrl) || isDefaultPrintAvatar(photo.avatarUrl) || failedAvatars.has(photo.avatarUrl);
           return (
             <button
               key={photo.imageUrl}
               type="button"
-              className={`mw-print${isDragging ? " is-dragging" : ""}`}
+              className={`mw-print${isDragging ? " is-dragging" : ""}${ready ? " is-ready" : ""}${avatarReady ? " is-avatar-ready" : ""}`}
               style={{
-                left: `${pose.x}%`,
-                top: `${pose.y}%`,
                 zIndex: isDragging ? 80 : z,
-                "--rot": `${pose.rotate}deg`,
+                "--rot-narrow": `${narrow.rotate}deg`,
+                "--rot-wide": `${wide.rotate}deg`,
+                "--x": `${narrow.x}%`,
+                "--y": `${narrow.y}%`,
+                "--x-wide": `${wide.x}%`,
+                "--y-wide": `${wide.y}%`,
+                "--photo-aspect": String(aspect),
               } as CSSProperties}
               onPointerDown={(event) => onPointerDown(event, index)}
               onPointerMove={onPointerMove}
@@ -192,8 +271,51 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
               }}
             >
               <span className="mw-print-frame">
-                <img className="mw-print-photo" src={photo.imageUrl} alt={photoAlt} loading="lazy" decoding="async" draggable={false} />
-                <img className="mw-print-avatar" src={photo.avatarUrl} alt="" loading="lazy" decoding="async" draggable={false} />
+                <span className="mw-print-slot">
+                  <img
+                    className="mw-print-photo"
+                    src={pileSrc}
+                    alt={photoAlt}
+                    loading="eager"
+                    decoding="async"
+                    fetchPriority={priority ? "high" : "auto"}
+                    draggable={false}
+                    onLoad={(event) => markPhotoReady(photo.imageUrl, event.currentTarget)}
+                    onError={() => {
+                      if (!fullfallbacks.has(photo.imageUrl) && pileSrc !== photo.imageUrl) {
+                        setFullFallbacks((current) => new Set(current).add(photo.imageUrl));
+                        return;
+                      }
+                      dropPhoto(photo.imageUrl);
+                    }}
+                    ref={(image) => {
+                      if (image && image.complete && image.naturalWidth) markPhotoReady(photo.imageUrl, image);
+                    }}
+                  />
+                </span>
+                <img
+                  className="mw-print-avatar"
+                  src={avatarSrc(photo.avatarUrl, failedAvatars.has(photo.avatarUrl))}
+                  alt=""
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority={priority ? "high" : "auto"}
+                  draggable={false}
+                  onLoad={() => {
+                    setReadyAvatars((current) => {
+                      if (current.has(photo.imageUrl)) return current;
+                      const next = new Set(current);
+                      next.add(photo.imageUrl);
+                      return next;
+                    });
+                  }}
+                  onError={(event) => {
+                    if (event.currentTarget.src.includes(DEFAULT_PRINT_AVATAR) || event.currentTarget.getAttribute("src") === DEFAULT_PRINT_AVATAR) {
+                      return;
+                    }
+                    setFailedAvatars((current) => new Set(current).add(photo.avatarUrl));
+                  }}
+                />
               </span>
             </button>
           );
@@ -205,32 +327,50 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
 
       {mounted && focusedPhoto && focus !== null && createPortal(
         <div className="mw-print-focus" role="dialog" aria-modal="true" aria-label="Guild print" onClick={closeFocus}>
-          <div className="mw-print-focus-inner" onClick={(event) => event.stopPropagation()}>
-            <button ref={closeRef} type="button" className="mw-print-focus-close" onClick={closeFocus}>
-              <KeepTail text={putPrintBackLabel} />
-            </button>
-            <div
-              className="mw-print-focus-stage"
-              onPointerDown={onFocusPointerDown}
-              onPointerUp={onFocusPointerUp}
+          <button ref={closeRef} type="button" className="mw-print-focus-close" onClick={closeFocus}>
+            <KeepTail text={putPrintBackLabel} />
+          </button>
+          <div
+            className="mw-print-focus-inner"
+            onClick={(event) => event.stopPropagation()}
+            onPointerDown={onFocusPointerDown}
+            onPointerUp={onFocusPointerUp}
+          >
+            {visible.length > 1 && (
+              <button type="button" className="mw-print-focus-nav is-prev" aria-label={previousPrintLabel} onClick={(event) => { event.stopPropagation(); stepFocus(-1); }}>
+                <span aria-hidden="true">‹</span>
+              </button>
+            )}
+            <figure
+              className={`mw-print mw-print-focused${readyUrls.has(focusedPhoto.imageUrl) ? " is-ready" : ""}${readyAvatars.has(focusedPhoto.imageUrl) || isDefaultPrintAvatar(focusedPhoto.avatarUrl) || failedAvatars.has(focusedPhoto.avatarUrl) ? " is-avatar-ready" : ""}`}
+              style={{ "--photo-aspect": String(aspects[focusedPhoto.imageUrl] ?? DEFAULT_ASPECT) } as CSSProperties}
             >
-              {photos.length > 1 && (
-                <button type="button" className="mw-print-focus-nav is-prev" aria-label={previousPrintLabel} onClick={() => stepFocus(-1)}>
-                  <span aria-hidden="true">‹</span>
-                </button>
-              )}
-              <figure className="mw-print mw-print-focused">
-                <span className="mw-print-frame">
-                  <img className="mw-print-photo" src={focusedPhoto.imageUrl} alt={photoAlt} decoding="async" draggable={false} />
-                  <img className="mw-print-avatar" src={focusedPhoto.avatarUrl} alt="" decoding="async" draggable={false} />
+              <span className="mw-print-frame">
+                <span className="mw-print-slot">
+                  <img
+                    className="mw-print-photo"
+                    src={focusedPhoto.imageUrl}
+                    alt={photoAlt}
+                    decoding="async"
+                    fetchPriority="high"
+                    draggable={false}
+                    onLoad={(event) => markPhotoReady(focusedPhoto.imageUrl, event.currentTarget)}
+                  />
                 </span>
-              </figure>
-              {photos.length > 1 && (
-                <button type="button" className="mw-print-focus-nav is-next" aria-label={nextPrintLabel} onClick={() => stepFocus(1)}>
-                  <span aria-hidden="true">›</span>
-                </button>
-              )}
-            </div>
+                <img
+                  className="mw-print-avatar"
+                  src={avatarSrc(focusedPhoto.avatarUrl, failedAvatars.has(focusedPhoto.avatarUrl))}
+                  alt=""
+                  decoding="async"
+                  draggable={false}
+                />
+              </span>
+            </figure>
+            {visible.length > 1 && (
+              <button type="button" className="mw-print-focus-nav is-next" aria-label={nextPrintLabel} onClick={(event) => { event.stopPropagation(); stepFocus(1); }}>
+                <span aria-hidden="true">›</span>
+              </button>
+            )}
           </div>
         </div>,
         document.body,

@@ -103,7 +103,8 @@ test("terms and privacy share one hide line for the public photo strip", () => {
   assert.match(hidePhotosHelp, /Turn this on to keep yours off/);
   assert.equal(shufflePileLabel, "Shuffle the pile");
   assert.equal(putPrintBackLabel, "Put it back");
-  assert.match(pileLead, /Drag the prints around the table/);
+  assert.equal(pileLead, "Drag the prints around the table, or pick one up to look closer.");
+  assert.equal(readFileSync(new URL("../components/PublicShowcase.tsx", import.meta.url), "utf8").includes("keep={6}"), true);
 
   assert.equal(fieldHonorsPublicLine.endsWith("real\u00A0adventures."), true);
   assert.equal(fieldHonorsPublicLine.includes("\u2014"), false);
