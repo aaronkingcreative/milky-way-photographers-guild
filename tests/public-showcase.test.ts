@@ -154,6 +154,13 @@ test("capture years fill the gaps so a sparkline stays continuous", () => {
       { year: 2023, n: 0 },
     ],
   );
+  assert.deepEqual(
+    fillCaptureYears([{ year: 2018, n: 0 }, { year: 2019, n: 0 }, { year: 2020, n: 2 }, { year: 2021, n: 4 }]),
+    [
+      { year: 2020, n: 2 },
+      { year: 2021, n: 4 },
+    ],
+  );
 });
 
 test("peak years are the local highs and the overall high", () => {
@@ -208,4 +215,11 @@ test("the places list and the map keep distinct, accurate labels", () => {
   const listAt = stats.indexOf("Top places photographed");
   const mapAt = stats.indexOf("Photos made in ${counts.length} US states");
   assert.ok(mapAt > 0 && listAt > mapAt);
+});
+
+test("the regions line is a single nowrap phrase", () => {
+  const stats = readFileSync(new URL("../components/PublicGuildStats.tsx", import.meta.url), "utf8");
+  assert.match(stats, /regions, \$\{formatShowcaseCount\(countries\)\} countries/);
+  assert.match(stats, /mw-stats-regions-line/);
+  assert.equal(stats.includes("regions across"), false);
 });

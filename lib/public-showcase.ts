@@ -217,8 +217,10 @@ export function parsePublicCounts(value: unknown): PublicCounts | null {
 /** Fill missing years so a sparkline reads as a continuous run from the first year to the last. */
 export function fillCaptureYears(rows: YearCount[], throughYear?: number): YearCount[] {
   if (!rows.length) return [];
-  const last = Math.max(rows[rows.length - 1].year, throughYear ?? rows[rows.length - 1].year);
-  const first = rows[0].year;
+  const withPhotos = rows.filter((row) => row.n > 0).sort((a, b) => a.year - b.year);
+  if (!withPhotos.length) return [];
+  const first = withPhotos[0].year;
+  const last = Math.max(withPhotos[withPhotos.length - 1].year, throughYear ?? withPhotos[withPhotos.length - 1].year);
   const byYear = new Map(rows.map((row) => [row.year, row.n]));
   const filled: YearCount[] = [];
   for (let year = first; year <= last; year += 1) {

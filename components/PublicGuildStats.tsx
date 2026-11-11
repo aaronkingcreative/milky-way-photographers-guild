@@ -165,7 +165,7 @@ function YearSparkline({ years }: { years: YearCount[] }) {
         ))}
       </div>
       <figcaption id={captionId} className="mw-stats-caption">
-        <KeepTail text={`Years the photos were made, peak in ${peak.year}`} keep={4} />
+        <KeepTail text={`Years the photos were made, peak in ${peak.year}`} keep={5} />
       </figcaption>
     </figure>
   );
@@ -175,28 +175,37 @@ function FieldMap({ counts }: { counts: { code: string; n: number }[] }) {
   const byCode = new Map(counts.map((row) => [row.code, row.n]));
   const max = Math.max(...counts.map((row) => row.n), 1);
   const captionId = useId();
+  const showAlaska = (byCode.get("AK") ?? 0) > 0;
+  const showHawaii = (byCode.get("HI") ?? 0) > 0;
 
   return (
-    <div className="mw-stats-map-art" aria-labelledby={captionId}>
+    <div
+      className="mw-stats-map-art"
+      aria-labelledby={captionId}
+      data-ak={showAlaska ? "true" : "false"}
+      data-hi={showHawaii ? "true" : "false"}
+    >
       <svg viewBox={US_MAP_VIEWBOX} role="img" aria-hidden="true">
         <path d={US_LAND_PATHS.continent} className="mw-stats-land" />
         <path d={US_LAND_PATHS.lakes} className="mw-stats-lakes" />
-        <path d={US_LAND_PATHS.alaska} className="mw-stats-land" />
-        <path d={US_LAND_PATHS.hawaii} className="mw-stats-land" />
+        <path d={US_LAND_PATHS.alaska} className="mw-stats-land is-ak" />
+        <path d={US_LAND_PATHS.hawaii} className="mw-stats-land is-hi" />
         {US_STATE_ANCHORS.map((anchor) => {
           const n = byCode.get(anchor.code) ?? 0;
+          const inset = anchor.code === "AK" ? " is-ak" : anchor.code === "HI" ? " is-hi" : "";
           const t = n / max;
           const r = n > 0 ? 10 + Math.sqrt(t) * 22 : 0;
           const opacity = n > 0 ? 0.22 + t * 0.72 : 0;
+          const compactR = n > 0 && (anchor.code === "AK" || anchor.code === "HI") ? Math.max(8, r * 0.72) : r;
           return (
-            <g key={anchor.code} className={n > 0 ? "is-active" : "is-empty"}>
-              {n > 0 ? <circle cx={anchor.x} cy={anchor.y} r={r} fill="#e79f2b" fillOpacity={opacity} /> : null}
+            <g key={anchor.code} className={(n > 0 ? "is-active" : "is-empty") + inset}>
+              {n > 0 ? <circle cx={anchor.x} cy={anchor.y} r={compactR} fill="#e79f2b" fillOpacity={opacity} /> : null}
               <text
                 x={anchor.x}
                 y={anchor.y}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fontSize={anchor.size === "s" ? 13 : 16}
+                fontSize={anchor.size === "s" || anchor.code === "HI" || anchor.code === "AK" ? 13 : 16}
               >
                 {anchor.code}
               </text>
@@ -221,13 +230,8 @@ export function PublicGuildStats({ counts }: { counts: PublicCounts }) {
   const showMembers = (counts.members ?? 0) > 0;
   const showReactions = (counts.reactions ?? 0) > 0;
   const showRegions = (counts.regions ?? 0) > 0;
-  const regionLine = (() => {
-    const regions = counts.regions ?? 0;
-    const countries = counts.countries ?? 0;
-    if (regions && countries > 1) return `${formatShowcaseCount(regions)} regions across ${formatShowcaseCount(countries)} countries`;
-    if (regions) return `${formatShowcaseCount(regions)} regions`;
-    return "";
-  })();
+  const regions = counts.regions ?? 0;
+  const countries = counts.countries ?? 0;
 
   return (
     <div className="mw-stats">
@@ -238,22 +242,24 @@ export function PublicGuildStats({ counts }: { counts: PublicCounts }) {
               <p className="mw-stats-hero-value">
                 <CountUp value={counts.honors} />
               </p>
-              <p className="mw-stats-label">Field Honors</p>
+              <p className="mw-stats-label mw-stats-hero-label">Field Honors</p>
             </div>
             {categories.length > 1 ? <RankedBars items={categories} /> : null}
+            <p className="mw-showcase-honors">
+              <KeepTail text={fieldHonorsPublicLine} />
+            </p>
           </div>
-          <p className="mw-showcase-honors">
-            <KeepTail text={fieldHonorsPublicLine} />
-          </p>
         </div>
         <div className="mw-stats-pics">
-          <p className="mw-stats-supporting-value">
-            <CountUp value={counts.pics} />
-          </p>
-          <p className="mw-stats-label">Pics shared</p>
-          {showWeek ? (
-            <p className="mw-stats-note">{formatShowcaseCount(counts.weekPics ?? 0)} shared this week</p>
-          ) : null}
+          <div className="mw-stats-pics-lead">
+            <p className="mw-stats-supporting-value">
+              <CountUp value={counts.pics} />
+            </p>
+            <p className="mw-stats-label">Pics shared</p>
+            {showWeek ? (
+              <p className="mw-stats-note mw-stats-nowrap">{formatShowcaseCount(counts.weekPics ?? 0)} shared this week</p>
+            ) : null}
+          </div>
           {counts.captureYears && counts.captureYears.length >= 4 ? (
             <YearSparkline years={counts.captureYears} />
           ) : null}
@@ -263,19 +269,21 @@ export function PublicGuildStats({ counts }: { counts: PublicCounts }) {
       {showRegions ? (
         <div className="mw-stats-places">
           <p className="mw-stats-kicker">Where the photos were made</p>
-          <div className="mw-stats-places-head">
-            <p className="mw-stats-place-value">
-              <CountUp value={counts.regions ?? 0} />
-            </p>
-            <p className="mw-stats-label mw-stats-place-label">
-              <KeepTail text={regionLine.replace(/^\d+\s/, "")} keep={4} />
-            </p>
-          </div>
+          <p className="mw-stats-regions-line">
+            <span className="mw-stats-place-value">
+              <CountUp value={regions} />
+            </span>
+            <span className="mw-stats-label mw-stats-place-label">
+              {countries > 1
+                ? `regions, ${formatShowcaseCount(countries)} countries`
+                : "regions"}
+            </span>
+          </p>
           {usStates.length >= 3 ? <FieldMap counts={usStates} /> : null}
           {places.length >= 3 ? (
             <>
-              <p className="mw-stats-kicker mw-stats-places-list-label">
-                <KeepTail text="Top places photographed" />
+              <p className="mw-stats-kicker mw-stats-places-list-label mw-stats-nowrap">
+                Top places photographed
               </p>
               <RankedBars
                 items={places.map((row) => ({ key: row.name, label: row.name, n: row.n }))}
@@ -286,28 +294,32 @@ export function PublicGuildStats({ counts }: { counts: PublicCounts }) {
       ) : null}
 
       <div className="mw-stats-band">
-        {showReactions ? (
-          <div className="mw-stats-side">
-            <p className="mw-stats-side-value">
-              <CountUp value={counts.reactions ?? 0} />
-            </p>
-            <p className="mw-stats-label">Reactions</p>
-          </div>
-        ) : null}
-        <div className="mw-stats-side">
-          <p className="mw-stats-side-value">
-            <CountUp value={counts.comments} />
-          </p>
-          <p className="mw-stats-label">Comments</p>
+        <div className="mw-stats-band-left">
+          {showReactions ? (
+            <div className="mw-stats-side">
+              <p className="mw-stats-side-value">
+                <CountUp value={counts.reactions ?? 0} />
+              </p>
+              <p className="mw-stats-label">Reactions</p>
+            </div>
+          ) : null}
         </div>
-        {showMembers ? (
+        <div className="mw-stats-band-right">
           <div className="mw-stats-side">
             <p className="mw-stats-side-value">
-              <CountUp value={counts.members ?? 0} />
+              <CountUp value={counts.comments} />
             </p>
-            <p className="mw-stats-label">Members</p>
+            <p className="mw-stats-label">Comments</p>
           </div>
-        ) : null}
+          {showMembers ? (
+            <div className="mw-stats-side">
+              <p className="mw-stats-side-value">
+                <CountUp value={counts.members ?? 0} />
+              </p>
+              <p className="mw-stats-label">Members</p>
+            </div>
+          ) : null}
+        </div>
       </div>
     </div>
   );
