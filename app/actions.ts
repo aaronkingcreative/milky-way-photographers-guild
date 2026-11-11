@@ -1,5 +1,6 @@
 "use server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { PUBLIC_SHOWCASE_CACHE_TAG } from "@/lib/public-showcase";
 import { redirect } from "next/navigation";
 import { requireAccess, requireAdmin, requireLogin } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -195,7 +196,7 @@ export async function toggleWeeklyCandidate(formData: FormData) {
   }
   await supabase.from("guild_images").update({is_weekly_candidate:next}).eq("id",image_id).eq("user_id",user.id); revalidatePath(`/images/${image_id}`); revalidatePath("/feed");
 }
-const PROFILE_SETTINGS_COLUMNS = "display_name,full_name,email,avatar_url,avatar_path,avatar_pill_path,avatar_original_path,avatar_crop,country,region,state_or_province,specific_location,specific_location_name,updated_at";
+const PROFILE_SETTINGS_COLUMNS = "display_name,full_name,email,avatar_url,avatar_path,avatar_pill_path,avatar_original_path,avatar_crop,country,region,state_or_province,specific_location,specific_location_name,public_showcase,updated_at";
 export type ProfileSaveState = { status: "idle" | "saving" | "success" | "error"; profile?: any; message?: string };
 
 export async function updateProfileLocation(_previousState: ProfileSaveState, formData: FormData): Promise<ProfileSaveState> {
@@ -211,6 +212,7 @@ export async function updateProfileLocation(_previousState: ProfileSaveState, fo
     state_or_province: value(formData, "state_or_province") || null,
     specific_location: value(formData, "specific_location_name") || null,
     specific_location_name: value(formData, "specific_location_name") || null,
+    public_showcase: formData.get("public_showcase") === "on",
   };
 
   const { error } = await supabase.from("profiles").upsert(profilePayload, { onConflict: "id" });
@@ -230,6 +232,7 @@ export async function updateProfileLocation(_previousState: ProfileSaveState, fo
   }
 
   revalidatePath("/", "layout");
+  revalidateTag(PUBLIC_SHOWCASE_CACHE_TAG, "max");
   return { status: "success", message: "Profile saved. Your Guild identity is updated.", profile: refetchedProfile };
 }
 

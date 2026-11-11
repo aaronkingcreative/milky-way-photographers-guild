@@ -56,6 +56,14 @@ export const feedbackExampleBody =
 export const afterFeaturesLead = "If that is the kind of help you want, join the Guild.";
 export const closingLead = "The field reports live here. Join the Guild and bring one.";
 
+/** First person, under the public totals. NBSP keeps the last two words on one line. */
+export const fieldHonorsPublicLine =
+  "Most sites call them achievements. In the Guild they are Field Honors, and you earn them out in the field with real photos and real\u00A0adventures.";
+
+/** Same sentence on Terms and Privacy. The choice is off until a member turns it on. */
+export const publicPhotoChoiceCopy =
+  "You can choose to show your photos and your profile picture, without your name, on the public Guild page. That choice is off unless you turn it on, and you can turn it off any time in settings.";
+
 export const notFoundTitle = "I cannot find that page.";
 export const notFoundBody = "The address may be mistyped, or the page may have moved. Head back to the Guild, or join if you are new.";
 
@@ -90,7 +98,8 @@ export const privacySections: LegalSection[] = [
       "If you put a specific place name on a field report, members who can view that report can see it.",
       "Members with Guild access can see published field reports, comments, and reactions. Guild admins can see them too.",
       "Your Image of the Week ballot is readable by you and by Guild admins. Other members see finished places and point totals, not a list of who voted for whom.",
-      "The pages check for Guild access before they show images. The image files and portraits are kept in public storage buckets. Anyone who already has the file link can open that file without an account.",
+      "Member pages check for Guild access before they show images. The image files and portraits are kept in public storage buckets. Anyone who already has the file link can open that file without an account.",
+      publicPhotoChoiceCopy,
     ],
   },
   {
@@ -139,7 +148,8 @@ export const termsSections: LegalSection[] = [
     paragraphs: [
       "You choose what to upload. Members with Guild access can see a published field report, and so can Guild admins. An admin can hide an image, blur it, or mark it removed. You can edit the written report. You can withdraw an Image of the Week entry while entries are still open. You cannot delete the image file yourself in the product.",
       "I am not asking you to sign over your photographs. There is no license step on the signup form or the upload form. That decision is still open, and the privacy notes say the same thing.",
-      "Image files and portraits sit in public storage. The Guild pages hide them from signed-out visitors, but anyone who already has the file link can open the file.",
+      "Image files and portraits sit in public storage. Member pages check for Guild access before they show images. Anyone who already has the file link can open the file.",
+      publicPhotoChoiceCopy,
     ],
   },
   {

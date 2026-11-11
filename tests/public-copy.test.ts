@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { EMAIL_DOT_MESSAGE, EMAIL_REQUIRED_MESSAGE, EMAIL_SHAPE_MESSAGE, emailFieldError } from "../lib/email-address.ts";
 import { readFileSync } from "node:fs";
-import { contactLead, courseLibraryUrl, homeFeatures, homeLead, momentOfEnvyCopy, privacySections, rankNameList, resourcesNote, signupIntro, termsSections } from "../lib/public-copy.ts";
+import { contactLead, courseLibraryUrl, fieldHonorsPublicLine, homeFeatures, homeLead, momentOfEnvyCopy, privacySections, publicPhotoChoiceCopy, rankNameList, resourcesNote, signupIntro, termsSections } from "../lib/public-copy.ts";
 import { RANKS } from "../lib/ranks.ts";
 import { CHECK_EMAIL_MESSAGE, DISPOSABLE_EMAIL_MESSAGE, SIGNUP_REASSURANCE, STALE_FORM_MESSAGE, TOO_FAST_MESSAGE } from "../lib/signup-messages.ts";
 import { WEEKLY_SUBMISSION_LIMIT } from "../lib/images.ts";
@@ -20,7 +20,7 @@ test("new customer copy has no em dash, colon, or the retired domain", () => {
     privacySections,
     termsSections,
     rankNameList,
-    messages: [CHECK_EMAIL_MESSAGE, TOO_FAST_MESSAGE, STALE_FORM_MESSAGE, DISPOSABLE_EMAIL_MESSAGE, SIGNUP_REASSURANCE, EMAIL_DOT_MESSAGE, EMAIL_REQUIRED_MESSAGE, EMAIL_SHAPE_MESSAGE, homeLead, signupIntro, contactLead, resourcesNote],
+    messages: [CHECK_EMAIL_MESSAGE, TOO_FAST_MESSAGE, STALE_FORM_MESSAGE, DISPOSABLE_EMAIL_MESSAGE, SIGNUP_REASSURANCE, EMAIL_DOT_MESSAGE, EMAIL_REQUIRED_MESSAGE, EMAIL_SHAPE_MESSAGE, homeLead, signupIntro, contactLead, resourcesNote, fieldHonorsPublicLine, publicPhotoChoiceCopy],
   });
   for (const line of copy) {
     assert.equal(line.includes("\u2014"), false, line);
@@ -89,4 +89,23 @@ test("monday moment of envy uses one first-person definition", () => {
   assert.equal(readFileSync(new URL("../app/field-desk/page.tsx", import.meta.url), "utf8").includes("momentOfEnvyCopy"), true);
   assert.equal(readFileSync(new URL("../app/winners/page.tsx", import.meta.url), "utf8").includes("momentOfEnvyCopy"), true);
   assert.equal(readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8").includes("mw-unbreakable"), true);
+});
+
+test("terms and privacy share one opt-in line for the public photo strip", () => {
+  const privacy = privacySections.flatMap((section) => section.paragraphs);
+  const terms = termsSections.flatMap((section) => section.paragraphs);
+  assert.equal(privacy.includes(publicPhotoChoiceCopy), true);
+  assert.equal(terms.includes(publicPhotoChoiceCopy), true);
+  assert.match(publicPhotoChoiceCopy, /without your name/);
+  assert.match(publicPhotoChoiceCopy, /off unless you turn it on/);
+  assert.match(publicPhotoChoiceCopy, /turn it off any time in settings/);
+  assert.equal(fieldHonorsPublicLine.endsWith("real\u00A0adventures."), true);
+  assert.equal(fieldHonorsPublicLine.includes("\u2014"), false);
+  assert.equal(fieldHonorsPublicLine.includes(":"), false);
+  const showcase = readFileSync(new URL("../components/PublicShowcase.tsx", import.meta.url), "utf8");
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.equal(showcase.includes("mw-showcase-honors"), true);
+  assert.match(css, /\.mw-public \.mw-showcase-honors \{[^}]*text-wrap:\s*balance/);
+  assert.equal(showcase.toLowerCase().includes("display_name"), false);
+  assert.equal(showcase.toLowerCase().includes("milkywayphotographers.com"), false);
 });
