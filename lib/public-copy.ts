@@ -58,7 +58,7 @@ export const closingLead = "The field reports live here. Join the Guild and brin
 
 /** First person, under the public totals. NBSP keeps the last two words on one line. */
 export const fieldHonorsPublicLine =
-  "Field Honors are our achievements. You earn them out in the field, taking real photos on real\u00A0adventures.";
+  "Most sites call them achievements. In the Guild they are Field Honors, and you earn them out in the field with real photos and real\u00A0adventures.";
 
 /** Same sentence on Terms and Privacy. The choice is off until a member turns it on. */
 export const publicPhotoChoiceCopy =

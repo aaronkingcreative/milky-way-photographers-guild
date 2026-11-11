@@ -1438,7 +1438,7 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
   .mw-ascent-slot:focus-within .mw-ascent-cloud { overflow: visible; }
 }
 
-.mw-showcase { max-width: 80rem; margin: 0 auto; padding: 0 1.25rem 1rem; }
+.mw-showcase { max-width: 80rem; margin: 0 auto; padding: 2.5rem 1.25rem 1rem; }
 .mw-showcase-kicker { margin: 0; font-size: .875rem; font-weight: 700; letter-spacing: .32em; text-transform: uppercase; color: #f4bd61; }
 .mw-showcase-stats { display: grid; gap: .75rem; margin-top: 1.5rem; grid-template-columns: 1fr; }
 .mw-showcase-stat { display: flex; flex-direction: column; padding: 1.15rem 1.2rem 1.25rem; }
