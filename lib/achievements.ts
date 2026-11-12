@@ -43,7 +43,7 @@ export type TrackingAchievement = {
 
 export const achievementLibraryCategoryDetails: Record<AchievementLibraryCategory, { label: string; summary: string; why: string }> = {
   monthly: { label: "Monthly Field Honors", summary: "These are manually claimable Field Honors. They count toward rank only if chosen as the one Field Honor for an image.", why: "Choose a month honor when the timing of the image is the story." },
-  seasonal: { label: "Seasonal Field Honors", summary: "These are manually claimable Field Honors. They count toward rank only if chosen as the one Field Honor for an image.", why: "Choose a season honor when the seasonal Milky Way window is the accomplishment." },
+  seasonal: { label: "Seasonal Field Honors", summary: "These are automatic Field Honors. They count toward rank when you hold all three month honors for that season, in any years.", why: "Earned automatically when you earn the third month honor of that season." },
   foreground: { label: "Foreground Field Honors", summary: "These are manually claimable Field Honors. They count toward rank.", why: "Choose a foreground honor when the land feature makes the image special." },
   technique: { label: "Technique Field Honors", summary: "These are manually claimable Field Honors. They count toward rank.", why: "Choose a technique honor when the method is the accomplishment." },
   special: { label: "Special Honors", summary: "These are automatic or long-term honors based on larger field patterns.", why: "Earned through bigger patterns across your field year or long-term history." },
@@ -103,6 +103,17 @@ export const trackingAchievementDefinitions: TrackingAchievement[] = [
   { id: "tracking_month_streak", name: "Month streak", category: "tracking", glyph: "☾", type: "Automatic tracking", requirement: "Tracks consecutive months with submitted Milky Way coverage, if the current system supports it.", sortOrder: 504 },
   { id: "tracking_perfect_year_progress", name: "Perfect Year progress", category: "tracking", glyph: "◎", type: "Automatic tracking", requirement: "Tracks how many months in a single calendar year have coverage. When all 12 are filled, Perfect Year is earned.", sortOrder: 505 },
 ];
+
+
+/** Use the definition flags, not the category name, so seasonal honors are not labeled as manual. */
+export function honorTypeLabel(item: { category: string; type?: string; isManualClaimable?: boolean; isAutomatic?: boolean }) {
+  if (item.category === "tracking") return item.type || "Automatic tracking";
+  if (item.category === "rank") return "Rank milestone";
+  if (item.isManualClaimable === false || item.isAutomatic) {
+    return item.category === "special" ? "Automatic special" : "Automatic Field Honor";
+  }
+  return "Manual Field Honor";
+}
 
 export const rankThresholds = [
   { short: "Beginner", full: "Beginner Milky Way Photographer", min: 1 },

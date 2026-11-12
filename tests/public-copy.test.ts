@@ -3,6 +3,7 @@ import test from "node:test";
 import { EMAIL_DOT_MESSAGE, EMAIL_REQUIRED_MESSAGE, EMAIL_SHAPE_MESSAGE, emailFieldError } from "../lib/email-address.ts";
 import { readFileSync } from "node:fs";
 import { contactLead, courseLibraryUrl, fieldHonorsPublicLine, hidePhotosHelp, hidePhotosTitle, homeFeatures, homeLead, momentOfEnvyCopy, nextPrintLabel, pileLead, previousPrintLabel, privacySections, publicPhotoChoiceCopy, putPrintBackLabel, rankNameList, resourcesNote, shufflePileLabel, signupIntro, signupOffer, termsSections } from "../lib/public-copy.ts";
+import { achievementLibraryCategoryDetails, honorTypeLabel, seededAchievementDefinitions } from "../lib/achievements.ts";
 import { RANKS } from "../lib/ranks.ts";
 import { CHECK_EMAIL_MESSAGE, DISPOSABLE_EMAIL_MESSAGE, SIGNUP_REASSURANCE, STALE_FORM_MESSAGE, TOO_FAST_MESSAGE } from "../lib/signup-messages.ts";
 import { WEEKLY_SUBMISSION_LIMIT } from "../lib/images.ts";
@@ -17,6 +18,7 @@ function stringsOf(value: unknown, found: string[] = []) {
 test("new customer copy has no em dash, colon, or the retired domain", () => {
   const copy = stringsOf({
     homeFeatures,
+    achievementLibraryCategoryDetails,
     privacySections,
     termsSections,
     rankNameList,
@@ -138,4 +140,26 @@ test("signup offer is three short lines with the free and paid facts, and no em 
   assert.equal(/through\s*2027/.test(joined), true);
   assert.equal(/paid tier/.test(joined), true);
   assert.equal(joined.toLowerCase().includes("photos stay inside"), false);
+});
+
+test("seasonal Field Honors use one automatic rule in the library, the type label, and the seed", () => {
+  const seasonal = achievementLibraryCategoryDetails.seasonal;
+  assert.match(seasonal.summary, /automatic Field Honors/);
+  assert.match(seasonal.summary, /all three month honors/);
+  assert.equal(seasonal.summary.toLowerCase().includes("manually claimable"), false);
+  assert.equal(seasonal.why.toLowerCase().includes("choose a season"), false);
+  assert.match(seasonal.why, /Earned automatically/);
+  const seasons = seededAchievementDefinitions.filter((item) => item.category === "seasonal");
+  assert.equal(seasons.length, 4);
+  for (const honor of seasons) {
+    assert.equal(honor.isManualClaimable, false);
+    assert.equal(honor.isAutomatic, true);
+    assert.equal(honor.countsTowardRank, true);
+    assert.equal(honorTypeLabel(honor), "Automatic Field Honor");
+    assert.match(honor.requirement, /Earning the third month also earns/);
+  }
+  const january = seededAchievementDefinitions.find((item) => item.id === "monthly_january");
+  assert.equal(honorTypeLabel(january!), "Manual Field Honor");
+  const perfect = seededAchievementDefinitions.find((item) => item.id === "special_perfect_year");
+  assert.equal(honorTypeLabel(perfect!), "Automatic special");
 });
