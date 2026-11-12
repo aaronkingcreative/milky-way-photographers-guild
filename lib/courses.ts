@@ -23,12 +23,12 @@ export const guildCourses: GuildCourse[] = [
   },
   {
     title: "Eric Benedetti Star Tracking",
-    body: "For tracking the sky with a mount. You will keep the stars sharp on a longer\u00A0exposure.",
+    body: "For tracking the sky with a mount. You will keep the stars sharp on a longer exposure.",
     image: "/courses/eric-benedetti-sky.jpg",
   },
   {
     title: "MaryBeth Kiczenski Star Tracked Post-Processing",
-    body: "For the edit after a tracked night. You will blend the sky and the ground into one\u00A0photograph.",
+    body: "For the edit after a tracked night. You will blend the sky and the ground into one photograph.",
     image: "/courses/marybeth-sky.jpg",
   },
 ];

@@ -125,7 +125,12 @@ export function HeaderClient({
           </Link>
         </div>
         {user && (
-          <div ref={navPanelRef} id="mw-primary-nav" className={`mw-primary-nav ${navOpen ? "is-open" : ""}`}>
+          <>
+          {navOpen ? <button type="button" className="mw-nav-backdrop" aria-label="Close menu" onClick={() => { setNavOpen(false); navToggleRef.current?.focus(); }} /> : null}
+          <div ref={navPanelRef} id="mw-primary-nav" className={`mw-primary-nav ${navOpen ? "is-open" : ""}`} tabIndex={-1}>
+            <div className="mw-nav-panel-head">
+              <button type="button" className="mw-nav-panel-close" onClick={() => { setNavOpen(false); navToggleRef.current?.focus(); }}>Close menu</button>
+            </div>
             {iotw ? (
               <button type="button" className="mw-nav-vote" onClick={() => { setNavOpen(false); window.dispatchEvent(new Event("mw:open-iotw")); }}>
                 {voted ? "✪ Edit Vote" : "✪ Vote"}
@@ -140,6 +145,7 @@ export function HeaderClient({
               );
             })}
           </div>
+          </>
         )}
         {user ? (
           <>

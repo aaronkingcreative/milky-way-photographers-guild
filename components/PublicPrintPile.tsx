@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent } from "react";
 import { createPortal } from "react-dom";
 import { KeepTail } from "@/components/KeepTail";
-import { putPrintBackLabel, shufflePileLabel } from "@/lib/public-copy";
+import { nextPrintLabel, previousPrintLabel, putPrintBackLabel, shufflePileLabel } from "@/lib/public-copy";
 import { DRAG_THRESHOLD_PX, PRINT_SAFE, PRINT_SAFE_WIDE, clampPose, isWidePrintSpread, printFrameSize, printSafeBaseForWidth, printSafeForTable, scatterPrints, seedFromKeys, type PrintPose, type PrintSafe } from "@/lib/print-pile";
 import type { ShowcasePhoto } from "@/lib/public-showcase";
 import { DEFAULT_PRINT_AVATAR, isDefaultPrintAvatar, showcaseAvatarUrl, showcaseThumbUrl } from "@/lib/showcase-images";
@@ -412,8 +412,9 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
             onPointerUp={onFocusPointerUp}
           >
             {visible.length > 1 && (
-              <button type="button" className="mw-print-focus-nav is-prev" aria-label="Previous print" onClick={(event) => { event.stopPropagation(); stepFocus(-1); }}>
+              <button type="button" className="mw-print-focus-nav is-prev" aria-label={previousPrintLabel} onClick={(event) => { event.stopPropagation(); stepFocus(-1); }}>
                 <span aria-hidden="true">‹</span>
+                <span className="mw-print-focus-nav-label">Previous photo</span>
               </button>
             )}
             <figure
@@ -451,7 +452,8 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
               </span>
             </figure>
             {visible.length > 1 && (
-              <button type="button" className="mw-print-focus-nav is-next" aria-label="Next print" onClick={(event) => { event.stopPropagation(); stepFocus(1); }}>
+              <button type="button" className="mw-print-focus-nav is-next" aria-label={nextPrintLabel} onClick={(event) => { event.stopPropagation(); stepFocus(1); }}>
+                <span className="mw-print-focus-nav-label">Next photo</span>
                 <span aria-hidden="true">›</span>
               </button>
             )}

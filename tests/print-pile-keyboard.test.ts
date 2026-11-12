@@ -11,8 +11,10 @@ test("closing the focus view returns keyboard focus to the print it came from", 
 });
 
 test("pile controls keep public accessible names without photographer names", () => {
-  assert.match(pile, /aria-label="Previous print"/);
-  assert.match(pile, /aria-label="Next print"/);
+  assert.match(pile, /aria-label=\{previousPrintLabel\}/);
+  assert.match(pile, /aria-label=\{nextPrintLabel\}/);
+  assert.match(pile, /Previous photo/);
+  assert.match(pile, /Next photo/);
   assert.match(pile, /aria-label="Put the print back"/);
   assert.match(pile, /Open a Guild print/);
   assert.doesNotMatch(pile, /photographer/i);

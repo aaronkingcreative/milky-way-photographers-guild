@@ -187,12 +187,11 @@ export default async function Page() {
       {libraryGroups.map((group) => <section key={group.category} className="progress-library-group">
         <div className="progress-library-group-head"><div><h3>{group.details.label}</h3><p>{group.details.summary}</p></div><small>{group.details.why}</small></div>
         <div className="progress-library-table">
-          <div className="progress-library-row progress-library-header"><span>Honor</span><span>Type</span><span>How it is earned</span><span>Counts to rank</span><span>Reward</span><span>Your status</span></div>
+          <div className="progress-library-row progress-library-header"><span>Honor</span><span>How it is earned</span><span>Counts to rank</span><span>Reward</span><span>Your status</span></div>
           {group.items.map((item) => {
             const status = statusFor(item);
             return <div key={item.id} className="progress-library-row">
               <div className="progress-library-honor"><i>{item.glyph}</i><strong>{item.name}</strong></div>
-              <div data-label="Type">{typeLabel(item)}</div>
               <div data-label="How it is earned">{item.requirement}</div>
               <div data-label="Counts to rank"><span className={countsLabel(item) === "Yes" ? "progress-rank-yes" : "progress-rank-no"}>{countsLabel(item)}</span></div>
               <div data-label="Reward">{"rewardType" in item ? rewardLabel(item.rewardType) : "None"}</div>

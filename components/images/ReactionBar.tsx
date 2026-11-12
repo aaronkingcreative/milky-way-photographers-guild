@@ -8,7 +8,7 @@ import { REACTION_TYPES } from "@/lib/images";
 export const REACTION_ICONS: Record<string, string> = { love: "♥", wow: "✺", envy: "◆", like: "•", beautiful_sky: "★", great_foreground: "▲", strong_composition: "◇", inspiring_adventure: "✦", helpful_story: "☄" };
 export const REACTION_GROUPS = [
   { title: "Quick Reactions", types: ["love", "wow", "envy", "like"] },
-  { title: "Praise the Craft", types: ["beautiful_sky", "great_foreground", "strong_composition", "inspiring_adventure"] },
+  { title: "Praise the Craft", types: ["beautiful_sky", "great_foreground", "strong_composition", "inspiring_adventure", "helpful_story"] },
 ];
 const labels = new Map<string, string>(REACTION_TYPES.map(([type, label]) => [type, label]));
 

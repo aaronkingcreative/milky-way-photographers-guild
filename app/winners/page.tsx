@@ -55,12 +55,12 @@ export default async function Page() {
   const decided = weeks.filter((w) => w.winner);
   const next = schedule.voting || schedule.entry;
   return (
-    <section className="mx-auto max-w-6xl px-5 py-14">
+    <section className="mw-page-wide py-14">
       <p className="eyebrow">Image of the Week</p>
       <h1 className="mw-winners-headline">Image of the Week Winners</h1>
       <p className="mt-3 max-w-3xl text-white/68">Every Image of the Week winner, newest first. Open any winning image to read its field report.</p>
       <p className="mt-3 max-w-3xl text-white/68 mw-copy-natural">{momentOfEnvyCopy}</p>
-      <div className="max-w-3xl"><IotwSchedule entry={schedule.entry} voting={schedule.voting} /></div>
+      <div className="mw-winners-schedule"><IotwSchedule entry={schedule.entry} voting={schedule.voting} /></div>
       {decided.length ? (
         <div className="mw-winners-list">{decided.map((w) => <WinnerEntry key={w.ballot.id} week={w} />)}</div>
       ) : (

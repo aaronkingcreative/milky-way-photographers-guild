@@ -8,9 +8,10 @@ export const rankRangeSentence = RANKS.map((rank) => {
 }).join(" ");
 
 export const homeHeadline = "Get useful notes on your Milky Way photos.";
-export const homeLead = "The private image-first, ad\u2011free community for Milky Way photographers. Joining is free right now. Free access lasts through\u00A02027.\u00A0I\u00A0plan\u00A0a\u00A0paid\u00A0tier.";
-export const signupIntro = "Share field reports, earn honors, and climb the Ascent. Joining is free right now. Free access lasts through\u00A02027.\u00A0I\u00A0plan\u00A0a\u00A0paid\u00A0tier.";
+export const homeLead = "The private image-first, ad-free community for Milky Way photographers. Joining is free right now. Free access lasts through 2027. I plan a paid\u00A0tier.";
+export const signupIntro = "Share field reports, earn honors, and climb the Ascent. Joining is free right now. Free access lasts through 2027. I plan a paid\u00A0tier.";
 
+export const signupStorageNote = "Pages are members-only. Image files live at links that are hard to guess.";
 export const signupOffer = [
   "Useful notes on your Milky Way photos.",
   "A weekly Image of the Week vote and a Monday Moment of Envy.",
@@ -64,7 +65,7 @@ export const closingLead = "The field reports live here. Join the Guild and brin
 
 /** First person, under the public totals. NBSP keeps the last two words on one line. */
 export const fieldHonorsPublicLine =
-  "Most sites call them achievements. In the Guild they are Field Honors, and you earn them out in the field with real photos and real\u00A0adventures.";
+  "Most sites call them achievements. In the Guild they are Field Honors, and you earn them out in the field with real photos and real adventures.";
 
 /** Same sentence on Terms and Privacy. Published photos may show unless a member hides them. */
 export const publicPhotoChoiceCopy =
@@ -113,7 +114,7 @@ export const privacySections: LegalSection[] = [
       "Other members who have Guild access can see your display name, your signup name, your portrait, your country, and your state or region. The member profile view does not include your email or the specific location saved on your profile.",
       "If you put a specific place name on a field report, members who can view that report can see it.",
       "Members with Guild access can see published field reports, comments, and reactions. Guild admins can see them too.",
-      "Forum posts show your name, portrait, rank, Field Honors, and Image of the Week placings to members with Guild access and Guild admins only, and you can edit or delete your own forum\u00A0posts.",
+      "Forum posts show your name, portrait, rank, Field Honors, and Image of the Week placings to members with Guild access and Guild admins only, and you can edit or delete your own forum posts.",
       "Your Image of the Week ballot is readable by you and by Guild admins. Other members see finished places and point totals, not a list of who voted for whom.",
       "Member pages check for Guild access before they show images. The image files and portraits are kept in public storage buckets. Anyone who already has the file link can open that file without an account.",
       publicPhotoChoiceCopy,
