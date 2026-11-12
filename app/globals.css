@@ -2585,3 +2585,8 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
     height: 1px;
   }
 }
+
+#preview-resources, #preview-courses, #preview-winners, #preview-field-desk {
+  scroll-margin-top: 6.5rem;
+  padding-top: 5.5rem;
+}

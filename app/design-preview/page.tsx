@@ -5,6 +5,7 @@ import { PendingBand } from "@/components/field-desk/PendingBand";
 import { WinnersEmpty } from "@/components/winners/WinnersEmpty";
 import { KeepTail } from "@/components/KeepTail";
 import { ScenePage } from "@/components/ScenePage";
+import { IotwSchedule } from "@/components/iotw/IotwSchedule";
 import { formatMountainShort, getIotwSchedule, imageOfTheWeekName } from "@/lib/iotw";
 import { fieldDeskGreeting } from "@/lib/member-labels";
 import { courseLibraryLabel, courseLibraryUrl, momentOfEnvyCopy, momentOfEnvyPending, resourcesNote } from "@/lib/public-copy";
@@ -83,7 +84,7 @@ export default async function Page() {
             </div>
             <Link href="/feed">Open Gallery →</Link>
           </div>
-          <p className="fd-pending-inline">No Image of the Week is open yet.</p>
+          {schedule ? <IotwSchedule entry={schedule.entry} voting={schedule.voting} /> : <p className="fd-pending-inline">No Image of the Week is open yet.</p>}
         </section>
         <section className="fd-stats">
           {([[0, "Guild Submissions", "Your first field report starts the climb."], [0, "Field Honors earned", "Claim an honor when you file a report."], [0, "Reactions Received", "Reactions arrive as the Guild sees your work."], [0, "Image of the Week Wins", "Enter a contender this week."]] as [number, string, string][]).map(([n, l, hint], i) => (
