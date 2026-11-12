@@ -4,15 +4,20 @@ import { redirect } from "next/navigation";
 import { requireAccess, requireAdmin } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-import { MESSAGE_MAX as MAX_MESSAGE } from "@/lib/guild-message";
+import { MESSAGE_MAX as MAX_MESSAGE, sameMessageVersion } from "@/lib/guild-message";
 function value(formData: FormData, key: string) { return String(formData.get(key) || "").trim(); }
 
-/** Marks the current Message from Aaron as read for the signed-in member. Safe to call twice. */
-export async function markGuildMessageRead(messageId: string): Promise<{ ok: boolean }> {
+/** Marks this version of the Message from Aaron as read. A later edit is a new version. */
+export async function markGuildMessageRead(messageId: string, messageUpdatedAt: string): Promise<{ ok: boolean }> {
   const { user } = await requireAccess();
-  if (!messageId) return { ok: false };
+  if (!messageId || !messageUpdatedAt) return { ok: false };
   const supabase = await createServerSupabaseClient();
-  const { error } = await supabase.from("guild_message_reads").upsert({ user_id: user.id, message_id: messageId }, { onConflict: "user_id,message_id", ignoreDuplicates: true });
+  const { data: message } = await supabase.from("guild_messages").select("id,updated_at").eq("id", messageId).is("archived_at", null).maybeSingle();
+  if (!message || !sameMessageVersion(message.updated_at, messageUpdatedAt)) return { ok: false };
+  const { error } = await supabase.from("guild_message_reads").upsert(
+    { user_id: user.id, message_id: messageId, message_updated_at: message.updated_at, read_at: new Date().toISOString() },
+    { onConflict: "user_id,message_id" },
+  );
   if (error) { console.error("Message read mark failed", error); return { ok: false }; }
   return { ok: true };
 }
