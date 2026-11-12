@@ -48,7 +48,7 @@ export function ForumHomeView({ threads, people, stats, removed }: { threads: Th
 
 export function ForumCategoryView({ category, threads, people, page, pages }: { category: { slug: string; label: string; blurb: string }; threads: ThreadRowData[]; people: Map<string, MemberLite>; page: number; pages: number }) {
   return (
-    <section className="mw-forum-shell mw-forum-fit">
+    <section className="mw-forum-shell">
       <ForumCrumbs items={[{ label: "Forum", href: "/forum" }, { label: category.label }]} />
       <ForumHead
         eyebrow="The Guild Forum"
