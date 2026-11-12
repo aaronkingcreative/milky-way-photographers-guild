@@ -8,8 +8,8 @@ export const rankRangeSentence = RANKS.map((rank) => {
 }).join(" ");
 
 export const homeHeadline = "Get useful notes on your Milky Way photos.";
-export const homeLead = "The private image-first, ad\u2011free community for Milky Way photographers. Joining is free right now. Free access lasts through 2027. I plan a paid tier.";
-export const signupIntro = "Share field reports, earn honors, and climb the Ascent. Joining is free right now. Free access lasts through 2027. I plan a paid tier.";
+export const homeLead = "The private image-first, ad\u2011free community for Milky Way photographers. Joining is free right now. Free access lasts through\u00A02027.\u00A0I\u00A0plan\u00A0a\u00A0paid\u00A0tier.";
+export const signupIntro = "Share field reports, earn honors, and climb the Ascent. Joining is free right now. Free access lasts through\u00A02027.\u00A0I\u00A0plan\u00A0a\u00A0paid\u00A0tier.";
 export const contactLead = "Questions? Email me at";
 export const resourcesNote = "I am still writing these resources. The course library is open while I finish\u00A0them.";
 export const courseLibraryUrl = "https://onlinecourses.photogadventures.com";
@@ -18,7 +18,7 @@ export const homeSectionTitle = "Feedback, voting, and ranks do different jobs."
 
 /** One definition, first person, on the home card, Field Desk, Winners, and Terms. */
 export const momentOfEnvyCopy =
-  "The Monday Moment of Envy is a video where I celebrate the vote winner and my Photog Phavorite, and sometimes the runner-up.";
+  "The Monday Moment of Envy is a video where I celebrate the vote winner and my Photog Phavorite, and sometimes the\u00A0runner-up.";
 export const momentOfEnvyPending = "No Moment of Envy yet.";
 
 export const homeFeatures: { title: string; body: string }[] = [
@@ -28,7 +28,7 @@ export const homeFeatures: { title: string; body: string }[] = [
   },
   {
     title: "Feedback",
-    body: "A member can leave a written note on your field report. The note is there to help you improve the photograph. It is not a vote and it does not change your rank.",
+    body: "A member can leave a written note on your field report. The note is there to help you improve the photograph. It is not a vote and it does not change\u00A0your\u00A0rank.",
   },
   {
     title: "Image of the Week",
@@ -36,7 +36,7 @@ export const homeFeatures: { title: string; body: string }[] = [
   },
   {
     title: "Ranks",
-    body: `The Ascent uses one set of names. ${rankNameList}. ${rankRangeSentence} Field Honors move the rank. Votes and written feedback do not.`,
+    body: `The Ascent uses one set of names. ${rankNameList}. ${rankRangeSentence} Field Honors move the rank. Votes and written\u00A0feedback\u00A0do\u00A0not.`,
   },
   {
     title: "Monday Moment of Envy",
@@ -44,14 +44,14 @@ export const homeFeatures: { title: string; body: string }[] = [
   },
   {
     title: "Field Honors",
-    body: "You can claim a Field Honor on an image when a listed month, foreground, technique, or other honor fits. Verified Field Honors are what move you along the Ascent.",
+    body: "You can claim a Field Honor on an image when a listed month, foreground, technique, or other honor fits. Verified Field Honors are what move you along\u00A0the\u00A0Ascent.",
   },
 ];
 
 export const feedbackExampleTitle = "Example of useful feedback";
 export const feedbackExampleDisclaimer = "I wrote this example so you can see a note that helps. It is not a comment from a member.";
 export const feedbackExampleBody =
-  "The Milky Way core is sharp and the rock arch repeats the shape of the galaxy. I would lower the camera a little so the rock stands taller against the sky. The blue glow on the left looks like light from a town. Naming that in the field report helps the next person plan the shot.";
+  "The Milky Way core is sharp and the rock arch repeats the shape of the galaxy. I would lower the camera a little so the rock stands taller against the sky. The blue glow on the left looks like light from a town. Naming that in the field report helps the next person plan\u00A0the\u00A0shot.";
 
 export const afterFeaturesLead = "If that is the kind of help you want, join the Guild.";
 export const closingLead = "The field reports live here. Join the Guild and bring one.";

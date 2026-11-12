@@ -1268,6 +1268,10 @@ a.mw-btn-ghost { color: #f4f7fb; }
   outline-offset: 3px;
 }
 
+.mw-public, .mw-join, body:has(.mw-public), body:has(.mw-join) {
+  overflow-x: clip;
+}
+
 /* Public pages. Balance short display lines. Pretty body copy avoids a one-word ending where the browser can. */
 .mw-public :is(p, blockquote, li, label) {
   text-wrap: pretty;
@@ -1613,7 +1617,7 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
     top: 0;
     left: 0;
     z-index: 2;
-    max-width: 16rem;
+    max-width: min(22rem, 46%);
     padding: 0 1.15rem .85rem 0;
     pointer-events: none;
   }
@@ -1973,7 +1977,7 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
     aspect-ratio: 2.15 / 1;
     min-height: 28rem;
     max-height: 38rem;
-    overflow: visible;
+    overflow: hidden;
   }
   .mw-print {
     --rot: var(--rot-wide, 0deg);

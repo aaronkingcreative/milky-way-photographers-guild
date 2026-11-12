@@ -49,8 +49,8 @@ test("email blur rules require a dotted domain", () => {
 test("free join lasts through 2027 and names no price", () => {
   for (const line of [homeLead, signupIntro]) {
     assert.match(line, /Joining is free right now/);
-    assert.match(line, /Free access lasts through 2027/);
-    assert.match(line, /I plan a paid tier/);
+    assert.match(line, /Free access lasts through\s2027/);
+    assert.match(line, /I\splan\sa\spaid\stier/);
     assert.equal(line.toLowerCase().includes("keep what they have"), false);
     assert.equal(line.includes("$"), false);
   }
@@ -74,7 +74,7 @@ test("monday moment of envy uses one first-person definition", () => {
   const card = homeFeatures.find((item) => item.title === "Monday Moment of Envy");
   assert.equal(card?.body, momentOfEnvyCopy);
   assert.equal(termsSections.flatMap((section) => section.paragraphs).includes(momentOfEnvyCopy), true);
-  assert.match(momentOfEnvyCopy, /I celebrate the vote winner and my Photog Phavorite, and sometimes the runner-up/);
+  assert.match(momentOfEnvyCopy, /I celebrate the vote winner and my Photog Phavorite, and sometimes the\srunner-up/);
   assert.equal(momentOfEnvyCopy.toLowerCase().includes("outside the top 3"), false);
   assert.equal(momentOfEnvyCopy.toLowerCase().includes("personal pick"), false);
   assert.equal(momentOfEnvyCopy.includes("\u2014"), false);
@@ -117,4 +117,13 @@ test("terms and privacy share one hide line for the public photo strip", () => {
   assert.match(css, /\.mw-public \.mw-showcase-honors \{[^}]*text-wrap:\s*balance/);
   assert.equal(showcase.toLowerCase().includes("display_name"), false);
   assert.equal(showcase.toLowerCase().includes("milkywayphotographers.com"), false);
+});
+
+test("closing phrases keep their last words together with nbsp", () => {
+  assert.equal(homeLead.includes("through\u00A02027.\u00A0I\u00A0plan\u00A0a\u00A0paid\u00A0tier."), true);
+  assert.equal(signupIntro.includes("through\u00A02027.\u00A0I\u00A0plan\u00A0a\u00A0paid\u00A0tier."), true);
+  assert.equal(homeFeatures[1].body.includes("change\u00A0your\u00A0rank."), true);
+  assert.equal(homeFeatures[3].body.includes("written\u00A0feedback\u00A0do\u00A0not."), true);
+  assert.equal(homeFeatures[4].body.includes("the\u00A0runner-up."), true);
+  assert.equal(homeFeatures[5].body.includes("along\u00A0the\u00A0Ascent."), true);
 });

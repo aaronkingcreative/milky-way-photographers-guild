@@ -83,7 +83,7 @@ function RankedBars({
 
 function YearSparkline({ years, hole }: { years: YearCount[]; hole: { right: number; bottom: number } }) {
   const captionId = useId();
-  const clipId = useId();
+  const clipId = `spark-clip-${useId().replace(/:/g, "")}`;
   const svgRef = useRef<SVGSVGElement>(null);
   const [size, setSize] = useState({ width: 280, height: 42 });
   const filled = fillCaptureYears(years);
@@ -257,7 +257,13 @@ export function PublicGuildStats({ counts }: { counts: PublicCounts }) {
         setSparkHole({ right: 0, bottom: 0 });
         return;
       }
-      const a = lead.getBoundingClientRect();
+      const boxes = [lead, ...lead.querySelectorAll("*")].map((el) => el.getBoundingClientRect());
+      const a = {
+        left: Math.min(...boxes.map((box) => box.left)),
+        right: Math.max(...boxes.map((box) => box.right)),
+        top: Math.min(...boxes.map((box) => box.top)),
+        bottom: Math.max(...boxes.map((box) => box.bottom)),
+      };
       const b = spark.getBoundingClientRect();
       const overlap = a.bottom > b.top + 1 && a.right > b.left + 1 && a.left < b.right && a.top < b.bottom;
       if (!overlap) {
@@ -265,13 +271,17 @@ export function PublicGuildStats({ counts }: { counts: PublicCounts }) {
         return;
       }
       setSparkHole({
-        right: Math.max(0, Math.round(a.right - b.left + 12)),
-        bottom: Math.max(0, Math.round(a.bottom - b.top + 8)),
+        right: Math.max(0, Math.round(a.right - b.left + 16)),
+        bottom: Math.max(0, Math.round(a.bottom - b.top + 12)),
       });
     };
     apply();
     const observer = new ResizeObserver(apply);
     observer.observe(root);
+    const lead = root.querySelector(".mw-stats-pics-lead");
+    const spark = root.querySelector(".mw-stats-spark svg");
+    if (lead) observer.observe(lead);
+    if (spark) observer.observe(spark);
     return () => observer.disconnect();
   }, [counts.pics, counts.weekPics, counts.captureYears]);
 
