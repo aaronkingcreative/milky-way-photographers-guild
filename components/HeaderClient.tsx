@@ -155,7 +155,7 @@ export function HeaderClient({
                 </Link>
                 <button
                   type="button"
-                  className="mw-member-avatar"
+                  className={avatarUrl ? "mw-member-avatar" : "mw-member-avatar mw-member-avatar--initials"}
                   aria-label="Open account menu"
                   aria-expanded={accountMenuOpen}
                   onClick={() => setAccountMenuOpen((open) => !open)}
