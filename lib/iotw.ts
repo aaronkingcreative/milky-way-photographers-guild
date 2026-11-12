@@ -31,7 +31,21 @@ export function getIotwPeriod(now=new Date()){const s=denverSunday(now);const b=
 /** The ballot taking entries right now (its entries close at the next Sunday 12:00 PM MT). */
 export function getIotwTargetPeriod(now=new Date()){const s=denverSunday(now);const b=ballotFor(s,now);if(now<new Date(b.period_start))return b;return ballotFor(new Date(Date.UTC(s.getUTCFullYear(),s.getUTCMonth(),s.getUTCDate()+7)),now);}
 /** The ballot new contenders join right now, with its stored contest number when the row exists. */
-export async function getIotwEntryPeriod(supabase:any, now=new Date()){const target=getIotwTargetPeriod(now);const{data}=await supabase.from('iotw_ballots').select('id,contest_week,contest_year,status').eq('period_start',target.period_start).maybeSingle();return{...target,id:(data?.id as string|undefined)||null,contest_week:data?.contest_week||target.contest_week,contest_year:data?.contest_year||target.contest_year};}
+type IotwScheduleRow={id:string|null;contest_week:number|null;contest_year:number|null;status:string;period_start:string;period_end?:string;submission_cutoff:string;voting_opens_at:string;voting_closes_at:string};
+function sameInstant(a?:string|null,b?:string|null){if(!a||!b)return false;return new Date(a).getTime()===new Date(b).getTime();}
+function isOpenVotingWindow(row:IotwScheduleRow,now:Date){const t=now.getTime();return t>=new Date(row.voting_opens_at).getTime()&&t<new Date(row.voting_closes_at).getTime();}
+async function loadIotwScheduleRows(supabase:any):Promise<IotwScheduleRow[]>{
+  const rpc=await supabase.rpc('iotw_schedule_ballots');
+  if(!rpc?.error&&Array.isArray(rpc?.data))return rpc.data as IotwScheduleRow[];
+  const{data}=await supabase.from('iotw_ballots').select('id,contest_week,contest_year,status,period_start,period_end,submission_cutoff,voting_opens_at,voting_closes_at').in('status',['upcoming','voting_open']);
+  return(data||[]) as IotwScheduleRow[];
+}
+export async function getIotwEntryPeriod(supabase:any, now=new Date()){
+  const target=getIotwTargetPeriod(now);
+  const rows=await loadIotwScheduleRows(supabase);
+  const data=rows.find((r)=>sameInstant(r.period_start,target.period_start))||rows.find((r)=>r.status==='upcoming')||null;
+  return{...target,id:(data?.id as string|undefined)||null,contest_week:data?.contest_week||target.contest_week,contest_year:data?.contest_year||target.contest_year};
+}
 /** The mandatory vote gate only applies to an open ballot that offers a real choice (2 or more images by other members). */
 export function iotwVoteIsRequired(ballot:{status?:string|null;voting_opens_at?:string|null},eligibleCount:number,now=new Date()){if(eligibleCount<2)return false;if(ballot.status&&ballot.status!=='voting_open')return false;if(ballot.voting_opens_at&&now<new Date(ballot.voting_opens_at))return false;return true;}
 function keepTimeTogether(text:string){return text.replace(/(\d{1,2}:\d{2})\s(AM|PM)\s(M[DS]T)/,"$1\u00A0$2\u00A0$3");}
@@ -40,11 +54,28 @@ export function calculateIotwResults(entries:IotwEntry[],votes:IotwVote[]){const
 export type IotwScheduleWeek={id:string|null;label:string;contest_week:number;entries_close_at:string;voting_opens_at:string;voting_closes_at:string;status:string};
 /** Both phases that run at once: the week taking entries and the week being voted on (null before the first vote opens). */
 export async function getIotwSchedule(supabase:any,now=new Date()){
-  const entryPeriod=await getIotwEntryPeriod(supabase,now);
-  const votingPeriod=getIotwPeriod(now);
-  const{data:v}=await supabase.from('iotw_ballots').select('id,contest_week,submission_cutoff,period_start,voting_opens_at,voting_closes_at,status').eq('period_start',votingPeriod.period_start).eq('status','voting_open').maybeSingle();
-  const entry:IotwScheduleWeek={id:entryPeriod.id,label:`Week ${entryPeriod.contest_week}`,contest_week:entryPeriod.contest_week,entries_close_at:entryPeriod.submission_cutoff,voting_opens_at:entryPeriod.voting_opens_at,voting_closes_at:entryPeriod.voting_closes_at,status:'upcoming'};
-  const voting:IotwScheduleWeek|null=v?{id:v.id,label:iotwWeekLabel(v),contest_week:v.contest_week,entries_close_at:new Date(v.submission_cutoff).toISOString(),voting_opens_at:new Date(v.voting_opens_at).toISOString(),voting_closes_at:new Date(v.voting_closes_at).toISOString(),status:v.status}:null;
+  const rows=await loadIotwScheduleRows(supabase);
+  const entryPeriod=getIotwTargetPeriod(now);
+  const votingRow=rows.find((r)=>r.status==='voting_open'&&isOpenVotingWindow(r,now))||rows.find((r)=>isOpenVotingWindow(r,now))||null;
+  const entryRow=rows.find((r)=>r!==votingRow&&r.status==='upcoming')||rows.find((r)=>sameInstant(r.period_start,entryPeriod.period_start))||null;
+  const entry:IotwScheduleWeek={
+    id:entryRow?.id||null,
+    label:`Week ${entryRow?.contest_week||entryPeriod.contest_week}`,
+    contest_week:entryRow?.contest_week||entryPeriod.contest_week,
+    entries_close_at:entryRow?new Date(entryRow.submission_cutoff).toISOString():entryPeriod.submission_cutoff,
+    voting_opens_at:entryRow?new Date(entryRow.voting_opens_at).toISOString():entryPeriod.voting_opens_at,
+    voting_closes_at:entryRow?new Date(entryRow.voting_closes_at).toISOString():entryPeriod.voting_closes_at,
+    status:entryRow?.status||'upcoming',
+  };
+  const voting:IotwScheduleWeek|null=votingRow?{
+    id:votingRow.id,
+    label:iotwWeekLabel(votingRow),
+    contest_week:votingRow.contest_week||iotwContestWeek(votingRow.submission_cutoff||votingRow.period_start).week,
+    entries_close_at:new Date(votingRow.submission_cutoff).toISOString(),
+    voting_opens_at:new Date(votingRow.voting_opens_at).toISOString(),
+    voting_closes_at:new Date(votingRow.voting_closes_at).toISOString(),
+    status:votingRow.status,
+  }:null;
   return{entry,voting};
 }
 /** Short Mountain time, e.g. "Sun, Nov 15, 12:00 PM MST", with the clock kept on one line. */

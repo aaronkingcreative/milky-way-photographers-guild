@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { CoursesLibrary } from "@/components/courses/CoursesLibrary";
 import { PendingBand } from "@/components/field-desk/PendingBand";
 import { WinnersEmpty } from "@/components/winners/WinnersEmpty";
-import { KeepTail } from "@/components/KeepTail";
+import { keepLastTwo } from "@/lib/keep-last-two";
 import { ScenePage } from "@/components/ScenePage";
 import { IotwSchedule } from "@/components/iotw/IotwSchedule";
 import { formatMountainShort, getIotwSchedule, imageOfTheWeekName } from "@/lib/iotw";
@@ -66,13 +66,13 @@ export default async function Page() {
         <div className="fd-intro">
           <div>
             <span className="fd-label">Your Field Desk</span>
-            <h1><KeepTail text={fieldDeskGreeting("Guild member")} /></h1>
+            <h1>{keepLastTwo(fieldDeskGreeting("Guild member"))}</h1>
             <p className="fd-rank-now">Unranked</p>
             <div className="fd-rank-progress">
               <span className="fd-rank-progress-track" aria-hidden="true"><span className="fd-rank-progress-fill" style={{ width: "0%" }} /></span>
               <span className="fd-rank-progress-label">Beginner, 1 honor to go</span>
             </div>
-            <p className="mw-copy-natural"><KeepTail text="Your standing in the Guild, this week's contenders, and the honors you're chasing." /></p>
+            <p className="mw-copy-natural">{keepLastTwo("Your standing in the Guild, this week's contenders, and the honors you're chasing.")}</p>
           </div>
           <Link className="fd-outline-button" href="/submit">File a Field Report</Link>
         </div>

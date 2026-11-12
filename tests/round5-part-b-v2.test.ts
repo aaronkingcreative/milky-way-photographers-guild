@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { rankHonorRanges, rankThresholds } from "../lib/achievements.ts";
-import { formatMountainDateParts, imageOfTheWeekName, iotwWeekNumber } from "../lib/iotw.ts";
+import { keepLastTwo } from "../lib/keep-last-two.ts";
+import { formatMountainDateParts, getIotwSchedule, imageOfTheWeekName, iotwWeekNumber } from "../lib/iotw.ts";
 
 test("Image of the Week names do not repeat the word Week", () => {
   assert.equal(iotwWeekNumber("Week 46"), "46");
@@ -40,4 +41,57 @@ test("the winners empty date is computed from a close instant, not hardcoded", (
   assert.equal(source.includes("Nov 15"), false);
   assert.equal(source.includes("November 15"), false);
   assert.equal(source.includes("formatMountainDateParts"), true);
+});
+
+const week45 = {
+  id: "ec721635-8180-48bf-b5e9-6c0688cd2de8",
+  contest_week: 45,
+  contest_year: 2026,
+  status: "voting_open",
+  period_start: "2026-11-08T19:00:00.000Z",
+  period_end: "2026-11-15T19:00:00.000Z",
+  submission_cutoff: "2026-11-08T19:00:00.000Z",
+  voting_opens_at: "2026-11-08T19:00:00.000Z",
+  voting_closes_at: "2026-11-15T19:00:00.000Z",
+};
+const week46 = {
+  id: "39bea3ba-b9bc-4770-b9cb-1cbe9fec4787",
+  contest_week: 46,
+  contest_year: 2026,
+  status: "upcoming",
+  period_start: "2026-11-15T19:00:00.000Z",
+  period_end: "2026-11-22T19:00:00.000Z",
+  submission_cutoff: "2026-11-15T19:00:00.000Z",
+  voting_opens_at: "2026-11-15T19:00:00.000Z",
+  voting_closes_at: "2026-11-22T19:00:00.000Z",
+};
+function mockSchedule(rows: unknown[]) {
+  return {
+    rpc: async (name: string) => name === "iotw_schedule_ballots" ? { data: rows, error: null } : { data: null, error: "unknown" },
+  };
+}
+
+test("getIotwSchedule reads the open voting ballot from the database, not the computed entry week", async () => {
+  const schedule = await getIotwSchedule(mockSchedule([week45, week46]), new Date("2026-11-12T02:00:00.000Z"));
+  assert.equal(schedule.voting?.contest_week, 45);
+  assert.equal(schedule.voting?.status, "voting_open");
+  assert.equal(schedule.voting?.voting_closes_at, "2026-11-15T19:00:00.000Z");
+  assert.equal(imageOfTheWeekName(schedule.voting?.label), "Image of the Week 45");
+  assert.equal(schedule.entry.contest_week, 46);
+});
+
+test("getIotwSchedule rolls to the next ballot after the close", async () => {
+  const justBefore = await getIotwSchedule(mockSchedule([week45, week46]), new Date("2026-11-15T18:59:59.000Z"));
+  assert.equal(justBefore.voting?.contest_week, 45);
+  const atClose = await getIotwSchedule(mockSchedule([{ ...week45, status: "voting_closed" }, week46]), new Date("2026-11-15T19:00:00.000Z"));
+  assert.equal(atClose.voting?.contest_week, 46);
+  assert.equal(atClose.voting?.voting_closes_at, "2026-11-22T19:00:00.000Z");
+  const advanced = await getIotwSchedule(mockSchedule([{ ...week46, status: "voting_open" }]), new Date("2026-11-16T00:00:00.000Z"));
+  assert.equal(advanced.voting?.contest_week, 46);
+  assert.equal(advanced.voting?.voting_closes_at, "2026-11-22T19:00:00.000Z");
+});
+
+test("keepLastTwo holds the last pair with a NBSP and does not force a longer group", () => {
+  assert.equal(keepLastTwo("Guild member, welcome back to the field.").endsWith("the\u00A0field."), true);
+  assert.equal(keepLastTwo("Guild member, welcome back to the field.").includes("welcome\u00A0back"), false);
 });

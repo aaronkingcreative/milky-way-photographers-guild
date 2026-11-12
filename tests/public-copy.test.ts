@@ -183,3 +183,10 @@ test("course cards keep the four titles and bodies, and feature the beginner cou
     assert.ok(course.body);
   }
 });
+
+test("feedback copy keeps a space in change your rank", () => {
+  const card = homeFeatures.find((item) => item.title === "Feedback");
+  assert.ok(card);
+  assert.match(card.body, /does not change your rank/);
+  assert.equal(card.body.includes("changeyour"), false);
+});

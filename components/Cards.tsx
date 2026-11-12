@@ -3,9 +3,10 @@ import { KeepTail } from "@/components/KeepTail";
 export function FeatureCard({title,children}:{title:string;children:React.ReactNode}){return <div className="card rounded-2xl p-6"><h3 className="text-xl font-bold text-[#f4bd61]">{title}</h3><div className="mt-3 text-[#b8c4d4]">{children}</div></div>}
 export function DashboardCard({title,href,children}:{title:string;href:string;children:string}){return <Link href={href} className="card block rounded-2xl p-6 transition hover:-translate-y-1 hover:border-[#e79f2b]/60"><h3 className="text-xl font-bold">{title}</h3><p className="mt-3 text-[#b8c4d4]">{children}</p></Link>}
 export function AccessNeededPanel(){return <div className="card mx-auto max-w-3xl rounded-3xl p-8 text-center"><p className="eyebrow">Membership coming soon</p><p className="mt-3 text-2xl font-bold">Your account is set up, and Guild memberships are opening soon.</p><p className="mt-3 text-white/68">We will let you know as soon as you can join.</p><div className="mt-6 flex flex-wrap justify-center gap-3"><a className="btn btn-secondary" href="mailto:aaron@photogadventures.com">Contact Aaron if you believe this is a mistake.</a></div></div>}
-export function CourseLinkCard({title, body, image, featured}:{title:string; body:string; image:string; featured?:boolean}){
+export function CourseLinkCard({title, body, image, featured, mediaFit}:{title:string; body:string; image:string; featured?:boolean; mediaFit?:"cover"|"contain"}){
+  const classes = ["mw-course-card", featured ? "is-featured" : "", mediaFit === "contain" ? "is-logo" : ""].filter(Boolean).join(" ");
   return (
-    <a href="https://onlinecourses.photogadventures.com" className={featured ? "mw-course-card is-featured" : "mw-course-card"}>
+    <a href="https://onlinecourses.photogadventures.com" className={classes}>
       <span className="mw-course-media">
         <img src={image} alt="" />
         <span className="mw-course-shade" aria-hidden="true" />

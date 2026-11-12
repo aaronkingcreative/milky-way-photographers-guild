@@ -15,6 +15,7 @@ export function CoursesLibrary({ heading, intro }: { heading?: string; intro?: s
             body={course.body}
             image={course.image}
             featured={course.featured}
+            mediaFit={course.mediaFit}
           />
         ))}
       </div>

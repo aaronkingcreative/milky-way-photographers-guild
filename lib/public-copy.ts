@@ -34,7 +34,7 @@ export const homeFeatures: { title: string; body: string }[] = [
   },
   {
     title: "Feedback",
-    body: "A member can leave a written note on your field report. The note is there to help you improve the photograph. It is not a vote and it does not changeyour rank.",
+    body: "A member can leave a written note on your field report. The note is there to help you improve the photograph. It is not a vote and it does not change your rank.",
   },
   {
     title: "Image of the Week",

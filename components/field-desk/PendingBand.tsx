@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { KeepTail } from "@/components/KeepTail";
+import { keepLastTwo } from "@/lib/keep-last-two";
 
 export function PendingBand({
   label,
@@ -19,8 +19,8 @@ export function PendingBand({
       <div className="fd-pending-row">
         <div className="fd-pending-copy">
           <span className="fd-label">{label}</span>
-          <p><KeepTail text={message} /></p>
-          {footnote ? <p className="fd-pending-note"><KeepTail text={footnote} /></p> : null}
+          <p className="mw-copy-natural">{keepLastTwo(message)}</p>
+          {footnote ? <p className="fd-pending-note mw-copy-natural">{keepLastTwo(footnote)}</p> : null}
         </div>
         {actionHref && actionLabel ? (
           <Link href={actionHref} className="fd-outline-button">{actionLabel}</Link>

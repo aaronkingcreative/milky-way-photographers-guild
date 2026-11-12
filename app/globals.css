@@ -2327,10 +2327,11 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
 }
 .mw-inside-quote-note {
   margin: .65rem 0 0;
+  max-width: none;
   font-size: .98rem;
   line-height: 1.6;
   color: #dbe5f1;
-  text-wrap: pretty;
+  text-wrap: auto;
 }
 .mw-inside-quote blockquote {
   margin: .85rem 0 0;
@@ -2349,7 +2350,7 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
 }
 @media (min-width: 900px) {
   .mw-inside-lead {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(16rem, .92fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(18rem, 1.2fr);
   }
   .mw-inside-list { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 }
@@ -2487,6 +2488,18 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
   .mw-course-card.is-featured .mw-course-overlay { padding: 1.7rem 1.8rem 1.6rem; }
 }
 
+
+.mw-course-card.is-logo .mw-course-media {
+  background: #fcdb3e;
+}
+.mw-course-card.is-logo .mw-course-media img {
+  object-fit: contain;
+  object-position: center;
+  padding: 1rem 1.1rem 2.6rem;
+}
+.mw-course-card.is-logo .mw-course-shade {
+  background: linear-gradient(180deg, transparent 58%, rgba(6,16,28,.82) 100%);
+}
 .fd-pending { margin-bottom: 22px; }
 .fd-pending-row {
   display: flex;

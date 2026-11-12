@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { KeepTail } from "@/components/KeepTail";
+import { keepLastTwo } from "@/lib/keep-last-two";
 import { RankLadder } from "@/components/RankLadder";
 import { PublicShowcase } from "@/components/PublicShowcase";
 import { isBeforeGuildLaunch } from "@/lib/launch";
@@ -135,7 +136,7 @@ export default async function Home() {
               <p id="feedback-example-title" className="mw-inside-quote-kicker">
                 <KeepTail text={feedbackExampleTitle} />
               </p>
-              <p className="mw-inside-quote-note mw-copy-natural">{feedbackExampleDisclaimer}</p>
+              <p className="mw-inside-quote-note mw-copy-natural">{keepLastTwo(feedbackExampleDisclaimer)}</p>
               <blockquote className="mw-copy-natural">
                 {feedbackExampleBody}
               </blockquote>

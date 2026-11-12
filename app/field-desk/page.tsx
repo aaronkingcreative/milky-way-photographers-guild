@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AccessNeededPanel } from "@/components/Cards";
-import { KeepTail } from "@/components/KeepTail";
+import { keepLastTwo } from "@/lib/keep-last-two";
 import { WeeklySubmissionStatus } from "@/components/images/WeeklySubmissionStatus";
 import { getWeekStart } from "@/lib/images";
 import { requireLogin } from "@/lib/guards";
@@ -142,13 +142,13 @@ export default async function Page() {
     <div className="fd-intro">
       <div>
         <div className="fd-kicker-with-icon"><Image src="/launch/mwpg/MWPG_Logo_FAVICON.png" alt="" width={20} height={20} /><FieldDeskLabel>Your Field Desk</FieldDeskLabel></div>
-        <h1><KeepTail text={fieldDeskGreeting(first)} /></h1>
+        <h1>{keepLastTwo(fieldDeskGreeting(first))}</h1>
         <p className="fd-rank-now">{stats?.rank || "Unranked"}</p>
         <div className="fd-rank-progress">
           <span className="fd-rank-progress-track" aria-hidden="true"><span className="fd-rank-progress-fill" style={{ width: `${rankProgressPercent(honorCount, stats?.honors_to_next_rank ?? 0, Boolean(stats?.next_rank))}%` }} /></span>
           <span className="fd-rank-progress-label">{stats?.next_rank ? `${stats.next_rank}, ${honorsToGo(stats.honors_to_next_rank)}` : "Rank reached"}</span>
         </div>
-        <p className="mw-copy-natural"><KeepTail text="Your standing in the Guild, this week's contenders, and the honors you're chasing." /></p>
+        <p className="mw-copy-natural">{keepLastTwo("Your standing in the Guild, this week's contenders, and the honors you're chasing.")}</p>
       </div>
       <Link className="fd-outline-button" href="/submit">File a Field Report</Link>
     </div>
@@ -168,7 +168,7 @@ export default async function Page() {
       <PendingBand label="The Winners' Throne" message={throneCopy} actionHref="/feed" actionLabel="See this week's ballot" />
     )}
 
-    <div className="fd-main-grid">{phavorite ? <section className="fd-panel fd-phavorite"><div className="fd-section-head"><span>✪</span><FieldDeskLabel>Photog Phavorite, Moment of Envy</FieldDeskLabel></div><Link href={`/images/${phavorite.imageId}`} className="fd-phavorite-image"><img src={phavorite.imageUrl} alt={phavorite.title} /><div /><div className="fd-phavorite-copy"><span>Photog Phavorite</span><h3>{phavorite.title}</h3><p>{phavorite.photographerName}{phavorite.location ? `, ${phavorite.location}` : ""}{phavorite.weekLabel ? `, ${imageOfTheWeekName(phavorite.weekLabel)}` : ""}</p></div></Link><div className="fd-phavorite-foot"><p><KeepTail text={momentOfEnvyCopy} /></p><Link href={`/images/${phavorite.imageId}`}>View →</Link></div></section> : <PendingBand label={"Photog Phavorite, Moment of\u00A0Envy"} message={momentOfEnvyPending} footnote={momentOfEnvyCopy} />}<div className="fd-side-stack"><WeeklySubmissionStatus filed={filedThisWeek} hasCandidate={hasCandidate} iotwLabel={iotwSchedule?.entry.label} /><OwnReportsPanel initial={ownReports.reports} initialNext={ownReports.next} initialError={!ownReports.ok} /></div></div>
+    <div className="fd-main-grid">{phavorite ? <section className="fd-panel fd-phavorite"><div className="fd-section-head"><span>✪</span><FieldDeskLabel>Photog Phavorite, Moment of Envy</FieldDeskLabel></div><Link href={`/images/${phavorite.imageId}`} className="fd-phavorite-image"><img src={phavorite.imageUrl} alt={phavorite.title} /><div /><div className="fd-phavorite-copy"><span>Photog Phavorite</span><h3>{phavorite.title}</h3><p>{phavorite.photographerName}{phavorite.location ? `, ${phavorite.location}` : ""}{phavorite.weekLabel ? `, ${imageOfTheWeekName(phavorite.weekLabel)}` : ""}</p></div></Link><div className="fd-phavorite-foot"><p className="mw-copy-natural">{keepLastTwo(momentOfEnvyCopy)}</p><Link href={`/images/${phavorite.imageId}`}>View →</Link></div></section> : <PendingBand label={"Photog Phavorite, Moment of\u00A0Envy"} message={momentOfEnvyPending} footnote={momentOfEnvyCopy} />}<div className="fd-side-stack"><WeeklySubmissionStatus filed={filedThisWeek} hasCandidate={hasCandidate} iotwLabel={iotwSchedule?.entry.label} /><OwnReportsPanel initial={ownReports.reports} initialNext={ownReports.next} initialError={!ownReports.ok} /></div></div>
 
     <section className="fd-panel fd-honors"><div className="fd-honors-head"><div><FieldDeskLabel muted>Field Honors</FieldDeskLabel><span>{honorCount} earned</span></div><Link href="/progress">View All Honors →</Link></div><div className="fd-honor-legend"><span><i className="earned" />Earned</span><span><i />Locked</span></div><div className="fd-honor-grid">{honorBadges.map((badge) => <div key={badge.id} aria-label={`${badge.name}, ${badge.earned ? "earned" : "locked"}`}><div className={badge.earned ? "fd-honor-badge earned" : "fd-honor-badge"}>{badge.glyph}</div><p>{badge.name.replaceAll("Milky Way", "Milky\u00A0Way")}</p></div>)}</div></section>
   </> : <div className="mt-8"><AccessNeededPanel /></div>}</section>;

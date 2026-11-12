@@ -5,6 +5,7 @@ export type GuildCourse = {
   body: string;
   image: string;
   featured?: boolean;
+  mediaFit?: "cover" | "contain";
 };
 
 export const guildCourses: GuildCourse[] = [
@@ -18,6 +19,7 @@ export const guildCourses: GuildCourse[] = [
     title: "Master PhotoPills",
     body: "For planning the Milky Way before you leave home. You will find the core, the time, and a foreground that fits.",
     image: "/courses/photopills-mark.jpg",
+    mediaFit: "contain",
   },
   {
     title: "Eric Benedetti Star Tracking",
