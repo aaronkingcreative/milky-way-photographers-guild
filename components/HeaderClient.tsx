@@ -113,7 +113,7 @@ export function HeaderClient({
   return (
     <>
     <header className="mw-app-header">
-      <nav className="mw-header-nav mx-auto max-w-[1680px]">
+      <nav className="mw-header-nav">
         <div className="mw-header-brand">
           {user && (
             <button ref={navToggleRef} type="button" className={`mw-nav-toggle ${navOpen ? "is-open" : ""}`} aria-label={navOpen ? "Close menu" : "Open menu"} aria-expanded={navOpen} aria-controls="mw-primary-nav" onKeyDown={(event) => { if (event.repeat || (event.key !== "Enter" && event.key !== " ")) return; event.preventDefault(); setNavOpen((open) => !open); }} onClick={(event) => { event.stopPropagation(); if (event.detail === 0) return; setNavOpen((open) => !open); }}>

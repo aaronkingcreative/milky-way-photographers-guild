@@ -9,7 +9,7 @@ export default async function Page() {
   const { data: { user } } = await supabase.auth.getUser();
   if (user) redirect("/guild-hall");
   return (
-    <AuthShell eyebrow="Welcome back" title="The sky is waiting" intro="Sign in to see what the Guild shot this week.">
+    <AuthShell fitCopy eyebrow="Welcome back" title="The sky is waiting" intro="Sign in to see what the Guild shot this week.">
       <Suspense>
         <AuthForm mode="login" />
       </Suspense>

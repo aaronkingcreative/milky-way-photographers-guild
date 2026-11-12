@@ -1,10 +1,9 @@
 /**
- * Keeps the last three words on one line so a wrapped block does not end on one or two words.
- * Gluing only the final pair still leaves a two-word last line, so the group is three words.
- * Strings of three words or fewer stay together as a single line when they fit.
+ * Keeps the last two words on one line so a wrapped block does not end on a single word.
+ * text-wrap pretty does the rest. Pass a larger `keep` only when pretty still leaves a one-word last line.
  * Pass `keep` to hold a longer ending together, such as a whole closing clause.
  */
-export function KeepTail({ text, keep = 3 }: { text: string; keep?: number }) {
+export function KeepTail({ text, keep = 2 }: { text: string; keep?: number }) {
   const tokens = text.match(/[^ \t\n\r]+/g) ?? [];
   if (tokens.length < 2) return text;
   const count = Math.min(Math.max(1, keep), tokens.length);

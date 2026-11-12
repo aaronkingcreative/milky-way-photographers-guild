@@ -172,7 +172,7 @@ export function AuthForm({ mode, formToken }: { mode: "login" | "signup"; formTo
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
-          <span className="mt-2 block text-base leading-6 text-[#d5deea]"><KeepTail text="Shown beside your field reports. You can change it later." /></span>
+          <span className="mw-auth-helper">Shown beside your field reports. You can change it later.</span>
         </label>
       )}
       <label className="mt-6 block text-base" htmlFor="auth-email">

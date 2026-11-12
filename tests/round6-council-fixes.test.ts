@@ -131,3 +131,54 @@ test("the desktop nav can wrap instead of clipping Learn on the Hall", () => {
   assert.match(css, /@media \(min-width: 1281px\) \{[\s\S]*\.mw-primary-nav \{[\s\S]*min-width: 0;[\s\S]*flex-wrap: wrap;/);
   assert.equal(read("lib/nav-menu.ts").includes('["Learn", "/courses"]'), true);
 });
+
+test("the header inner uses the public shell, which widens to 1440 from 1600px", () => {
+  const css = read("app/globals.css");
+  assert.match(css, /@media \(min-width: 1600px\) \{[\s\S]*--mw-public-max: 1440px;/);
+  assert.match(css, /\.mw-app-header \.mw-header-nav \{[\s\S]*max-width: var\(--mw-public-max\);[\s\S]*padding-inline: var\(--mw-gutter\);/);
+  assert.match(css, /@media \(min-width: 1600px\) \{[\s\S]*\.mw-showcase \{[\s\S]*max-width: 1600px/);
+  assert.equal(read("components/HeaderClient.tsx").includes("max-w-[1680px]"), false);
+});
+
+test("the rank ladder uses a consistent left rule and a one-column list below 640px", () => {
+  const css = read("app/globals.css");
+  assert.equal(css.includes("border-left: 1px solid rgba(232, 159, 43, .35)"), true);
+  assert.match(css, /@media \(max-width: 639px\) \{[\s\S]*min-height: 36px;/);
+});
+
+test("Inside the Guild keeps one gold Join button and a text link for the other", () => {
+  const home = read("app/page.tsx");
+  assert.equal(home.includes("mw-text-link"), true);
+  assert.equal((home.match(/Join the Guild free/g) || []).length, 3);
+  assert.equal((home.match(/btn btn-primary/g) || []).length, 2);
+});
+
+test("legal pages use the shell gutter and date nbsp, without three-word KeepTail chains", () => {
+  const legal = read("components/LegalDocument.tsx");
+  assert.equal(legal.includes("mw-legal-shell"), true);
+  assert.equal(legal.includes("<KeepTail text={paragraph} />"), false);
+  const copy = read("lib/public-copy.ts");
+  assert.equal(copy.includes("1\u00A0January\u00A02027"), true);
+  assert.equal(copy.includes("1\u00A0January\u00A02028"), true);
+});
+
+test("signup helper text is Mulish 15px, and the login copy panel can shrink", () => {
+  const css = read("app/globals.css");
+  assert.match(css, /\.mw-auth-helper \{[\s\S]*font-size: 15px;[\s\S]*line-height: 1\.5;/);
+  assert.match(css, /\.mw-join--login \.mw-join-copy \{[\s\S]*width: fit-content;[\s\S]*max-width: 34rem;/);
+  assert.equal(read("components/AuthForm.tsx").includes("mw-auth-helper"), true);
+  assert.equal(read("app/login/page.tsx").includes("fitCopy"), true);
+  assert.equal(read("components/auth/AuthShell.tsx").includes("mw-join-credit-slot"), true);
+});
+
+test("More from Aaron uses a two-column grid with Photog Adventures spanning both", () => {
+  const css = read("app/globals.css");
+  assert.match(css, /\.mw-more-aaron-actions \{[\s\S]*grid-template-columns: 1fr 1fr;[\s\S]*gap: 12px;/);
+  assert.equal(read("app/page.tsx").includes("mw-more-aaron-wide"), true);
+});
+
+test("feature numbers sit in a fixed 28px tabular column", () => {
+  const css = read("app/globals.css");
+  assert.equal(css.includes("grid-template-columns: 28px 1fr"), true);
+  assert.equal(css.includes("font-variant-numeric: tabular-nums"), true);
+});

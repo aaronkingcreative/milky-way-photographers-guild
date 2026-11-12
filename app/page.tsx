@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { KeepTail } from "@/components/KeepTail";
-import { keepLastThree, keepLastTwo } from "@/lib/keep-last-two";
+import { keepLastTwo } from "@/lib/keep-last-two";
 import { RankLadder } from "@/components/RankLadder";
 import { PublicShowcase } from "@/components/PublicShowcase";
 import { isBeforeGuildLaunch } from "@/lib/launch";
@@ -128,7 +128,7 @@ export default async function Home() {
                 <p className="mw-inside-num">{String(index + 1).padStart(2, "0")}</p>
                 <div>
                   <h3><KeepTail text={item.title} /></h3>
-                  <p className="mw-copy-natural">{keepLastThree(item.body)}</p>
+                  <p className="mw-copy-natural">{keepLastTwo(item.body)}</p>
                 </div>
               </article>
             ))}
@@ -148,7 +148,7 @@ export default async function Home() {
                 <p className="mw-inside-num">{String(index + 3).padStart(2, "0")}</p>
                 <div>
                   <h3><KeepTail text={item.title} /></h3>
-                  <p className="mw-copy-natural">{keepLastThree(item.body)}</p>
+                  <p className="mw-copy-natural">{keepLastTwo(item.body)}</p>
                   {item.title === "Ranks" ? <RankLadder /> : null}
                 </div>
               </article>
@@ -157,7 +157,7 @@ export default async function Home() {
         </div>
         <div className="mt-10">
           <p className="max-w-2xl text-lg leading-8 text-[#e7eef6]"><KeepTail text={afterFeaturesLead} /></p>
-          <Link className="btn btn-primary mt-5" href="/signup">
+          <Link className="mw-text-link mt-5 inline-block" href="/signup">
             Join the Guild free
           </Link>
         </div>
@@ -175,17 +175,17 @@ export default async function Home() {
             </Link>
           </div>
           <p className="mt-8 max-w-3xl text-lg leading-8 text-[#dbe5f1]">
-            <KeepTail text={"You can also find all my photography content and resources through the Photog\u00A0Adventures YouTube and Podcast."} />
+            You can also find all my photography content and resources through the Photog Adventures YouTube and Podcast.
           </p>
-          <div className="mw-more-aaron-actions mt-5">
+          <div className="mw-more-aaron-actions mw-more-aaron-links mt-5">
             <a className="btn btn-ghost" href="https://www.youtube.com/c/PhotogAdventures">
               YouTube
             </a>
             <a className="btn btn-ghost" href="https://soundcloud.com/user-407436417">
               Podcast
             </a>
-            <a className="btn btn-ghost" href="https://www.photogadventures.com">
-              Photog&nbsp;Adventures
+            <a className="btn btn-ghost mw-more-aaron-wide" href="https://www.photogadventures.com">
+              Photog Adventures
             </a>
           </div>
           <p className="mt-8 text-base text-[#d5deea]">
