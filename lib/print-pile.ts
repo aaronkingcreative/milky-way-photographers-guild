@@ -8,12 +8,12 @@ export type PrintSafe = {
   maxRotate: number;
 };
 
-/** Phone and narrow tables. Wide enough to fill more of the table without spilling off. */
+/** Phone and narrow tables. Inset so a rotated print stays at least 8px inside the table. */
 export const PRINT_SAFE: PrintSafe = {
-  minX: 28,
-  maxX: 72,
-  minY: 28,
-  maxY: 72,
+  minX: 38,
+  maxX: 62,
+  minY: 36,
+  maxY: 64,
   maxRotate: 11,
 };
 
@@ -53,6 +53,15 @@ export function mulberry32(seed: number) {
     let r = Math.imul(t ^ (t >>> 15), t | 1);
     r ^= r + Math.imul(r ^ (r >>> 7), r | 61);
     return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Half-width and half-height of a print after rotation, in pixels. */
+export function rotatedPrintHalfSize(widthPx: number, heightPx: number, rotateDeg: number) {
+  const rad = (Math.abs(rotateDeg) * Math.PI) / 180;
+  return {
+    halfW: (widthPx / 2) * Math.cos(rad) + (heightPx / 2) * Math.sin(rad),
+    halfH: (widthPx / 2) * Math.sin(rad) + (heightPx / 2) * Math.cos(rad),
   };
 }
 

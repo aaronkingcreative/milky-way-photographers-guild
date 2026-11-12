@@ -1728,6 +1728,14 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
   background:
     radial-gradient(ellipse at 50% 48%, rgba(0, 0, 0, 0.16), transparent 70%),
     repeating-linear-gradient(135deg, rgba(255,255,255,.025) 0 2px, transparent 2px 8px);
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
+  mask-composite: intersect;
 }
 .mw-print {
   --rot: var(--rot-narrow, 0deg);
@@ -1897,11 +1905,11 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
   max-width: 100%;
   box-sizing: border-box;
   padding: .42rem;
-  padding-bottom: calc(var(--avatar-size, 48px) * 0.78);
+  padding-bottom: calc(var(--avatar-size, 48px) + 1rem);
 }
 .mw-print-focused .mw-print-avatar {
-  left: calc(var(--avatar-size, 48px) * -0.42);
-  bottom: calc(var(--avatar-size, 48px) * -0.32);
+  left: .42rem;
+  bottom: .5rem;
 }
 .mw-print-focused .mw-print-slot {
   width: 100%;
