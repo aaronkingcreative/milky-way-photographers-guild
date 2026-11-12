@@ -2440,8 +2440,9 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
   position: relative;
 }
 .mw-course-card.is-featured .mw-course-media {
-  aspect-ratio: 16 / 9;
-  min-height: 16.5rem;
+  width: 100%;
+  aspect-ratio: auto;
+  min-height: 20rem;
 }
 .mw-course-card.is-featured .mw-course-shade {
   background:
@@ -2454,7 +2455,7 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
   right: 0;
   bottom: 0;
   width: 100%;
-  max-width: 34rem;
+  max-width: min(34rem, 100%);
   box-sizing: border-box;
   padding: 1.35rem 1.4rem 1.3rem;
   z-index: 1;
@@ -2465,6 +2466,7 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
   right: auto;
   bottom: auto;
   font-size: clamp(1.45rem, 2.4vw, 2.1rem);
+  text-wrap: wrap;
 }
 .mw-course-card.is-featured .mw-course-body {
   margin: .55rem 0 0;
