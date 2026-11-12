@@ -1707,7 +1707,7 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
 }
 .mw-print-pile { margin: 1.15rem 0 0; }
 .mw-print-table {
-  --print-long: min(11.55rem, 59%);
+  --print-long: min(13.15rem, 67%);
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 0.86;
@@ -1888,7 +1888,7 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
 }
 .mw-print.mw-print-focused {
   --print-long: min(90vw, calc(100vw - 6.5rem));
-  --avatar-size: 48px;
+  --avatar-size: 36px;
   position: relative;
   left: auto;
   top: auto;
@@ -1905,11 +1905,36 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
   max-width: 100%;
   box-sizing: border-box;
   padding: .42rem;
-  padding-bottom: calc(var(--avatar-size, 48px) + 1rem);
+  padding-bottom: 3rem;
+}
+.mw-print-focused .mw-print-meta {
+  position: absolute;
+  left: .42rem;
+  right: .42rem;
+  bottom: 0;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  pointer-events: none;
 }
 .mw-print-focused .mw-print-avatar {
-  left: .42rem;
-  bottom: .5rem;
+  position: relative;
+  left: auto;
+  bottom: auto;
+  flex: none;
+}
+.mw-print-place {
+  min-width: 0;
+  color: #2a241c;
+  font-family: var(--font-guild-body);
+  font-size: .95rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: .01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .mw-print-focused .mw-print-slot {
   width: 100%;
@@ -1962,7 +1987,7 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
     left: auto;
     top: auto;
     --rot: 0deg;
-    --avatar-size: 48px;
+    --avatar-size: 36px;
   }
 }
 @media (max-width: 560px) {

@@ -51,6 +51,7 @@ export type PublicCounts = {
 export type ShowcasePhoto = {
   imageUrl: string;
   avatarUrl: string;
+  place: string | null;
 };
 
 export type PublicShowcase = {
@@ -101,6 +102,20 @@ function asPlaceName(value: unknown): string | null {
   const name = value.trim();
   if (!PLACE_NAME.test(name)) return null;
   return name;
+}
+
+function isUnitedStates(value: string) {
+  const normalized = value.trim().toLowerCase().replace(/\./g, "");
+  return normalized === "us" || normalized === "usa" || normalized === "united states" || normalized === "united states of america";
+}
+
+/** Region, plus the country when the photo is not from the US. No region means no label. */
+export function showcasePlaceLabel(region: unknown, country: unknown): string | null {
+  const place = asPlaceName(region);
+  if (!place) return null;
+  const nation = asPlaceName(country);
+  if (!nation || isUnitedStates(nation)) return place;
+  return `${place}, ${nation}`;
 }
 
 function asStateCode(value: unknown): UsStateCode | null {
@@ -275,7 +290,7 @@ function httpsUrl(value: unknown): string | null {
 }
 
 /**
- * Keep image and avatar URLs only. Show the strip when at least one photo survives.
+ * Keep image and avatar URLs, plus a place label from region and country.
  * Extra fields such as a name or id are dropped and never returned.
  */
 export function parseShowcasePhotos(value: unknown): ShowcasePhoto[] {
@@ -287,7 +302,11 @@ export function parseShowcasePhotos(value: unknown): ShowcasePhoto[] {
     const imageUrl = httpsUrl(record.image_url);
     if (!imageUrl) continue;
     const avatarUrl = httpsUrl(record.avatar_url) ?? "";
-    photos.push({ imageUrl, avatarUrl });
+    photos.push({
+      imageUrl,
+      avatarUrl,
+      place: showcasePlaceLabel(record.region, record.country),
+    });
     if (photos.length >= SHOWCASE_MAX) break;
   }
   return photos.length >= SHOWCASE_MIN ? photos : [];

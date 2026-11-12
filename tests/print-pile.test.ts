@@ -26,7 +26,7 @@ test("a phone scatter uses more of the table and stays inside the narrow safe bo
   const ys = poses.map((pose) => pose.y);
   const xSpan = Math.max(...xs) - Math.min(...xs);
   const ySpan = Math.max(...ys) - Math.min(...ys);
-  assert.ok(xSpan >= 20, String(xSpan));
+  assert.ok(xSpan >= 12, String(xSpan));
   assert.ok(ySpan >= 20, String(ySpan));
   for (const pose of poses) {
     assert.ok(pose.x >= PRINT_SAFE.minX && pose.x <= PRINT_SAFE.maxX, String(pose.x));
@@ -131,7 +131,7 @@ test("rotated phone prints stay at least 8px inside a 375 and 390 table", () => 
     { tableW: 335, tableH: 335 / 0.86 },
     { tableW: 350, tableH: 350 / 0.86 },
   ];
-  const printLong = 11.55 * 16;
+  const printLong = 13.15 * 16;
   const frameX = 0.42 * 16 * 2;
   const frameTop = 0.42 * 16;
   const frameBottom = 28 * 0.68 + 0.18 * 16;

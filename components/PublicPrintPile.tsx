@@ -390,19 +390,22 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
                     onLoad={(event) => markPhotoReady(focusedPhoto.imageUrl, event.currentTarget)}
                   />
                 </span>
-                <img
-                  className="mw-print-avatar"
-                  src={avatarSrc(focusedPhoto.avatarUrl, failedAvatars.has(focusedPhoto.avatarUrl), avatarStages[focusedPhoto.avatarUrl] ?? "webp")}
-                  alt=""
-                  decoding="async"
-                  draggable={false}
-                  onLoad={() => markAvatarReady(focusedPhoto.imageUrl)}
-                  ref={(image) => {
-                    if (image && image.complete && (image.naturalWidth > 0 || (image.currentSrc || image.src || "").endsWith(".svg"))) {
-                      markAvatarReady(focusedPhoto.imageUrl);
-                    }
-                  }}
-                />
+                <span className="mw-print-meta">
+                  <img
+                    className="mw-print-avatar"
+                    src={avatarSrc(focusedPhoto.avatarUrl, failedAvatars.has(focusedPhoto.avatarUrl), avatarStages[focusedPhoto.avatarUrl] ?? "webp")}
+                    alt=""
+                    decoding="async"
+                    draggable={false}
+                    onLoad={() => markAvatarReady(focusedPhoto.imageUrl)}
+                    ref={(image) => {
+                      if (image && image.complete && (image.naturalWidth > 0 || (image.currentSrc || image.src || "").endsWith(".svg"))) {
+                        markAvatarReady(focusedPhoto.imageUrl);
+                      }
+                    }}
+                  />
+                  {focusedPhoto.place ? <span className="mw-print-place">{focusedPhoto.place}</span> : null}
+                </span>
               </span>
             </figure>
             {visible.length > 1 && (

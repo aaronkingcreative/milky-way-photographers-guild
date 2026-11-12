@@ -14,7 +14,7 @@ function showcaseEndpoint(name: string) {
   };
 }
 
-/** Anon key only. The RPC grants return counts, or image and avatar URLs. No member JWT is sent. */
+/** Anon key only. The RPC grants return counts, or image and avatar URLs plus a place. No member JWT is sent. */
 async function rpc(name: string): Promise<unknown> {
   const endpoint = showcaseEndpoint(name);
   if (!endpoint) throw new Error("Public showcase is not configured.");
