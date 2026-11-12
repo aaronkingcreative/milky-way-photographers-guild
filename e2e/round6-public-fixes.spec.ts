@@ -26,12 +26,10 @@ async function overflowOf(page: Page) {
 
 async function lastLineWordCount(page: Page, snippet: string) {
   return page.evaluate((needle) => {
-    const block = [...document.querySelectorAll("p")].find((el) => (el.textContent || "").includes(needle));
+    const block = [...document.querySelectorAll("p")].find((el) =>
+      (el.textContent || "").replace(/\u00A0/g, " ").includes(needle),
+    );
     if (!block) return { found: false, lastLine: "", wordCount: 0 };
-    const text = block.firstChild;
-    if (!text || text.nodeType !== Node.TEXT_NODE && !block.innerText) {
-      // Walk text nodes
-    }
     const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT);
     const nodes: Text[] = [];
     let node: Node | null;
