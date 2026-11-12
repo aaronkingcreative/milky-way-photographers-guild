@@ -1,20 +1,20 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
-import { keepLastThree, keepLastTwo } from "../lib/keep-last-two.ts";
+import { keepLastTwo } from "../lib/keep-last-two.ts";
 import { homeFeatures } from "../lib/public-copy.ts";
 
 const bodies = Object.fromEntries(homeFeatures.map((item) => [item.title, item.body]));
 
-test("keepLastThree holds the last three words and leaves Aaron's wording unchanged", () => {
+test("keepLastTwo holds the last two words so gone better, the Ascent, and your rank stay together", () => {
   const fieldReports = bodies["Field reports"];
   const fieldHonors = bodies["Field Honors"];
   const feedback = bodies["Feedback"];
-  assert.equal(keepLastThree(fieldReports).endsWith("have\u00A0gone\u00A0better."), true);
-  assert.equal(keepLastThree(fieldHonors).endsWith("along\u00A0the\u00A0Ascent."), true);
-  assert.equal(keepLastThree(feedback).endsWith("change\u00A0your\u00A0rank."), true);
+  assert.equal(keepLastTwo(fieldReports).endsWith("gone\u00A0better."), true);
+  assert.equal(keepLastTwo(fieldHonors).endsWith("the\u00A0Ascent."), true);
+  assert.equal(keepLastTwo(feedback).endsWith("your\u00A0rank."), true);
   for (const body of [fieldReports, fieldHonors, feedback]) {
-    assert.equal(keepLastThree(body).replaceAll("\u00A0", " "), body);
+    assert.equal(keepLastTwo(body).replaceAll("\u00A0", " "), body);
     assert.equal(body.includes("\u00A0"), false);
   }
   assert.equal(keepLastTwo("change your rank.").endsWith("your\u00A0rank."), true);
@@ -22,7 +22,7 @@ test("keepLastThree holds the last three words and leaves Aaron's wording unchan
 
 test("the home page applies that hold on every Inside the Guild feature body", () => {
   const page = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
-  assert.equal(page.includes("{keepLastThree(item.body)}"), true);
+  assert.equal(page.includes("{keepLastTwo(item.body)}"), true);
   assert.equal(page.includes("{item.body}"), false);
 });
 

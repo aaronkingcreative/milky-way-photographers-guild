@@ -2,9 +2,9 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 import { KeepTail } from "@/components/KeepTail";
 
-export function AuthShell({ eyebrow, title, intro, offer, note, children }: { eyebrow: string; title: string; intro?: string; offer?: readonly string[]; note?: string; children: ReactNode }) {
+export function AuthShell({ eyebrow, title, intro, offer, note, fitCopy, children }: { eyebrow: string; title: string; intro?: string; offer?: readonly string[]; note?: string; fitCopy?: boolean; children: ReactNode }) {
   return (
-    <section className="mw-public mw-join">
+    <section className={`mw-public mw-join${fitCopy ? " mw-join--login" : ""}`}>
       <Image
         src="/join/island-in-the-sky-milky-way.jpg"
         alt="The Milky Way arching over Island in the Sky, Canyonlands"
@@ -30,7 +30,9 @@ export function AuthShell({ eyebrow, title, intro, offer, note, children }: { ey
         </div>
         <div className="mw-join-form">{children}</div>
       </div>
-      <p className="mw-join-credit"><KeepTail text="Island in the Sky, Canyonlands. Photo by Aaron King" /></p>
+      <div className="mw-join-credit-slot">
+        <p className="mw-join-credit"><KeepTail text="Island in the Sky, Canyonlands. Photo by Aaron King" /></p>
+      </div>
     </section>
   );
 }

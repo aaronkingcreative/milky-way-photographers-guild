@@ -3036,6 +3036,9 @@ a.mw-forum-glance-title:hover { color:#f0bd66; }
   --mw-member-max: 1200px;
   --mw-member-h1: clamp(40px, 4vw, 64px);
 }
+@media (min-width: 1600px) {
+  :root { --mw-public-max: 1440px; }
+}
 
 h1, h2, h3, h4, .eyebrow, button, .btn, figcaption { text-wrap: balance; }
 p, li, dd, td { text-wrap: pretty; }
@@ -3128,6 +3131,11 @@ p, li, dd, td { text-wrap: pretty; }
   padding-right: var(--mw-gutter) !important;
   box-sizing: border-box;
 }
+@media (min-width: 1600px) {
+  .mw-showcase {
+    max-width: 1600px !important;
+  }
+}
 
 .mw-more-aaron {
   margin: 0;
@@ -3141,21 +3149,55 @@ p, li, dd, td { text-wrap: pretty; }
 }
 .mw-more-aaron-actions {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
   justify-content: start;
 }
-@media (min-width: 375px) {
-  .mw-more-aaron-actions { grid-template-columns: repeat(2, max-content); }
+.mw-more-aaron-actions .mw-more-aaron-wide,
+.mw-more-aaron-links a:last-child {
+  grid-column: 1 / -1;
 }
 @media (min-width: 768px) {
   .mw-more-aaron-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+  .mw-more-aaron-actions .mw-more-aaron-wide,
+  .mw-more-aaron-links a:last-child { grid-column: auto; }
 }
 
 .mw-rank-ladder {
   display: grid;
   grid-template-columns: 1fr;
   gap: 0;
+}
+.mw-rank-ladder li,
+.mw-rank-ladder li + li {
+  flex: none;
+  min-width: 0;
+  padding: 0 0 0 12px;
+  border-left: 1px solid rgba(232, 159, 43, .35);
+}
+.mw-rank-ladder li::before,
+.mw-rank-ladder li + li::before {
+  content: none;
+}
+@media (max-width: 639px) {
+  .mw-rank-ladder {
+    flex-direction: column;
+    gap: 0;
+  }
+  .mw-rank-ladder li,
+  .mw-rank-ladder li + li {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: baseline;
+    min-height: 36px;
+    padding: 0 0 0 12px;
+  }
+  .mw-rank-ladder strong,
+  .mw-rank-ladder span {
+    display: inline;
+    margin: 0;
+  }
 }
 @media (min-width: 640px) {
   .mw-rank-ladder {
@@ -3165,15 +3207,7 @@ p, li, dd, td { text-wrap: pretty; }
   }
   .mw-rank-ladder li,
   .mw-rank-ladder li + li {
-    padding: 0 1rem 0 0;
-  }
-  .mw-rank-ladder li + li { padding-left: 1rem; }
-  .mw-rank-ladder li + li::before {
-    left: 0;
-    right: auto;
-    top: 1.05rem;
-    width: 1px;
-    height: 2rem;
+    padding: 0 0 0 12px;
   }
 }
 
@@ -3600,4 +3634,137 @@ p, li, dd, td { text-wrap: pretty; }
 .mw-winners-schedule .mw-iotw-phase { display: flex; flex-direction: column; height: 100%; }
 @media (max-width: 700px) {
   .mw-winners-schedule .mw-iotw-schedule { grid-template-columns: 1fr; }
+}
+
+/* Header inner uses the same public shell so the logo lines up with the content edge. */
+.mw-app-header .mw-header-nav {
+  width: 100%;
+  max-width: var(--mw-public-max);
+  margin-inline: auto;
+  padding-inline: var(--mw-gutter);
+  box-sizing: border-box;
+}
+
+/* Feature numbers stay in a fixed tabular column so the titles share one x. */
+.mw-inside-feature,
+.mw-inside-item {
+  grid-template-columns: 28px 1fr;
+  column-gap: 1rem;
+}
+.mw-inside-num {
+  width: 28px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  text-align: right;
+}
+
+/* Inside the Guild closing line is a text link, not a second gold button. */
+.mw-text-link {
+  color: #f4bd61;
+  font-family: var(--font-guild-body);
+  font-size: 1.125rem;
+  line-height: 1.75;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-wrap: pretty;
+}
+.mw-text-link:hover { color: #f6e2b0; }
+
+/* Signup / login composition */
+.mw-join-inner {
+  position: relative;
+  max-width: var(--mw-public-max);
+  margin-inline: auto;
+  padding-inline: var(--mw-gutter);
+  align-items: start;
+  box-sizing: border-box;
+}
+.mw-join-copy {
+  margin-left: 0;
+  padding: 24px;
+  box-sizing: border-box;
+}
+.mw-join-copy::before {
+  inset: 0;
+  height: 100%;
+  border-radius: 8px;
+}
+.mw-join--login .mw-join-copy {
+  width: fit-content;
+  max-width: 34rem;
+}
+.mw-join-credit-slot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: .75rem;
+  width: 100%;
+  max-width: var(--mw-public-max);
+  margin-inline: auto;
+  padding-inline: var(--mw-gutter);
+  box-sizing: border-box;
+  display: flex;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+.mw-join-credit {
+  position: static;
+  right: auto;
+  bottom: auto;
+  margin: 0;
+  max-width: 16rem;
+  text-align: right;
+  pointer-events: auto;
+}
+.mw-auth-helper {
+  display: block;
+  margin-top: .5rem;
+  font-family: var(--font-guild-body), Mulish, sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #d5deea;
+}
+@media (max-width: 1023px) {
+  .mw-join { justify-content: flex-start; }
+  .mw-join-inner {
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding: 2.5rem var(--mw-gutter) 3.5rem;
+  }
+  .mw-join-form { margin-top: 1.75rem; }
+  .mw-join-copy,
+  .mw-auth-card {
+    border-radius: 8px;
+    margin-inline: 0;
+  }
+  .mw-join-copy { padding: 24px; }
+  .mw-join-copy::before { inset: 0; height: 100%; border-radius: 8px; }
+  .mw-join-credit-slot {
+    position: static;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    max-width: none;
+    margin: 16px 0 0;
+    padding: 0;
+    justify-content: flex-end;
+  }
+}
+
+/* Privacy and terms use the public shell gutter, then a reading column. */
+.mw-legal-shell {
+  width: 100%;
+  max-width: var(--mw-public-max);
+  margin-inline: auto;
+  padding-inline: var(--mw-gutter);
+  box-sizing: border-box;
+}
+.mw-legal-column {
+  width: 100%;
+  max-width: 48rem;
+  margin-inline: auto;
 }

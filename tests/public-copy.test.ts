@@ -62,7 +62,7 @@ test("free join lasts through 2027 and names no price", () => {
     assert.equal(line.includes("$"), false);
   }
   const legal = [...privacySections, ...termsSections].flatMap((section) => section.paragraphs).join(" ");
-  assert.match(legal, /1 January 2028 Mountain time/);
+  assert.match(legal, /1\u00A0January\u00A02028 Mountain time/);
   assert.equal(legal.toLowerCase().includes("keep what they have"), false);
   assert.equal(contactLead, "Questions? Email me at");
   assert.match(signupStorageNote, /members-only/);

@@ -58,7 +58,7 @@ export const homeFeatures: { title: string; body: string }[] = [
 export const feedbackExampleTitle = "Example of useful feedback";
 export const feedbackExampleDisclaimer = "I wrote this example so you can see a note that helps. It is not a comment from a member.";
 export const feedbackExampleBody =
-  "The Milky Way core is sharp and the rock arch repeats the shape of the galaxy. I would lower the camera a little so the rock stands taller against the sky. The blue glow on the left looks like light from a town. Naming that in the field report helps the next person plan\u00A0the\u00A0shot.";
+  "The Milky Way core is sharp and the rock arch repeats the shape of the galaxy. I would lower the camera a little so the rock stands taller against the sky. The blue glow on the left looks like light from a town. Naming that in the field report helps the next person plan the\u00A0shot.";
 
 export const afterFeaturesLead = "If that is the kind of help you want, join the Guild.";
 export const closingLead = "The field reports live here. Join the Guild and bring one.";
@@ -137,7 +137,7 @@ export const privacySections: LegalSection[] = [
     paragraphs: [
       "I have not set a retention period. Nothing in the product deletes accounts or files on a schedule.",
       "There is no rights form in the product. I am not using this page to transfer ownership or to state a license. Members with Guild access can see an image you submit because that is how the Guild pages work. A separate decision about image rights is still open.",
-      "Joining is free right now. If you confirm your email and the account was created before 1 January 2027 Mountain time, the database adds a founding access grant that lasts until 1 January 2028 Mountain time. It does not auto-renew. I am describing the rule already in the database. I am not adding a price or a new renewal rule on this page.",
+      "Joining is free right now. If you confirm your email and the account was created before 1 January 2027 Mountain time, the database adds a founding access grant that lasts until 1 January 2028 Mountain time. It does not auto-renew. I am describing the rule already in the database. I am not adding a price or a new renewal rule on this page.",
       "Questions can go to aaron@photogadventures.com.",
     ],
   },
@@ -173,7 +173,7 @@ export const termsSections: LegalSection[] = [
   {
     heading: "Access",
     paragraphs: [
-      "Joining is free right now. If you confirm your email and the account was created before 1 January 2027 Mountain time, the database adds a founding access grant that lasts until 1 January 2028 Mountain time. It does not auto-renew. I am describing the rule already in the database. I am not adding a price or a new renewal rule on this page.",
+      "Joining is free right now. If you confirm your email and the account was created before 1 January 2027 Mountain time, the database adds a founding access grant that lasts until 1 January 2028 Mountain time. It does not auto-renew. I am describing the rule already in the database. I am not adding a price or a new renewal rule on this page.",
     ],
   },
   {
