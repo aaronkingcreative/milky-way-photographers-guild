@@ -229,6 +229,32 @@ export function fillCaptureYears(rows: YearCount[], throughYear?: number): YearC
   return filled;
 }
 
+/** L-shaped clip that keeps sparkline ink out of a top-left overlay. */
+export function sparkHoleClip(
+  hole: { right: number; bottom: number },
+  width: number,
+  height: number,
+): string {
+  const right = Math.min(Math.max(hole.right, 0), width);
+  const bottom = Math.min(Math.max(hole.bottom, 0), height);
+  if (right <= 0 || bottom <= 0) return `M0,0 H${width} V${height} H0 Z`;
+  return `M${right},0 H${width} V${height} H0 V${bottom} H${right} Z`;
+}
+
+/** Shift a gridline so it stops short of a top-left overlay. */
+export function sparkGridStart(
+  hole: { right: number; bottom: number },
+  padX: number,
+  padTop: number,
+  x: number,
+  y: number,
+) {
+  return {
+    x1: y < hole.bottom ? Math.max(padX, hole.right) : padX,
+    y1: x < hole.right ? Math.max(padTop, hole.bottom) : padTop,
+  };
+}
+
 /** Local high years, plus the overall high year, for sparkline markers. */
 export function peakCaptureYears(rows: YearCount[]): YearCount[] {
   if (!rows.length) return [];

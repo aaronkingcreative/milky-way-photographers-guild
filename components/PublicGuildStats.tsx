@@ -8,6 +8,8 @@ import {
   fillCaptureYears,
   formatShowcaseCount,
   peakCaptureYears,
+  sparkGridStart,
+  sparkHoleClip,
   type PublicCounts,
   type YearCount,
 } from "@/lib/public-showcase";
@@ -79,8 +81,9 @@ function RankedBars({
   );
 }
 
-function YearSparkline({ years }: { years: YearCount[] }) {
+function YearSparkline({ years, hole }: { years: YearCount[]; hole: { right: number; bottom: number } }) {
   const captionId = useId();
+  const clipId = useId();
   const svgRef = useRef<SVGSVGElement>(null);
   const [size, setSize] = useState({ width: 280, height: 42 });
   const filled = fillCaptureYears(years);
@@ -137,27 +140,36 @@ function YearSparkline({ years }: { years: YearCount[] }) {
         role="img"
         aria-hidden="true"
       >
+        <clipPath id={clipId}>
+          <path d={sparkHoleClip(hole, width, height)} />
+        </clipPath>
         {gridLevels.map((level) => {
           const y = padTop + innerH * (1 - level);
-          return <line key={level} x1={padX} x2={width - padX} y1={y} y2={y} className="mw-stats-spark-grid" />;
+          const start = sparkGridStart(hole, padX, padTop, padX, y);
+          return <line key={level} x1={start.x1} x2={width - padX} y1={y} y2={y} className="mw-stats-spark-grid" />;
         })}
-        {yearGuides.map((row) => (
-          <line
-            key={row.year}
-            x1={row.x}
-            x2={row.x}
-            y1={padTop}
-            y2={height - padBottom}
-            className="mw-stats-spark-year"
-          />
-        ))}
-        <path d={area} className="mw-stats-spark-area" />
-        <polyline points={pointAttr} className="mw-stats-spark-line" />
-        {peaks.map((row) => {
-          const point = coords.find((item) => item.year === row.year);
-          if (!point) return null;
-          return <circle key={row.year} cx={point.x} cy={point.y} r="3.2" className="mw-stats-spark-peak" />;
+        {yearGuides.map((row) => {
+          const start = sparkGridStart(hole, padX, padTop, row.x, padTop);
+          return (
+            <line
+              key={row.year}
+              x1={row.x}
+              x2={row.x}
+              y1={start.y1}
+              y2={height - padBottom}
+              className="mw-stats-spark-year"
+            />
+          );
         })}
+        <g clipPath={`url(#${clipId})`}>
+          <path d={area} className="mw-stats-spark-area" />
+          <polyline points={pointAttr} className="mw-stats-spark-line" />
+          {peaks.map((row) => {
+            const point = coords.find((item) => item.year === row.year);
+            if (!point) return null;
+            return <circle key={row.year} cx={point.x} cy={point.y} r="3.2" className="mw-stats-spark-peak" />;
+          })}
+        </g>
       </svg>
       <div className="mw-stats-spark-ticks" aria-hidden="true">
         {ticks.map((year) => (
@@ -232,6 +244,36 @@ export function PublicGuildStats({ counts }: { counts: PublicCounts }) {
   const showRegions = (counts.regions ?? 0) > 0;
   const regions = counts.regions ?? 0;
   const countries = counts.countries ?? 0;
+  const picsRef = useRef<HTMLDivElement>(null);
+  const [sparkHole, setSparkHole] = useState({ right: 0, bottom: 0 });
+
+  useLayoutEffect(() => {
+    const root = picsRef.current;
+    if (!root) return;
+    const apply = () => {
+      const lead = root.querySelector(".mw-stats-pics-lead");
+      const spark = root.querySelector(".mw-stats-spark svg");
+      if (!lead || !spark) {
+        setSparkHole({ right: 0, bottom: 0 });
+        return;
+      }
+      const a = lead.getBoundingClientRect();
+      const b = spark.getBoundingClientRect();
+      const overlap = a.bottom > b.top + 1 && a.right > b.left + 1 && a.left < b.right && a.top < b.bottom;
+      if (!overlap) {
+        setSparkHole({ right: 0, bottom: 0 });
+        return;
+      }
+      setSparkHole({
+        right: Math.max(0, Math.round(a.right - b.left + 12)),
+        bottom: Math.max(0, Math.round(a.bottom - b.top + 8)),
+      });
+    };
+    apply();
+    const observer = new ResizeObserver(apply);
+    observer.observe(root);
+    return () => observer.disconnect();
+  }, [counts.pics, counts.weekPics, counts.captureYears]);
 
   return (
     <div className="mw-stats">
@@ -250,7 +292,7 @@ export function PublicGuildStats({ counts }: { counts: PublicCounts }) {
             </p>
           </div>
         </div>
-        <div className="mw-stats-pics">
+        <div className="mw-stats-pics" ref={picsRef}>
           <div className="mw-stats-pics-lead">
             <p className="mw-stats-supporting-value">
               <CountUp value={counts.pics} />
@@ -261,7 +303,7 @@ export function PublicGuildStats({ counts }: { counts: PublicCounts }) {
             ) : null}
           </div>
           {counts.captureYears && counts.captureYears.length >= 4 ? (
-            <YearSparkline years={counts.captureYears} />
+            <YearSparkline years={counts.captureYears} hole={sparkHole} />
           ) : null}
         </div>
       </div>
