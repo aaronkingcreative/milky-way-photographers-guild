@@ -7,7 +7,7 @@ import { MESSAGE_MAX, isLongMessage } from "@/lib/guild-message";
 
 const notices: Record<string, string> = {
   posted: "Posted. Every member sees it open again in the Guild Hall.",
-  edited: "Wording updated. Members who already read it stay collapsed.",
+  edited: "Wording updated. Every member sees it open again until they click Got it on this version.",
   removed: "Taken down. The Guild Hall shows no message until you post one.",
   empty: "Write something first.",
   long: `Keep it to ${MESSAGE_MAX} characters or fewer.`,
@@ -21,7 +21,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
   const { data: current } = await supabase.from("guild_messages").select("id,body,created_at,updated_at").is("archived_at", null).order("created_at", { ascending: false }).limit(1).maybeSingle();
   let reads = 0;
   if (current) {
-    const { count } = await supabase.from("guild_message_reads").select("user_id", { count: "exact", head: true }).eq("message_id", current.id);
+    const { count } = await supabase.from("guild_message_reads").select("user_id", { count: "exact", head: true }).eq("message_id", current.id).eq("message_updated_at", current.updated_at);
     reads = count || 0;
   }
   return (
@@ -45,7 +45,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
           {current && <button className="mw-btn-ghost" name="mode" value="edit">Fix wording only</button>}
           {current && <button className="mw-btn-danger" name="mode" value="archive" formNoValidate>Take it down</button>}
         </div>
-        <p className="mw-help">Post as new message when you have something new to say. Fix wording only for typos, so nobody gets it popped open again.</p>
+        <p className="mw-help">Post as new message when you have a new note. Fix wording to change this one. Either way, members who already clicked Got it will see it open again until they click Got it on this version.</p>
       </form>
     </section>
   );

@@ -15,6 +15,7 @@ import { ReactionBar } from "@/components/images/ReactionBar";
 import { fetchMembers, type MemberLite } from "@/lib/members";
 import { fetchHonorCounts, rankLabelForCount } from "@/lib/ranks";
 import { MessageFromAaron } from "@/components/hall/MessageFromAaron";
+import { isGuildMessageAcknowledged } from "@/lib/guild-message";
 import { formatMountainShort, getIotwSchedule, type IotwScheduleWeek } from "@/lib/iotw";
 import { badgeTone, fetchAllEnteredImageIds, fetchBallotImageIds, fetchIotwBadges, type IotwBadge } from "@/lib/iotw-badges";
 
@@ -90,7 +91,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
   let reactions: any[] = [];
   let reactors: Record<string, MemberLite> = {};
   const commentCounts = new Map<string, number>();
-  let message: { id: string; body: string; created_at: string } | null = null;
+  let message: { id: string; body: string; created_at: string; updated_at: string } | null = null;
   let messageRead = false;
   let recentComments: any[] = [];
   const commenters = new Map<string, { name: string; streak?: number }>();
@@ -111,7 +112,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
       : visible().order("created_at", { ascending: false }).limit(sort === "recent" ? FEED_SIZE : POOL_SIZE);
     const [{ data: pool }, { data: msg }, { data: cmts }] = await Promise.all([
       poolQuery,
-      supabase.from("guild_messages").select("id,body,created_at").is("archived_at", null).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("guild_messages").select("id,body,created_at,updated_at").is("archived_at", null).order("created_at", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("image_comments").select("id,body,created_at,user_id,image_id,section,guild_images!inner(id,title,image_url,hidden_at,deleted_at,moderation_status,moderation_blur_required)").is("deleted_at", null).is("guild_images.hidden_at", null).is("guild_images.deleted_at", null).order("created_at", { ascending: false }).limit(18),
     ]);
     const poolImages = (pool || []) as any[];
@@ -137,8 +138,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
 
     message = msg || null;
     if (message && user) {
-      const { data: mark } = await supabase.from("guild_message_reads").select("message_id").eq("message_id", message.id).eq("user_id", user.id).maybeSingle();
-      messageRead = Boolean(mark);
+      const { data: mark } = await supabase.from("guild_message_reads").select("message_id,message_updated_at").eq("message_id", message.id).eq("user_id", user.id).maybeSingle();
+      messageRead = isGuildMessageAcknowledged(message, mark);
     }
     recentComments = (cmts || []).filter((c: any) => c.guild_images && !["hidden", "deleted"].includes(c.guild_images.moderation_status));
     const people = await fetchMembers(supabase, recentComments.map((c: any) => c.user_id));
@@ -250,7 +251,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
                 <span className="mw-sort-label">Sort</span>
                 <div className="mw-rail-sort-chips">{SORTS.map((s) => <Link key={s.key} href={s.key === "recent" ? "/guild-hall" : `/guild-hall?sort=${s.key}`} scroll={false} data-list-sort aria-current={s.key === sort ? "page" : undefined} className={`mw-sort-chip ${s.key === sort ? "mw-sort-chip-selected" : ""}`}>{s.label}</Link>)}</div>
               </nav>
-              {message && <MessageFromAaron id={message.id} body={message.body} postedLabel={new Date(message.created_at).toLocaleDateString("en-US", { month: "long", day: "numeric", timeZone: "America/Denver" })} initiallyRead={messageRead} canEdit={isAdmin} />}
+              {message && <MessageFromAaron id={message.id} updatedAt={message.updated_at} body={message.body} postedLabel={new Date(message.created_at).toLocaleDateString("en-US", { month: "long", day: "numeric", timeZone: "America/Denver" })} initiallyRead={messageRead} canEdit={isAdmin} />}
               <section className="mw-rail-comments" aria-labelledby="recent-comments-heading">
                 <h2 id="recent-comments-heading" className="mw-rail-heading">Recent Comments</h2>
                 {recentComments.length ? (

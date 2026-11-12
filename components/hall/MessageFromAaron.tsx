@@ -13,7 +13,7 @@ function Chevron({ open }: { open: boolean }) {
   return <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style={{ transform: open ? "rotate(180deg)" : undefined, transition: "transform .15s ease" }}><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
 
-export function MessageFromAaron({ id, body, postedLabel, initiallyRead, canEdit = false }: { id: string; body: string; postedLabel: string; initiallyRead: boolean; canEdit?: boolean }) {
+export function MessageFromAaron({ id, updatedAt, body, postedLabel, initiallyRead, canEdit = false }: { id: string; updatedAt: string; body: string; postedLabel: string; initiallyRead: boolean; canEdit?: boolean }) {
   const [read, setRead] = useState(initiallyRead);
   const [open, setOpen] = useState(!initiallyRead);
   const [, startTransition] = useTransition();
@@ -23,7 +23,7 @@ export function MessageFromAaron({ id, body, postedLabel, initiallyRead, canEdit
     if (read) return;
     setRead(true);
     startTransition(async () => {
-      const result = await markGuildMessageRead(id).catch(() => ({ ok: false }));
+      const result = await markGuildMessageRead(id, updatedAt).catch(() => ({ ok: false }));
       if (!result.ok) setRead(false);
     });
   };
