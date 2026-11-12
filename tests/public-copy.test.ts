@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { EMAIL_DOT_MESSAGE, EMAIL_REQUIRED_MESSAGE, EMAIL_SHAPE_MESSAGE, emailFieldError } from "../lib/email-address.ts";
 import { readFileSync } from "node:fs";
-import { contactLead, courseLibraryUrl, fieldHonorsPublicLine, hidePhotosHelp, hidePhotosTitle, homeFeatures, homeLead, momentOfEnvyCopy, nextPrintLabel, pileLead, previousPrintLabel, privacySections, publicPhotoChoiceCopy, putPrintBackLabel, rankNameList, resourcesNote, shufflePileLabel, signupIntro, signupOffer, termsSections } from "../lib/public-copy.ts";
+import { contactLead, signupStorageNote, courseLibraryUrl, fieldHonorsPublicLine, hidePhotosHelp, hidePhotosTitle, homeFeatures, homeLead, momentOfEnvyCopy, nextPrintLabel, pileLead, previousPrintLabel, privacySections, publicPhotoChoiceCopy, putPrintBackLabel, rankNameList, resourcesNote, shufflePileLabel, signupIntro, signupOffer, termsSections } from "../lib/public-copy.ts";
 import { achievementLibraryCategoryDetails, honorTypeLabel, seededAchievementDefinitions } from "../lib/achievements.ts";
 import { guildCourses } from "../lib/courses.ts";
 import { RANKS } from "../lib/ranks.ts";
@@ -23,7 +23,7 @@ test("new customer copy has no em dash, colon, or the retired domain", () => {
     privacySections,
     termsSections,
     rankNameList,
-    messages: [CHECK_EMAIL_MESSAGE, TOO_FAST_MESSAGE, STALE_FORM_MESSAGE, DISPOSABLE_EMAIL_MESSAGE, SIGNUP_REASSURANCE, EMAIL_DOT_MESSAGE, EMAIL_REQUIRED_MESSAGE, EMAIL_SHAPE_MESSAGE, homeLead, signupIntro, ...signupOffer, contactLead, resourcesNote, fieldHonorsPublicLine, publicPhotoChoiceCopy, hidePhotosTitle, hidePhotosHelp, pileLead, shufflePileLabel, putPrintBackLabel, nextPrintLabel, previousPrintLabel],
+    messages: [CHECK_EMAIL_MESSAGE, TOO_FAST_MESSAGE, STALE_FORM_MESSAGE, DISPOSABLE_EMAIL_MESSAGE, SIGNUP_REASSURANCE, EMAIL_DOT_MESSAGE, EMAIL_REQUIRED_MESSAGE, EMAIL_SHAPE_MESSAGE, homeLead, signupIntro, ...signupOffer, contactLead, signupStorageNote, resourcesNote, fieldHonorsPublicLine, publicPhotoChoiceCopy, hidePhotosTitle, hidePhotosHelp, pileLead, shufflePileLabel, putPrintBackLabel, nextPrintLabel, previousPrintLabel],
   });
   for (const line of copy) {
     assert.equal(line.includes("\u2014"), false, line);
@@ -65,6 +65,8 @@ test("free join lasts through 2027 and names no price", () => {
   assert.match(legal, /1 January 2028 Mountain time/);
   assert.equal(legal.toLowerCase().includes("keep what they have"), false);
   assert.equal(contactLead, "Questions? Email me at");
+  assert.match(signupStorageNote, /members-only/);
+  assert.match(signupStorageNote, /hard to guess/);
   assert.match(resourcesNote, /I am still writing these resources/);
   assert.equal(resourcesNote.toLowerCase().includes("december"), false);
   assert.equal(resourcesNote.toLowerCase().includes("placeholder"), false);
@@ -127,8 +129,10 @@ test("terms and privacy share one hide line for the public photo strip", () => {
 });
 
 test("Inside the Guild body copy has no forced breaks, while the free-join line still holds its ending", () => {
-  assert.equal(homeLead.includes("through\u00A02027.\u00A0I\u00A0plan\u00A0a\u00A0paid\u00A0tier."), true);
-  assert.equal(signupIntro.includes("through\u00A02027.\u00A0I\u00A0plan\u00A0a\u00A0paid\u00A0tier."), true);
+  assert.equal(homeLead.includes("through 2027. I plan a paid\u00A0tier."), true);
+  assert.equal(homeLead.includes("\u00A0I\u00A0plan"), false);
+  assert.equal(signupIntro.includes("through 2027. I plan a paid\u00A0tier."), true);
+  assert.equal(signupIntro.includes("\u00A0I\u00A0plan"), false);
   for (const body of homeFeatures.map((item) => item.body)) {
     assert.equal(body.includes("\u00A0"), false, body);
   }

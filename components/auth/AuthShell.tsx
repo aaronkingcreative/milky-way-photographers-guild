@@ -2,7 +2,7 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 import { KeepTail } from "@/components/KeepTail";
 
-export function AuthShell({ eyebrow, title, intro, offer, children }: { eyebrow: string; title: string; intro?: string; offer?: readonly string[]; children: ReactNode }) {
+export function AuthShell({ eyebrow, title, intro, offer, note, children }: { eyebrow: string; title: string; intro?: string; offer?: readonly string[]; note?: string; children: ReactNode }) {
   return (
     <section className="mw-public mw-join">
       <Image
@@ -26,6 +26,7 @@ export function AuthShell({ eyebrow, title, intro, offer, children }: { eyebrow:
             </ul>
           ) : null}
           {intro ? <p className="mw-join-intro"><KeepTail text={intro} /></p> : null}
+          {note ? <p className="mw-join-note"><KeepTail text={note} /></p> : null}
         </div>
         <div className="mw-join-form">{children}</div>
       </div>

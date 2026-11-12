@@ -51,7 +51,7 @@ export function OwnReportsPanel({
       {showEmpty ? (
         <div className="fd-recent-empty">
           <p>You have not filed a report yet.</p>
-          <Link className="fd-outline-button" href="/submit">File a Field Report</Link>
+          <Link className="fd-text-link" href="/submit">File one now →</Link>
         </div>
       ) : (
         <div className="fd-recent-scroll" tabIndex={0} role="region" aria-label="Your recent reports" aria-busy={loading} onScroll={onScroll}>

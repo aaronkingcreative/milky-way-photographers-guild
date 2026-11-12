@@ -16,6 +16,7 @@ function Chevron({ open }: { open: boolean }) {
 export function MessageFromAaron({ id, updatedAt, body, postedLabel, initiallyRead, canEdit = false }: { id: string; updatedAt: string; body: string; postedLabel: string; initiallyRead: boolean; canEdit?: boolean }) {
   const [read, setRead] = useState(initiallyRead);
   const [open, setOpen] = useState(!initiallyRead);
+  const [expanded, setExpanded] = useState(false);
   const [, startTransition] = useTransition();
 
   const acknowledge = () => {
@@ -39,12 +40,15 @@ export function MessageFromAaron({ id, updatedAt, body, postedLabel, initiallyRe
   }
 
   return (
-    <section id={`aaron-msg-${id}`} className={`mw-aaron-card ${isLongMessage(body) ? "is-long" : ""}`} aria-label="Message from Aaron">
+    <section id={`aaron-msg-${id}`} className={`mw-aaron-card ${isLongMessage(body) ? "is-long" : ""} ${expanded ? "is-expanded" : ""}`} aria-label="Message from Aaron">
       <div className="mw-aaron-head">
         <p className="mw-aaron-eyebrow">Message from Aaron</p>
         {read && <button type="button" className="mw-aaron-collapse" onClick={() => setOpen(false)} aria-label="Collapse message"><Chevron open /></button>}
       </div>
       <p className="mw-aaron-body">{body}</p>
+      <button type="button" className="mw-aaron-expand" onClick={() => setExpanded((value) => !value)} aria-expanded={expanded}>
+        {expanded ? "Show less" : "Read the whole note"}
+      </button>
       <div className="mw-aaron-foot">
         <span className="mw-aaron-date">{postedLabel}</span>
         <span className="flex items-center gap-3">

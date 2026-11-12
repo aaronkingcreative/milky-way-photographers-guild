@@ -27,7 +27,7 @@ const heroPhoto = "/join/island-in-the-sky-milky-way.jpg";
 function HomeLead({ text }: { text: string }) {
   const marker = "photographers";
   const at = text.indexOf(marker);
-  if (at < 0) return <KeepTail text={text} />;
+  if (at < 0) return <>{text}</>;
   const before = text.slice(0, at).trimEnd();
   let rest = text.slice(at + marker.length);
   let period = "";
@@ -37,7 +37,7 @@ function HomeLead({ text }: { text: string }) {
   }
   return (
     <>
-      <KeepTail text={before} /> <span className="mw-unbreakable">{`${marker}${period}`}</span>{rest ? <> <KeepTail text={rest} /></> : null}
+      {before} <span className="mw-unbreakable">{`${marker}${period}`}</span>{rest ? ` ${rest}` : null}
     </>
   );
 }
@@ -54,19 +54,19 @@ export default async function Home() {
 
   return (
     <div className="mw-public">
-      <section className="starfield relative px-3 py-20 min-[380px]:px-5 sm:py-24 lg:py-32">
+      <section className="starfield mw-home-hero relative py-16 sm:py-20">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_68%_18%,rgba(231,159,43,.20),transparent_22rem),radial-gradient(circle_at_24%_30%,rgba(47,68,93,.44),transparent_24rem)]" />
-        <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[.86fr_1.14fr] xl:grid-cols-[.8fr_1.2fr]">
+        <div className="mw-public-shell mw-home-hero-grid">
           <div className="lg:col-span-2">
             <p className="mw-brand-eyebrow mw-balance text-sm font-bold uppercase tracking-[.35em] text-[#f4bd61]">
               Milky Way Photographers Guild
             </p>
-            <h1 className="mt-6 max-w-4xl text-5xl font-black leading-[.95] tracking-tight text-white md:text-7xl">
-              <KeepTail text={homeHeadline} />
+            <h1 className="mw-home-headline mt-6 max-w-4xl font-black leading-[.95] tracking-tight text-white">
+              {homeHeadline}
             </h1>
           </div>
-          <div className="lg:-ml-2">
-            <p className="mt-6 max-w-3xl text-2xl leading-9 text-[#f4bd61] lg:mt-0">
+          <div className="mw-home-hero-copy">
+            <p className="mw-home-offer mt-6 text-2xl leading-9 text-[#f4bd61] lg:mt-0">
               <HomeLead text={homeLead} />
             </p>
             <p className="mt-7 max-w-3xl text-lg leading-8 text-[#b8c4d4]">
@@ -98,7 +98,7 @@ export default async function Home() {
               width={2000}
               height={1125}
               priority
-              sizes="(min-width: 1024px) 58vw, 100vw"
+              sizes="(min-width: 1100px) 58vw, 100vw"
               className="h-auto w-full rounded-md border border-white/15 object-cover shadow-[0_28px_70px_rgba(0,0,0,0.42)]"
             />
             <figcaption className="mt-3 text-base leading-6 text-[#f4f7fb]">
@@ -112,7 +112,7 @@ export default async function Home() {
         <PublicShowcase />
       </Suspense>
 
-      <section className="mx-auto max-w-7xl px-5 py-16 sm:py-20">
+      <section className="mw-public-shell py-16 sm:py-20">
         <div className="max-w-3xl">
           <p className="mw-balance text-sm font-bold uppercase tracking-[.32em] text-[#f4bd61]">
             Inside the Guild
@@ -163,21 +163,21 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="px-5 pb-20">
-        <div className="starfield card mx-auto max-w-5xl rounded-[2rem] p-8 text-center sm:p-12">
+      <section className="mw-public-shell pb-20">
+        <div className="mw-more-aaron">
           <p className="mw-balance text-sm font-bold uppercase tracking-[.32em] text-[#f4bd61]">
             More from Aaron
           </p>
-          <p className="mx-auto mt-5 max-w-3xl text-xl leading-9 text-[#e7eef6]"><KeepTail text={closingLead} /></p>
-          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
+          <p className="mt-5 max-w-3xl text-xl leading-9 text-[#e7eef6]"><KeepTail text={closingLead} /></p>
+          <div className="mw-more-aaron-actions mt-8">
             <Link className="btn btn-primary" href="/signup">
               Join the Guild free
             </Link>
           </div>
-          <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-[#dbe5f1]">
+          <p className="mt-8 max-w-3xl text-lg leading-8 text-[#dbe5f1]">
             <KeepTail text={"You can also find all my photography content and resources through the Photog\u00A0Adventures YouTube and Podcast."} />
           </p>
-          <div className="mt-5 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
+          <div className="mw-more-aaron-actions mt-5">
             <a className="btn btn-ghost" href="https://www.youtube.com/c/PhotogAdventures">
               YouTube
             </a>

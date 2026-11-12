@@ -16,7 +16,7 @@ import { fetchMembers, type MemberLite } from "@/lib/members";
 import { fetchHonorCounts, rankLabelForCount } from "@/lib/ranks";
 import { MessageFromAaron } from "@/components/hall/MessageFromAaron";
 import { isGuildMessageAcknowledged } from "@/lib/guild-message";
-import { formatMountainShort, getIotwSchedule, type IotwScheduleWeek } from "@/lib/iotw";
+import { formatMountainShort, getIotwSchedule, imageOfTheWeekName, type IotwScheduleWeek } from "@/lib/iotw";
 import { badgeTone, fetchAllEnteredImageIds, fetchBallotImageIds, fetchIotwBadges, type IotwBadge } from "@/lib/iotw-badges";
 
 const faviconUrl =
@@ -245,7 +245,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
                     </article>
                   );
                 })}
-                {images.length === 0 && <div className="mw-card-soft p-8 text-center text-white/60">{sort === "contenders" ? (iotwVoting ? `No contenders on the Image of the Week ${iotwVoting.label} ballot.` : iotwEntry ? <>No Image of the Week is open for voting yet. Image of the Week {iotwEntry.label} voting opens {formatMountainShort(iotwEntry.voting_opens_at)}, and its contenders will show here then. <Link href="/guild-hall?sort=entries" className="mw-member-link">See every Image of the Week entry</Link>.</> : "No Image of the Week is open for voting yet.") : sort === "entries" ? "No images have been entered in Image of the Week yet." : "The Hall is ready. Community field reports will appear here after members submit images."}</div>}
+                {images.length === 0 && <div className="mw-card-soft p-8 text-center text-white/60">{sort === "contenders" ? (iotwVoting ? `No contenders on the ${imageOfTheWeekName(iotwVoting.label)} ballot.` : iotwEntry ? <>No Image of the Week is open for voting yet. {imageOfTheWeekName(iotwEntry.label)} voting opens {formatMountainShort(iotwEntry.voting_opens_at)}, and its contenders will show here then. <Link href="/guild-hall?sort=entries" className="mw-member-link">See every Image of the Week entry</Link>.</> : "No Image of the Week is open for voting yet.") : sort === "entries" ? "No images have been entered in Image of the Week yet." : "The Hall is ready. Community field reports will appear here after members submit images."}</div>}
               </div>
             </div>
 
