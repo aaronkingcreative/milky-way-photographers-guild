@@ -123,7 +123,16 @@ test.describe("round 6 public overflow, orphans, and header taps", () => {
     const checks = await page.evaluate(() => {
       const headerEl = document.querySelector("header.mw-app-header") as HTMLElement | null;
       const navEl = document.querySelector("header.mw-app-header > .mw-header-nav") as HTMLElement | null;
-      if (!headerEl || !navEl) return { error: "missing header" };
+      if (!headerEl || !navEl) {
+        return {
+          error: "missing header" as const,
+          nav: { top: 0, bottom: 0, height: 0, width: 0 },
+          headerHeight: 0,
+          inside: { x: 0, y: 0, tag: null as string | null, className: null as string | null, inHeader: false, inNav: false },
+          justBelow: { x: 0, y: 0, tag: null as string | null, className: null as string | null, inHeader: false, inNav: false },
+          farBelow: { x: 0, y: 0, tag: null as string | null, className: null as string | null, inHeader: false, inNav: false },
+        };
+      }
       const box = navEl.getBoundingClientRect();
       const inside = { x: Math.round(box.left + box.width / 2), y: Math.round(box.top + box.height / 2) };
       const justBelow = { x: inside.x, y: Math.round(box.bottom + 4) };
@@ -148,6 +157,7 @@ test.describe("round 6 public overflow, orphans, and header taps", () => {
       };
     });
 
+    expect(checks.error, JSON.stringify(checks)).toBeUndefined();
     expect(checks.inside.inHeader, `header center should hit the header: ${JSON.stringify(checks.inside)}`).toBeTruthy();
     expect(checks.justBelow.inHeader, `4px below the bar should not hit the header: ${JSON.stringify(checks.justBelow)}`).toBeFalsy();
     expect(checks.farBelow.inHeader, `80px below the bar should not hit the header: ${JSON.stringify(checks.farBelow)}`).toBeFalsy();
