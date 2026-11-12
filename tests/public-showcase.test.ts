@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
-import { SHOWCASE_MAX, SHOWCASE_MIN, fillCaptureYears, parsePublicCounts, parseShowcasePhotos, peakCaptureYears } from "../lib/public-showcase.ts";
+import { SHOWCASE_MAX, SHOWCASE_MIN, fillCaptureYears, parsePublicCounts, parseShowcasePhotos, peakCaptureYears, sparkGridStart, sparkHoleClip } from "../lib/public-showcase.ts";
 
 function photo(index: number, extra: Record<string, unknown> = {}) {
   return {
@@ -222,4 +222,17 @@ test("the regions line is a single nowrap phrase", () => {
   assert.match(stats, /regions, \$\{formatShowcaseCount\(countries\)\} countries/);
   assert.match(stats, /mw-stats-regions-line/);
   assert.equal(stats.includes("regions across"), false);
+});
+
+test("the years chart keeps ink out of a top-left overlay", () => {
+  assert.equal(sparkHoleClip({ right: 0, bottom: 0 }, 200, 100), "M0,0 H200 V100 H0 Z");
+  assert.equal(sparkHoleClip({ right: 80, bottom: 40 }, 200, 100), "M80,0 H200 V100 H0 V40 H80 Z");
+  assert.deepEqual(sparkGridStart({ right: 80, bottom: 40 }, 8, 8, 20, 20), { x1: 80, y1: 40 });
+  assert.deepEqual(sparkGridStart({ right: 80, bottom: 40 }, 8, 8, 120, 80), { x1: 8, y1: 8 });
+  const stats = readFileSync(new URL("../components/PublicGuildStats.tsx", import.meta.url), "utf8");
+  assert.match(stats, /sparkHoleClip/);
+  assert.match(stats, /sparkGridStart/);
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+  const lead = css.slice(css.indexOf(".mw-stats-pics-lead {"), css.indexOf(".mw-stats-pics-lead .mw-stats-label"));
+  assert.equal(lead.includes("background"), false);
 });

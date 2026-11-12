@@ -21,8 +21,8 @@ export const PRINT_SAFE: PrintSafe = {
 export const PRINT_SAFE_WIDE: PrintSafe = {
   minX: 8,
   maxX: 92,
-  minY: 28,
-  maxY: 72,
+  minY: 36,
+  maxY: 64,
   maxRotate: 11,
 };
 
