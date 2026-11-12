@@ -21,8 +21,8 @@ export const PRINT_SAFE: PrintSafe = {
 export const PRINT_SAFE_WIDE: PrintSafe = {
   minX: 8,
   maxX: 92,
-  minY: 36,
-  maxY: 64,
+  minY: 32,
+  maxY: 68,
   maxRotate: 11,
 };
 
@@ -72,35 +72,88 @@ function isLoose(safe: PrintSafe) {
   return safe.maxX - safe.minX >= 50;
 }
 
-/** A loose overlapping cluster or, on a wide table, a casual spread. Stable for a given seed. */
+function shuffleIndices(count: number, rand: () => number): number[] {
+  const items = Array.from({ length: count }, (_, index) => index);
+  for (let index = items.length - 1; index > 0; index -= 1) {
+    const swap = Math.floor(rand() * (index + 1));
+    const current = items[index];
+    items[index] = items[swap];
+    items[swap] = current;
+  }
+  return items;
+}
+
+/** Column and row counts for a jittered slot grid that covers the table evenly. */
+export function scatterGridSize(count: number, safe: PrintSafe = PRINT_SAFE): { cols: number; rows: number } {
+  if (count <= 1) return { cols: 1, rows: 1 };
+  if (count === 2) return { cols: 2, rows: 1 };
+  if (isLoose(safe) && count >= 4) {
+    const rows = 2;
+    return { cols: Math.ceil(count / rows), rows };
+  }
+  const cols = Math.ceil(Math.sqrt(count));
+  return { cols, rows: Math.ceil(count / cols) };
+}
+
+function rowCountsFor(count: number, rows: number, cols: number): number[] {
+  const base = Math.floor(count / rows);
+  const extra = count % rows;
+  const counts: number[] = [];
+  for (let row = 0; row < rows; row += 1) {
+    counts.push(row < extra ? base + 1 : base);
+  }
+  if (counts[0] > cols) counts[0] = cols;
+  return counts;
+}
+
+function rowCenters(countInRow: number, cols: number, safe: PrintSafe): number[] {
+  const width = safe.maxX - safe.minX;
+  if (countInRow <= 1) return [(safe.minX + safe.maxX) / 2];
+  if (countInRow === cols - 1 && cols >= 3) {
+    return Array.from({ length: countInRow }, (_, index) => safe.minX + ((index + 0.5) / (cols - 1)) * width);
+  }
+  if (countInRow < cols && cols > 1) {
+    const inset = width / (2 * (cols - 1));
+    const inner = width - 2 * inset;
+    return Array.from({ length: countInRow }, (_, index) => safe.minX + inset + (index / (countInRow - 1)) * inner);
+  }
+  return Array.from({ length: countInRow }, (_, index) => safe.minX + (index / (countInRow - 1)) * width);
+}
+
+/**
+ * Jittered slots that cover the table evenly. Neighbors overlap so it still reads as a pile.
+ * Stable for a given seed. Shuffle passes a new seed and gets a new assignment in the same even grid.
+ */
 export function scatterPrints(count: number, seed: number, safe: PrintSafe = PRINT_SAFE): PrintPose[] {
   if (count < 1) return [];
   const rand = mulberry32(seed);
-  const poses: PrintPose[] = [];
-  const loose = isLoose(safe);
-  for (let index = 0; index < count; index += 1) {
-    if (count === 1) {
-      poses.push(
-        clampPose({
-          x: 50,
-          y: 50,
-          rotate: (rand() - 0.5) * 8,
-        }, safe),
-      );
-      continue;
-    }
-    const angle = (index / count) * Math.PI * 2 + (rand() - 0.5) * (loose ? 0.9 : 0.75);
-    const radius = (loose ? 0.52 : 0.48) + rand() * (loose ? 0.48 : 0.52);
-    const x =
-      50 +
-      Math.cos(angle) * radius * ((safe.maxX - safe.minX) / 2);
-    const y =
-      50 +
-      Math.sin(angle) * radius * ((safe.maxY - safe.minY) / 2);
-    const rotate = (rand() - 0.5) * 2 * safe.maxRotate;
-    poses.push(clampPose({ x, y, rotate }, safe));
+  if (count === 1) {
+    return [
+      clampPose({
+        x: 50,
+        y: 50,
+        rotate: (rand() - 0.5) * 8,
+      }, safe),
+    ];
   }
-  return poses;
+  const { cols, rows } = scatterGridSize(count, safe);
+  const counts = rowCountsFor(count, rows, cols);
+  const width = safe.maxX - safe.minX;
+  const height = safe.maxY - safe.minY;
+  const colSpacing = cols > 1 ? width / (cols - 1) : 0;
+  const rowSpacing = rows > 1 ? height / (rows - 1) : 0;
+  const slots: PrintPose[] = [];
+  counts.forEach((countInRow, row) => {
+    const y0 = rows === 1 ? (safe.minY + safe.maxY) / 2 : safe.minY + (row / (rows - 1)) * height;
+    const xs = rowCenters(countInRow, cols, safe);
+    xs.forEach((x0) => {
+      const x = x0 + (rand() - 0.5) * colSpacing * 0.32;
+      const y = y0 + (rand() - 0.5) * rowSpacing * 0.28;
+      const rotate = (rand() - 0.5) * 2 * safe.maxRotate;
+      slots.push(clampPose({ x, y, rotate }, safe));
+    });
+  });
+  return shuffleIndices(slots.length, rand).map((index) => slots[index]);
 }
 
 export function isWidePrintSpread(): boolean {
