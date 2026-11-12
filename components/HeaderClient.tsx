@@ -17,11 +17,12 @@ const logoUrl =
 const navItems = [
   ["Guild Hall", "/guild-hall"],
   ["Gallery", "/feed"],
+  ["Forum", "/forum"],
   ["Field Desk", "/field-desk"],
   ["Winners", "/winners"],
   ["Progress", "/progress"],
-  ["Courses", "/courses"],
-  ["Resources", "/resources"],
+  // Learn holds Courses and Resources, which switch with tabs on those pages.
+  ["Learn", "/courses"],
 ];
 
 // The vote gate never covers sign-in pages, the public landing pages or admin tools.
@@ -32,6 +33,7 @@ function voteGateApplies(pathname: string) {
 }
 
 function isActive(pathname: string, href: string) {
+  if (href === "/courses") return ["/courses", "/resources"].some((path) => pathname === path || pathname.startsWith(`${path}/`));
   if (href === "/feed") return pathname === "/feed" || pathname === "/gallery" || pathname.startsWith("/images/");
   return pathname === href || pathname.startsWith(`${href}/`);
 }

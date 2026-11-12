@@ -94,6 +94,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
   let message: { id: string; body: string; created_at: string; updated_at: string } | null = null;
   let messageRead = false;
   let recentComments: any[] = [];
+  let forumThreads: any[] = [];
   const commenters = new Map<string, { name: string; streak?: number }>();
 
   if (hasAccess) {
@@ -141,8 +142,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
       const { data: mark } = await supabase.from("guild_message_reads").select("message_id,message_updated_at").eq("message_id", message.id).eq("user_id", user.id).maybeSingle();
       messageRead = isGuildMessageAcknowledged(message, mark);
     }
+    const { data: forumRows } = await supabase.from("forum_threads").select("id,title,category,reply_count,last_post_at,last_post_user_id,user_id").is("deleted_at", null).order("last_post_at", { ascending: false }).limit(4);
+    forumThreads = forumRows || [];
     recentComments = (cmts || []).filter((c: any) => c.guild_images && !["hidden", "deleted"].includes(c.guild_images.moderation_status));
-    const people = await fetchMembers(supabase, recentComments.map((c: any) => c.user_id));
+    const people = await fetchMembers(supabase, [...recentComments.map((c: any) => c.user_id), ...forumThreads.map((t: any) => t.last_post_user_id || t.user_id)]);
     people.forEach((m, id) => commenters.set(id, { name: m.name, streak: m.streak }));
   }
   const userIds = [...new Set(images.map((image) => image.user_id).filter(Boolean))];
@@ -252,6 +255,26 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
                 <div className="mw-rail-sort-chips">{SORTS.map((s) => <Link key={s.key} href={s.key === "recent" ? "/guild-hall" : `/guild-hall?sort=${s.key}`} scroll={false} data-list-sort aria-current={s.key === sort ? "page" : undefined} className={`mw-sort-chip ${s.key === sort ? "mw-sort-chip-selected" : ""}`}>{s.label}</Link>)}</div>
               </nav>
               {message && <MessageFromAaron id={message.id} updatedAt={message.updated_at} body={message.body} postedLabel={new Date(message.created_at).toLocaleDateString("en-US", { month: "long", day: "numeric", timeZone: "America/Denver" })} initiallyRead={messageRead} canEdit={isAdmin} />}
+              <section className="mw-rail-comments mw-rail-forum" aria-labelledby="forum-latest-heading">
+                <h2 id="forum-latest-heading" className="mw-rail-heading"><Link href="/forum" className="mw-rail-heading-link">Latest in the Forum</Link></h2>
+                {forumThreads.length ? (
+                  <ol className="mw-rail-comment-list">
+                    {forumThreads.map((t: any) => {
+                      const who = commenters.get(t.last_post_user_id || t.user_id)?.name || MEMBER_NAME_FALLBACK;
+                      return (
+                        <li key={t.id}>
+                          <Link href={`/forum/t/${t.id}`} className="mw-rail-comment">
+                            <span className="mw-rail-comment-text">
+                              <span className="mw-rail-comment-body mw-rail-forum-title">{t.title}</span>
+                              <span className="mw-rail-comment-who"><b>{who}</b><time dateTime={t.last_post_at}>{shortAgo(t.last_post_at)}</time><span className="mw-rail-forum-count">{t.reply_count} {t.reply_count === 1 ? "reply" : "replies"}</span></span>
+                            </span>
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                ) : <p className="mw-rail-empty">No discussions yet. <Link href="/forum/new" className="mw-member-link">Start the first&nbsp;one</Link>.</p>}
+              </section>
               <section className="mw-rail-comments" aria-labelledby="recent-comments-heading">
                 <h2 id="recent-comments-heading" className="mw-rail-heading">Recent Comments</h2>
                 {recentComments.length ? (
