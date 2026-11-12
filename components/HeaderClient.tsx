@@ -111,6 +111,7 @@ export function HeaderClient({
   }, [navOpen]);
 
   return (
+    <>
     <header className="mw-app-header">
       <nav className="mw-header-nav mx-auto max-w-[1680px]">
         <div className="mw-header-brand">
@@ -178,10 +179,11 @@ export function HeaderClient({
           <div className="mw-header-actions"><Link href="/login" className="mw-header-signin">Sign in</Link><Link href="/signup" className="mw-header-join">Join free</Link></div>
         )}
       </nav>
-      {showProfileNudge && userId ? <ProfileNudge userId={userId} missingName={missingName} missingPhoto={missingPhoto} /> : null}
       {user && isAdmin && pendingClaims > 0 ? <HeaderNotice id="claims" text={`${pendingClaims} Field Honor claim${pendingClaims === 1 ? "" : "s"} waiting for review`} href="/admin/achievements" cta="Verification Desk" hideOn="/admin/achievements" /> : null}
       {user && reviewNotice && reviewNotice.count > 0 ? <HeaderNotice id="review" text={reviewNotice.text} href="/progress#guild-review" cta="See the note" hideOn="/progress" /> : null}
       {user ? forumNotices.map((n) => <HeaderNotice key={n.id} id={n.id} text={n.text} href={n.href} cta={n.cta} hideOn={n.href.split("#")[0]} />) : null}
     </header>
+    {showProfileNudge && userId ? <ProfileNudge userId={userId} missingName={missingName} missingPhoto={missingPhoto} /> : null}
+    </>
   );
 }

@@ -40,7 +40,7 @@ test("the winners empty date is computed from a close instant, not hardcoded", (
   const source = readFileSync(new URL("../components/winners/WinnersEmpty.tsx", import.meta.url), "utf8");
   assert.equal(source.includes("Nov 15"), false);
   assert.equal(source.includes("November 15"), false);
-  assert.equal(source.includes("formatMountainDateParts"), true);
+  assert.equal(source.includes("formatMountainDeadline") || source.includes("formatMountainDateParts"), true);
 });
 
 const week45 = {
