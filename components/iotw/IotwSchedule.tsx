@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { OpenVoteButton } from "@/components/images/OpenVoteButton";
-import { formatMountainShort, type IotwScheduleWeek } from "@/lib/iotw";
+import { formatMountainShort, imageOfTheWeekName, type IotwScheduleWeek } from "@/lib/iotw";
 
 export type BallotThumb = { id: string; image_url: string | null; title: string };
 
@@ -30,7 +30,7 @@ export function IotwSchedule({
         <span className="mw-iotw-phase-tag">Voting now</span>
         {voting ? (
           <>
-            <strong>Image of the Week {voting.label}</strong>
+            <strong>{imageOfTheWeekName(voting.label)}</strong>
             <small>Voting closes {formatMountainShort(voting.voting_closes_at)}, winner announced&nbsp;then.</small>
             {shown.length > 0 ? (
               <>
@@ -49,13 +49,13 @@ export function IotwSchedule({
         ) : (
           <>
             <strong>No week on the ballot yet</strong>
-            <small>Image of the Week {entry.label} voting opens {formatMountainShort(entry.voting_opens_at)}.</small>
+            <small>{imageOfTheWeekName(entry.label)} voting opens {formatMountainShort(entry.voting_opens_at)}.</small>
           </>
         )}
       </div>
       <div className="mw-iotw-phase mw-iotw-phase-entry">
         <span className="mw-iotw-phase-tag">Open for entries</span>
-        <strong>Image of the Week {entry.label}</strong>
+        <strong>{imageOfTheWeekName(entry.label)}</strong>
         <small>These photos are next week&apos;s entries, not the ballot. Entries close {formatMountainShort(entry.entries_close_at)}. Voting on them runs until {formatMountainShort(entry.voting_closes_at)}.</small>
         {entryImages}
       </div>

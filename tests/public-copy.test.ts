@@ -4,6 +4,7 @@ import { EMAIL_DOT_MESSAGE, EMAIL_REQUIRED_MESSAGE, EMAIL_SHAPE_MESSAGE, emailFi
 import { readFileSync } from "node:fs";
 import { contactLead, courseLibraryUrl, fieldHonorsPublicLine, hidePhotosHelp, hidePhotosTitle, homeFeatures, homeLead, momentOfEnvyCopy, nextPrintLabel, pileLead, previousPrintLabel, privacySections, publicPhotoChoiceCopy, putPrintBackLabel, rankNameList, resourcesNote, shufflePileLabel, signupIntro, signupOffer, termsSections } from "../lib/public-copy.ts";
 import { achievementLibraryCategoryDetails, honorTypeLabel, seededAchievementDefinitions } from "../lib/achievements.ts";
+import { guildCourses } from "../lib/courses.ts";
 import { RANKS } from "../lib/ranks.ts";
 import { CHECK_EMAIL_MESSAGE, DISPOSABLE_EMAIL_MESSAGE, SIGNUP_REASSURANCE, STALE_FORM_MESSAGE, TOO_FAST_MESSAGE } from "../lib/signup-messages.ts";
 import { WEEKLY_SUBMISSION_LIMIT } from "../lib/images.ts";
@@ -34,9 +35,13 @@ test("new customer copy has no em dash, colon, or the retired domain", () => {
 test("rank names on the home page match the Ascent ladder", () => {
   const rankCard = homeFeatures.find((item) => item.title === "Ranks");
   assert.ok(rankCard);
-  for (const rank of RANKS) assert.equal(rankCard.body.includes(rank.label), true, rank.label);
+  assert.match(rankCard.body, /Field Honors move the rank/);
   assert.equal(rankCard.body.includes("Master Milky Way Photographer to"), false);
   assert.match(rankNameList, /Unranked, Beginner, Amateur, Novice, Veteran and Master/);
+  const ladder = readFileSync(new URL("../components/RankLadder.tsx", import.meta.url), "utf8");
+  const home = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
+  assert.equal(home.includes("<RankLadder"), true);
+  assert.equal(ladder.includes("rankHonorRanges"), true);
 });
 
 test("email blur rules require a dotted domain", () => {
@@ -121,13 +126,13 @@ test("terms and privacy share one hide line for the public photo strip", () => {
   assert.equal(showcase.toLowerCase().includes("milkywayphotographers.com"), false);
 });
 
-test("closing phrases keep their last words together with nbsp", () => {
+test("Inside the Guild body copy has no forced breaks, while the free-join line still holds its ending", () => {
   assert.equal(homeLead.includes("through\u00A02027.\u00A0I\u00A0plan\u00A0a\u00A0paid\u00A0tier."), true);
   assert.equal(signupIntro.includes("through\u00A02027.\u00A0I\u00A0plan\u00A0a\u00A0paid\u00A0tier."), true);
-  assert.equal(homeFeatures[1].body.includes("change\u00A0your\u00A0rank."), true);
-  assert.equal(homeFeatures[3].body.includes("written\u00A0feedback\u00A0do\u00A0not."), true);
-  assert.equal(homeFeatures[4].body.includes("the\u00A0runner-up."), true);
-  assert.equal(homeFeatures[5].body.includes("along\u00A0the\u00A0Ascent."), true);
+  for (const body of homeFeatures.map((item) => item.body)) {
+    assert.equal(body.includes("\u00A0"), false, body);
+  }
+  assert.equal(momentOfEnvyCopy.includes("\u00A0"), false);
 });
 
 test("signup offer is three short lines with the free and paid facts, and no em dash or colon", () => {
@@ -162,4 +167,26 @@ test("seasonal Field Honors use one automatic rule in the library, the type labe
   assert.equal(honorTypeLabel(january!), "Manual Field Honor");
   const perfect = seededAchievementDefinitions.find((item) => item.id === "special_perfect_year");
   assert.equal(honorTypeLabel(perfect!), "Automatic special");
+});
+
+test("course cards keep the four titles and bodies, and feature the beginner course", () => {
+  assert.equal(guildCourses.length, 4);
+  assert.equal(guildCourses[0].title, "Beginner Milky Way Photography");
+  assert.equal(guildCourses[0].featured, true);
+  assert.equal(guildCourses.filter((course) => course.featured).length, 1);
+  assert.equal(guildCourses[0].body, "For a first night under the Milky Way. You will plan the shot, expose the sky, and bring a frame home.");
+  for (const course of guildCourses) {
+    assert.equal(course.title.includes("\u2014"), false, course.title);
+    assert.equal(course.body.includes("\u2014"), false, course.body);
+    assert.equal(course.title.includes(":"), false, course.title);
+    assert.equal(course.image.startsWith("/courses/"), true, course.image);
+    assert.ok(course.body);
+  }
+});
+
+test("feedback copy keeps a space in change your rank", () => {
+  const card = homeFeatures.find((item) => item.title === "Feedback");
+  assert.ok(card);
+  assert.match(card.body, /does not change your rank/);
+  assert.equal(card.body.includes("changeyour"), false);
 });

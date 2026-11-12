@@ -24,7 +24,7 @@ export const homeSectionTitle = "Feedback, voting, and ranks do different jobs."
 
 /** One definition, first person, on the home card, Field Desk, Winners, and Terms. */
 export const momentOfEnvyCopy =
-  "The Monday Moment of Envy is a video where I celebrate the vote winner and my Photog Phavorite, and sometimes the\u00A0runner-up.";
+  "The Monday Moment of Envy is a video where I celebrate the vote winner and my Photog Phavorite, and sometimes the runner-up.";
 export const momentOfEnvyPending = "No Moment of Envy yet.";
 
 export const homeFeatures: { title: string; body: string }[] = [
@@ -34,7 +34,7 @@ export const homeFeatures: { title: string; body: string }[] = [
   },
   {
     title: "Feedback",
-    body: "A member can leave a written note on your field report. The note is there to help you improve the photograph. It is not a vote and it does not change\u00A0your\u00A0rank.",
+    body: "A member can leave a written note on your field report. The note is there to help you improve the photograph. It is not a vote and it does not change your rank.",
   },
   {
     title: "Image of the Week",
@@ -42,7 +42,7 @@ export const homeFeatures: { title: string; body: string }[] = [
   },
   {
     title: "Ranks",
-    body: `The Ascent uses one set of names. ${rankNameList}. ${rankRangeSentence} Field Honors move the rank. Votes and written\u00A0feedback\u00A0do\u00A0not.`,
+    body: "Field Honors move the rank. Votes and written feedback do not.",
   },
   {
     title: "Monday Moment of Envy",
@@ -50,7 +50,7 @@ export const homeFeatures: { title: string; body: string }[] = [
   },
   {
     title: "Field Honors",
-    body: "You can claim a Field Honor on an image when a listed month, foreground, technique, or other honor fits. Verified Field Honors are what move you along\u00A0the\u00A0Ascent.",
+    body: "You can claim a Field Honor on an image when a listed month, foreground, technique, or other honor fits. Verified Field Honors are what move you along the Ascent.",
   },
 ];
 

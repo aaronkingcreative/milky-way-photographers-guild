@@ -3,6 +3,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { KeepTail } from "@/components/KeepTail";
+import { keepLastTwo } from "@/lib/keep-last-two";
+import { RankLadder } from "@/components/RankLadder";
 import { PublicShowcase } from "@/components/PublicShowcase";
 import { isBeforeGuildLaunch } from "@/lib/launch";
 import {
@@ -119,26 +121,40 @@ export default async function Home() {
             <KeepTail text={homeSectionTitle} />
           </h2>
         </div>
-        <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {homeFeatures.map((item, index) => (
-            <div className="card rounded-3xl p-6" key={item.title}>
-              <p className="text-sm font-black text-[#f4bd61]">
-                {String(index + 1).padStart(2, "0")}
+        <div className="mw-inside">
+          <div className="mw-inside-lead">
+            {homeFeatures.slice(0, 2).map((item, index) => (
+              <article className="mw-inside-feature" key={item.title}>
+                <p className="mw-inside-num">{String(index + 1).padStart(2, "0")}</p>
+                <div>
+                  <h3><KeepTail text={item.title} /></h3>
+                  <p className="mw-copy-natural">{item.body}</p>
+                </div>
+              </article>
+            ))}
+            <aside className="mw-inside-quote" aria-labelledby="feedback-example-title">
+              <p id="feedback-example-title" className="mw-inside-quote-kicker">
+                <KeepTail text={feedbackExampleTitle} />
               </p>
-              <h3 className="mt-5 text-xl font-bold leading-7 text-white"><KeepTail text={item.title} /></h3>
-              <p className="mt-3 text-base leading-7 text-[#e7eef6]"><KeepTail text={item.body} /></p>
-            </div>
-          ))}
+              <p className="mw-inside-quote-note mw-copy-natural">{keepLastTwo(feedbackExampleDisclaimer)}</p>
+              <blockquote className="mw-copy-natural">
+                {feedbackExampleBody}
+              </blockquote>
+            </aside>
+          </div>
+          <div className="mw-inside-list">
+            {homeFeatures.slice(2).map((item, index) => (
+              <article className="mw-inside-item" key={item.title}>
+                <p className="mw-inside-num">{String(index + 3).padStart(2, "0")}</p>
+                <div>
+                  <h3><KeepTail text={item.title} /></h3>
+                  <p className="mw-copy-natural">{item.body}</p>
+                  {item.title === "Ranks" ? <RankLadder /> : null}
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
-        <aside className="card mt-8 rounded-3xl p-6 sm:p-8" aria-labelledby="feedback-example-title">
-          <p id="feedback-example-title" className="mw-balance text-sm font-bold uppercase tracking-[.18em] text-[#f4bd61]">
-            <KeepTail text={feedbackExampleTitle} />
-          </p>
-          <p className="mt-3 text-base leading-7 text-[#f4f7fb]"><KeepTail text={feedbackExampleDisclaimer} /></p>
-          <blockquote className="mt-4 border-l-4 border-[#e79f2b] pl-4 text-lg leading-8 text-white">
-            <KeepTail text={feedbackExampleBody} />
-          </blockquote>
-        </aside>
         <div className="mt-10">
           <p className="max-w-2xl text-lg leading-8 text-[#e7eef6]"><KeepTail text={afterFeaturesLead} /></p>
           <Link className="btn btn-primary mt-5" href="/signup">
