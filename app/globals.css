@@ -2789,3 +2789,23 @@ a.mw-forum-quote-head:hover { color:#f0bd66; text-decoration:underline; text-und
 .mw-rail-heading-link:hover { color:#f0bd66; }
 .mw-rail-forum-title { color:#fff; font-weight:700; -webkit-line-clamp:2; }
 .mw-rail-forum-count { margin-left:auto; flex:none; font-size:.78rem; color:rgba(255,255,255,.42); }
+
+/* Forum round 2: one fixed column on every forum page, a stronger honor count, a smaller author photo. */
+.mw-forum-shell { width:100%; box-sizing:border-box; }
+.mw-forum-shell > form.mw-forum-composer { max-width:820px; margin-left:0; }
+main:has(> .mw-forum-fit) { flex-grow:0; }
+.mw-forum-post { grid-template-columns:220px minmax(0,1fr); }
+.mw-forum-author { padding:1.4rem 1.1rem 1.4rem 1.3rem; gap:.65rem; }
+.mw-forum-avatar { width:52px; height:52px; font-size:1.05rem; aspect-ratio:1 / 1; box-shadow:0 0 0 3px rgba(231,159,43,.08); }
+.mw-forum-honors { display:flex; flex-direction:column; gap:.05rem; margin:.25rem 0 0; }
+.mw-forum-honors b { font-family:var(--font-guild-display); font-size:20px; font-weight:600; line-height:1; color:#e79f2b; }
+.mw-forum-honors span { font-family:var(--font-guild-display); font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:rgba(255,255,255,.5); }
+.mw-forum-contender-label { white-space:nowrap; }
+.mw-forum-trophy { white-space:nowrap; }
+.mw-forum-cat-stats:empty { display:none; }
+@media (max-width: 720px) {
+  .mw-forum-post { grid-template-columns:minmax(0,1fr); }
+  .mw-forum-avatar { width:48px; height:48px; }
+  .mw-forum-honors { flex-direction:row; align-items:baseline; gap:.35rem; margin:0; }
+  .mw-forum-honors b { font-size:18px; }
+}

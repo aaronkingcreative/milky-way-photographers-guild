@@ -16,6 +16,12 @@ export const FORUM_PAGE_SIZE = 25;
 export const FORUM_BODY_MAX = 8000;
 export const FORUM_TITLE_MAX = 120;
 
+/** "Master Milky Way Photographer" may only break before "Photographer". */
+export function forumRankTitle(rank: string) {
+  if (!rank || rank === "Unranked") return "Unranked";
+  return `${rank}\u00A0Milky\u00A0Way Photographer`;
+}
+
 export function forumCategory(slug: string | null | undefined) {
   return FORUM_CATEGORIES.find((c) => c.slug === slug) || null;
 }

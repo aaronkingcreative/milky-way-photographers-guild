@@ -10,7 +10,7 @@ export function ContenderVote({ contender, own }: { contender: ForumContender; o
         {contender.imageUrl ? <img src={contender.imageUrl} alt="" loading="lazy" /> : null}
       </Link>
       <div className="mw-forum-contender-copy">
-        <span className="mw-forum-contender-label">Image of the Week contender</span>
+        <span className="mw-forum-contender-label">This week's contender</span>
         {own ? (
           <Link href={`/images/${contender.imageId}`} className="mw-forum-contender-link">See your entry</Link>
         ) : (

@@ -1,6 +1,5 @@
 import Link from "next/link";
-import type { ForumAuthor } from "@/lib/forum";
-import { fullPhotographerRank } from "@/lib/display";
+import { forumRankTitle, type ForumAuthor } from "@/lib/forum";
 import { StreakPill } from "@/components/StreakPill";
 import { ContenderVote } from "@/components/forum/ContenderVote";
 
@@ -25,8 +24,8 @@ export function AuthorPanel({ author, viewerId, isStarter }: { author: ForumAuth
       <div className="mw-forum-author-copy">
         <p className="mw-forum-author-name"><Link href={`/members/${author.id}`} className="mw-member-link">{author.name}</Link></p>
         {isStarter ? <p className="mw-forum-starter">Started this</p> : null}
-        <p className="mw-forum-rank">{author.rank === "Unranked" ? "Unranked" : fullPhotographerRank(author.rank)}</p>
-        <p className="mw-forum-honors">{author.honors} Field Honor{author.honors === 1 ? "" : "s"}</p>
+        <p className="mw-forum-rank">{forumRankTitle(author.rank)}</p>
+        <p className="mw-forum-honors"><b>{author.honors}</b><span>Field Honor{author.honors === 1 ? "" : "s"}</span></p>
         {author.streak ? <StreakPill length={author.streak} short className="mw-forum-streak" /> : null}
         {hasTrophies ? (
           <ul className="mw-forum-trophies" aria-label="Image of the Week trophies">

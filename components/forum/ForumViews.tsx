@@ -27,7 +27,7 @@ export function ForumHomeView({ threads, people, stats, removed }: { threads: Th
               <Link href={`/forum/${c.slug}`} className="mw-forum-cat">
                 <span className="mw-forum-cat-name">{c.label}</span>
                 <span className="mw-forum-cat-blurb">{c.blurb}</span>
-                <span className="mw-forum-cat-stats">{s ? <>{s.threads} {s.threads === 1 ? "discussion" : "discussions"}<span className="mw-forum-dot" aria-hidden="true">·</span>{s.last ? forumAgo(s.last) : ""}</> : "No discussions yet"}</span>
+                <span className="mw-forum-cat-stats">{s?.threads ? <>{s.threads} {s.threads === 1 ? "discussion" : "discussions"}<span className="mw-forum-dot" aria-hidden="true">·</span>{s.last ? forumAgo(s.last) : ""}</> : null}</span>
               </Link>
             </li>
           );
@@ -48,7 +48,7 @@ export function ForumHomeView({ threads, people, stats, removed }: { threads: Th
 
 export function ForumCategoryView({ category, threads, people, page, pages }: { category: { slug: string; label: string; blurb: string }; threads: ThreadRowData[]; people: Map<string, MemberLite>; page: number; pages: number }) {
   return (
-    <section className="mw-forum-shell">
+    <section className="mw-forum-shell mw-forum-fit">
       <ForumCrumbs items={[{ label: "Forum", href: "/forum" }, { label: category.label }]} />
       <ForumHead
         eyebrow="The Guild Forum"

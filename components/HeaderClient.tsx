@@ -9,21 +9,11 @@ import { titleCaseLabel } from "@/lib/display";
 import { IotwVotingModal } from "@/components/iotw/IotwVotingModal";
 import { ProfileNudge } from "@/components/ProfileNudge";
 import { HeaderNotice } from "@/components/HeaderNotice";
-import { navPointerShouldClose } from "@/lib/nav-menu";
+import { NAV_ITEMS as navItems, navItemIsActive as isActive, navPointerShouldClose } from "@/lib/nav-menu";
 
 const logoUrl =
   "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/site-assets/logos/MWPG_Logo.png";
 
-const navItems = [
-  ["Guild Hall", "/guild-hall"],
-  ["Gallery", "/feed"],
-  ["Forum", "/forum"],
-  ["Field Desk", "/field-desk"],
-  ["Winners", "/winners"],
-  ["Progress", "/progress"],
-  // Learn holds Courses and Resources, which switch with tabs on those pages.
-  ["Learn", "/courses"],
-];
 
 // The vote gate never covers sign-in pages, the public landing pages or admin tools.
 const VOTE_GATE_EXEMPT = ["/login", "/signup", "/auth", "/update-password", "/launch", "/admin"];
@@ -32,11 +22,6 @@ function voteGateApplies(pathname: string) {
   return !VOTE_GATE_EXEMPT.some((path) => pathname === path || pathname.startsWith(`${path}/`));
 }
 
-function isActive(pathname: string, href: string) {
-  if (href === "/courses") return ["/courses", "/resources"].some((path) => pathname === path || pathname.startsWith(`${path}/`));
-  if (href === "/feed") return pathname === "/feed" || pathname === "/gallery" || pathname.startsWith("/images/");
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
 
 export function HeaderClient({
   user,

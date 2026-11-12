@@ -26,3 +26,9 @@ test("forum copy has no em dashes or colons in member-facing blurbs", () => {
     assert.equal(/[\u2014:]/.test(c.blurb), false, c.slug);
   }
 });
+
+test("rank titles only break before Photographer", async () => {
+  const { forumRankTitle } = await import("../lib/forum.ts");
+  assert.equal(forumRankTitle("Master"), "Master\u00A0Milky\u00A0Way Photographer");
+  assert.equal(forumRankTitle("Unranked"), "Unranked");
+});
