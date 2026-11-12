@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { PRINT_SAFE, PRINT_SAFE_WIDE, PRINT_SPREAD_MIN_WIDTH, clampPose, scatterPrints, seedFromKeys } from "../lib/print-pile.ts";
+import { PRINT_SAFE, PRINT_SAFE_WIDE, PRINT_SPREAD_MIN_WIDTH, clampPose, scatterGridSize, scatterPrints, seedFromKeys } from "../lib/print-pile.ts";
 import { DEFAULT_PRINT_AVATAR, PILE_AVATAR_WIDTH, PILE_PHOTO_WIDTH, showcaseAvatarUrl, showcaseThumbUrl } from "../lib/showcase-images.ts";
 
 test("a seed from the same keys stays stable and a scatter stays on the table", () => {
@@ -39,7 +39,7 @@ test("a wide scatter uses more of the table and stays inside the wide safe box",
   assert.equal(poses.length, 9);
   const xs = poses.map((pose) => pose.x);
   const span = Math.max(...xs) - Math.min(...xs);
-  assert.ok(span > 30, String(span));
+  assert.ok(span > 60, String(span));
   for (const pose of poses) {
     assert.ok(pose.x >= PRINT_SAFE_WIDE.minX && pose.x <= PRINT_SAFE_WIDE.maxX, String(pose.x));
     assert.ok(pose.y >= PRINT_SAFE_WIDE.minY && pose.y <= PRINT_SAFE_WIDE.maxY, String(pose.y));
@@ -88,4 +88,40 @@ test("Supabase public object URLs become sized render URLs", () => {
   assert.equal(showcaseThumbUrl("https://cdn.example.com/photo.jpg"), "https://cdn.example.com/photo.jpg");
   assert.equal(showcaseAvatarUrl(""), DEFAULT_PRINT_AVATAR);
   assert.equal(showcaseAvatarUrl(DEFAULT_PRINT_AVATAR), DEFAULT_PRINT_AVATAR);
+});
+
+function largestCenterGap(values: number[]) {
+  const sorted = [...values].sort((a, b) => a - b);
+  let gap = 0;
+  for (let index = 1; index < sorted.length; index += 1) {
+    gap = Math.max(gap, sorted[index] - sorted[index - 1]);
+  }
+  return gap;
+}
+
+test("a nine-print grid uses 5 by 2 on a wide table and 3 by 3 on a phone", () => {
+  assert.deepEqual(scatterGridSize(9, PRINT_SAFE_WIDE), { cols: 5, rows: 2 });
+  assert.deepEqual(scatterGridSize(9, PRINT_SAFE), { cols: 3, rows: 3 });
+  assert.deepEqual(scatterGridSize(1, PRINT_SAFE), { cols: 1, rows: 1 });
+  assert.deepEqual(scatterGridSize(8, PRINT_SAFE_WIDE), { cols: 4, rows: 2 });
+});
+
+test("wide and phone scatters stay even across many seeds, with no large empty gap", () => {
+  for (let seed = 1; seed <= 30; seed += 1) {
+    const wide = scatterPrints(9, seed, PRINT_SAFE_WIDE);
+    const phone = scatterPrints(9, seed, PRINT_SAFE);
+    const wideX = wide.map((pose) => pose.x);
+    const wideY = wide.map((pose) => pose.y);
+    const phoneX = phone.map((pose) => pose.x);
+    assert.ok(Math.max(...wideX) - Math.min(...wideX) > 60, `wide span seed ${seed}`);
+    assert.ok(Math.min(...wideX) <= PRINT_SAFE_WIDE.minX + 12, `wide left seed ${seed}`);
+    assert.ok(Math.max(...wideX) >= PRINT_SAFE_WIDE.maxX - 12, `wide right seed ${seed}`);
+    assert.ok(Math.min(...wideY) <= PRINT_SAFE_WIDE.minY + 12, `wide top seed ${seed}`);
+    assert.ok(Math.max(...wideY) >= PRINT_SAFE_WIDE.maxY - 12, `wide bottom seed ${seed}`);
+    assert.ok(largestCenterGap(wideX) < 32, `wide x gap ${largestCenterGap(wideX)} seed ${seed}`);
+    assert.ok(largestCenterGap(phoneX) < 28, `phone x gap ${largestCenterGap(phoneX)} seed ${seed}`);
+    const low = wideY.filter((y) => y < 50).length;
+    const high = wideY.filter((y) => y >= 50).length;
+    assert.ok(low >= 3 && high >= 3, `wide rows seed ${seed} ${low} ${high}`);
+  }
 });
