@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent } from "react";
 import { createPortal } from "react-dom";
 import { KeepTail } from "@/components/KeepTail";
-import { nextPrintLabel, previousPrintLabel, putPrintBackLabel, shufflePileLabel } from "@/lib/public-copy";
+import { putPrintBackLabel, shufflePileLabel } from "@/lib/public-copy";
 import { DRAG_THRESHOLD_PX, PRINT_SAFE, PRINT_SAFE_WIDE, clampPose, isWidePrintSpread, printFrameSize, printSafeBaseForWidth, printSafeForTable, scatterPrints, seedFromKeys, type PrintPose, type PrintSafe } from "@/lib/print-pile";
 import type { ShowcasePhoto } from "@/lib/public-showcase";
 import { DEFAULT_PRINT_AVATAR, isDefaultPrintAvatar, showcaseAvatarUrl, showcaseThumbUrl } from "@/lib/showcase-images";
@@ -82,6 +82,9 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
   const dragRef = useRef<DragState | null>(null);
   const swipeRef = useRef<{ x: number; y: number } | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const printRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const returnFocusIndex = useRef<number | null>(null);
+
 
   useEffect(() => setMounted(true), []);
   useLayoutEffect(() => {
@@ -125,6 +128,7 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
   }, []);
 
   const openFocus = useCallback((index: number) => {
+    returnFocusIndex.current = index;
     setFocus(index);
     bringToFront(index);
   }, [bringToFront]);
@@ -197,6 +201,14 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
       window.removeEventListener("keydown", onKey);
     };
   }, [closeFocus, focus, stepFocus]);
+
+  useEffect(() => {
+    if (focus !== null) return;
+    const index = returnFocusIndex.current;
+    if (index == null) return;
+    const button = printRefs.current[index];
+    if (button) button.focus();
+  }, [focus]);
 
   function onPointerDown(event: PointerEvent<HTMLButtonElement>, index: number) {
     if (event.button !== 0 && event.pointerType === "mouse") return;
@@ -301,6 +313,8 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
             <button
               key={photo.imageUrl}
               type="button"
+              ref={(node) => { printRefs.current[index] = node; }}
+              aria-label={photo.place ? `Open a Guild print from ${photo.place}` : "Open a Guild print"}
               className={`mw-print${isDragging ? " is-dragging" : ""}${ready ? " is-ready" : ""}${avatarReady ? " is-avatar-ready" : ""}`}
               style={{
                 zIndex: isDragging ? 80 : z,
@@ -388,7 +402,7 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
 
       {mounted && focusedPhoto && focus !== null && createPortal(
         <div className="mw-print-focus" role="dialog" aria-modal="true" aria-label="Guild print" onClick={closeFocus}>
-          <button ref={closeRef} type="button" className="mw-print-focus-close" onClick={closeFocus}>
+          <button ref={closeRef} type="button" className="mw-print-focus-close" aria-label="Put the print back" onClick={closeFocus}>
             <KeepTail text={putPrintBackLabel} />
           </button>
           <div
@@ -398,7 +412,7 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
             onPointerUp={onFocusPointerUp}
           >
             {visible.length > 1 && (
-              <button type="button" className="mw-print-focus-nav is-prev" aria-label={previousPrintLabel} onClick={(event) => { event.stopPropagation(); stepFocus(-1); }}>
+              <button type="button" className="mw-print-focus-nav is-prev" aria-label="Previous print" onClick={(event) => { event.stopPropagation(); stepFocus(-1); }}>
                 <span aria-hidden="true">‹</span>
               </button>
             )}
@@ -437,7 +451,7 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
               </span>
             </figure>
             {visible.length > 1 && (
-              <button type="button" className="mw-print-focus-nav is-next" aria-label={nextPrintLabel} onClick={(event) => { event.stopPropagation(); stepFocus(1); }}>
+              <button type="button" className="mw-print-focus-nav is-next" aria-label="Next print" onClick={(event) => { event.stopPropagation(); stepFocus(1); }}>
                 <span aria-hidden="true">›</span>
               </button>
             )}

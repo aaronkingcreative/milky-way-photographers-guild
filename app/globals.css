@@ -1802,9 +1802,13 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
   filter: drop-shadow(0 10px 16px rgba(0,0,0,.42));
 }
 .mw-print:focus { outline: none; }
+.mw-print:focus-visible {
+  z-index: 90;
+}
 .mw-print:focus-visible .mw-print-frame {
   outline: 3px solid #f4bd61;
   outline-offset: 3px;
+  box-shadow: 0 0 0 3px #f4bd61, 0 0 0 7px #050c16, 0 12px 24px rgba(0,0,0,.45);
 }
 .mw-print-frame {
   display: block;
@@ -1886,9 +1890,13 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
   letter-spacing: .04em;
   cursor: pointer;
 }
-.mw-print-shuffle:hover, .mw-print-shuffle:focus-visible {
+.mw-print-shuffle:hover {
   background: rgba(244, 189, 97, .12);
-  outline: none;
+}
+.mw-print-shuffle:focus-visible {
+  background: rgba(244, 189, 97, .12);
+  outline: 3px solid #f4bd61;
+  outline-offset: 3px;
 }
 .mw-print-focus {
   position: fixed;
@@ -1913,9 +1921,13 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
   font-size: .95rem;
   cursor: pointer;
 }
-.mw-print-focus-close:hover, .mw-print-focus-close:focus-visible {
+.mw-print-focus-close:hover {
   background: #173049;
-  outline: none;
+}
+.mw-print-focus-close:focus-visible {
+  background: #173049;
+  outline: 3px solid #f4bd61;
+  outline-offset: 3px;
 }
 .mw-print-focus-inner {
   position: relative;
@@ -2005,9 +2017,13 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
 }
 .mw-print-focus-nav.is-prev { left: .15rem; }
 .mw-print-focus-nav.is-next { right: .15rem; }
-.mw-print-focus-nav:hover, .mw-print-focus-nav:focus-visible {
+.mw-print-focus-nav:hover {
   background: #173049;
-  outline: none;
+}
+.mw-print-focus-nav:focus-visible {
+  background: #173049;
+  outline: 3px solid #f4bd61;
+  outline-offset: 3px;
 }
 @media (min-width: 600px) {
   .mw-print-table {
@@ -2092,3 +2108,24 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
   .mw-print.is-dragging { --scale: 1; }
 }
 
+
+.mw-location-fields { display: grid; gap: 1rem; min-width: 0; }
+.mw-location-fields .mw-location-specific {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow: visible;
+  text-overflow: clip;
+}
+.mw-location-fields .mw-location-specific::placeholder {
+  color: rgba(255,255,255,.62);
+  opacity: 1;
+}
+
+/* G12: Ascent keyboard ring stays visible on every pointer type, and keeps 3:1 against the board. */
+.mw-ascent-face:focus-visible {
+  z-index: 60;
+  outline: 3px solid #f4bd61;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px #f4bd61, 0 0 0 6px #06101c;
+}
