@@ -12,11 +12,11 @@ export function CourseLinkCard({title, body, image, featured}:{title:string; bod
         {featured ? (
           <span className="mw-course-overlay">
             <span className="mw-course-kicker">Start here</span>
-            <h3 className="mw-course-title"><KeepTail text={title} /></h3>
+            <h3 className="mw-course-title">{title}</h3>
             <p className="mw-course-body"><KeepTail text={body} /></p>
           </span>
         ) : (
-          <h3 className="mw-course-title"><KeepTail text={title} /></h3>
+          <h3 className="mw-course-title">{title}</h3>
         )}
       </span>
       {featured ? null : (
