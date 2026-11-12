@@ -2811,3 +2811,8 @@ a.mw-forum-quote-head:hover { color:#f0bd66; text-decoration:underline; text-und
   .mw-forum-honors b { font-size:18px; }
 }
 body > footer { flex-shrink:0; }
+
+/* Forum reply that is saving. It shows at once in its place, then the saved post replaces it. */
+.mw-forum-post.is-sending { opacity:.72; }
+.mw-forum-sending { font-family:var(--font-guild-display); text-transform:uppercase; letter-spacing:.08em; font-size:12px; color:#e79f2b; }
+.mw-forum-error.is-cooldown { font-variant-numeric:tabular-nums; }

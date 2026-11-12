@@ -110,7 +110,7 @@ export function ThreadView({ thread, category, posts, indexOf, openingVisible, p
       </div>
 
       <ForumPager page={page} pages={pages} hrefFor={pageHref} />
-      <ReplyComposer threadId={thread.id} photos={photos} locked={Boolean(thread.locked && !isAdmin) || Boolean(thread.deleted_at)} />
+      <ReplyComposer threadId={thread.id} photos={photos} viewer={viewerId ? authors.get(viewerId) || null : null} nextIsA={(postCount + shift) % 2 === 0} locked={Boolean(thread.locked && !isAdmin) || Boolean(thread.deleted_at)} />
     </section>
   );
 }

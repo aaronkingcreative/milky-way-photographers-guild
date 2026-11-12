@@ -3,7 +3,7 @@ import { useActionState, useEffect, useState, type ReactNode } from "react";
 import { deletePost, editPost, flagPost, type ForumFormState } from "@/app/forum/actions";
 import { FORUM_BODY_MAX, FORUM_TITLE_MAX } from "@/lib/forum";
 import { PhotoPicker, type OwnPhoto } from "@/components/forum/PhotoPicker";
-import { QUOTE_EVENT, type QuoteDetail } from "@/components/forum/ReplyComposer";
+import { QUOTE_EVENT, focusComposer, type QuoteDetail } from "@/components/forum/ReplyComposer";
 
 type Props = {
   children: ReactNode;
@@ -53,7 +53,7 @@ export function PostMain({ children, postId, threadId, body, title = null, image
 
       {!editing ? (
         <div className="mw-forum-tools">
-          {canQuote ? <button type="button" className="mw-forum-tool is-quote" onClick={() => window.dispatchEvent(new CustomEvent(QUOTE_EVENT, { detail: quote }))}>❝ Quote</button> : null}
+          {canQuote ? <button type="button" className="mw-forum-tool is-quote" onClick={() => { window.dispatchEvent(new CustomEvent(QUOTE_EVENT, { detail: quote })); focusComposer(); }}>❝ Quote</button> : null}
           {canEdit ? <button type="button" className="mw-forum-tool" onClick={() => setEditing(true)}>Edit</button> : null}
           {canDelete ? (
             <form action={deletePost} onSubmit={(e) => { if (!window.confirm("Delete this post? This cannot be undone.")) e.preventDefault(); }}>
