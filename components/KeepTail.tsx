@@ -5,7 +5,7 @@
  * Pass `keep` to hold a longer ending together, such as a whole closing clause.
  */
 export function KeepTail({ text, keep = 3 }: { text: string; keep?: number }) {
-  const tokens = text.match(/\S+/g) ?? [];
+  const tokens = text.match(/[^ \t\n\r]+/g) ?? [];
   if (tokens.length < 2) return text;
   const count = Math.min(Math.max(1, keep), tokens.length);
   const tail = tokens.slice(-count).join(" ");

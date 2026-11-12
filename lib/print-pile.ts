@@ -65,6 +65,39 @@ export function rotatedPrintHalfSize(widthPx: number, heightPx: number, rotateDe
   };
 }
 
+/** Approximate outer box of a print, including the cream frame and avatar band. */
+export function printFrameSize(printLongPx: number, avatarPx: number) {
+  const side = 0.42 * 16;
+  const bottom = avatarPx * 0.68 + 0.18 * 16;
+  return {
+    width: printLongPx + side * 2,
+    height: printLongPx + side + bottom,
+  };
+}
+
+/**
+ * Inset a safe box so a rotated print of the given size stays at least insetPx
+ * inside the table. Used for every table width, including 1280.
+ */
+export function printSafeForTable(
+  tableW: number,
+  tableH: number,
+  printWidthPx: number,
+  printHeightPx: number,
+  base: PrintSafe,
+  insetPx = 8,
+): PrintSafe {
+  if (tableW <= 0 || tableH <= 0) return base;
+  const { halfW, halfH } = rotatedPrintHalfSize(printWidthPx, printHeightPx, base.maxRotate);
+  const xPad = ((halfW + insetPx) / tableW) * 100;
+  const yPad = ((halfH + insetPx) / tableH) * 100;
+  const minX = Math.min(49, Math.max(base.minX, xPad));
+  const maxX = Math.max(51, Math.min(base.maxX, 100 - xPad));
+  const minY = Math.min(49, Math.max(base.minY, yPad));
+  const maxY = Math.max(51, Math.min(base.maxY, 100 - yPad));
+  return { ...base, minX, maxX, minY, maxY };
+}
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }

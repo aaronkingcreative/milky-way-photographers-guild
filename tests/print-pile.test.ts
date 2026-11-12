@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { PRINT_SAFE, PRINT_SAFE_WIDE, PRINT_SPREAD_MIN_WIDTH, clampPose, rotatedPrintHalfSize, scatterGridSize, scatterPrints, seedFromKeys } from "../lib/print-pile.ts";
+import { PRINT_SAFE, PRINT_SAFE_WIDE, PRINT_SPREAD_MIN_WIDTH, clampPose, printFrameSize, printSafeForTable, rotatedPrintHalfSize, scatterGridSize, scatterPrints, seedFromKeys } from "../lib/print-pile.ts";
 import { DEFAULT_PRINT_AVATAR, PILE_AVATAR_WIDTH, PILE_PHOTO_WIDTH, showcaseAvatarUrl, showcaseThumbUrl } from "../lib/showcase-images.ts";
 
 test("a seed from the same keys stays stable and a scatter stays on the table", () => {
@@ -147,6 +147,29 @@ test("rotated phone prints stay at least 8px inside a 375 and 390 table", () => 
         assert.ok(cx + halfW <= table.tableW - 8 + 0.5, `right ${table.tableW - (cx + halfW)} seed ${seed}`);
         assert.ok(cy - halfH >= 8 - 0.5, `top ${cy - halfH} seed ${seed}`);
         assert.ok(cy + halfH <= table.tableH - 8 + 0.5, `bottom ${table.tableH - (cy + halfH)} seed ${seed}`);
+      }
+    }
+  }
+});
+
+test("printSafeForTable keeps a wide rotated print inside 1280, 1440 and 1920 tables", () => {
+  const cases = [
+    { tableW: 1240, tableH: 577, printLong: 20.5 * 12.80 },
+    { tableW: 1360, tableH: 608, printLong: 18.75 * 16 },
+    { tableW: 1632, tableH: 608, printLong: 18.75 * 16 },
+  ];
+  for (const table of cases) {
+    const frame = printFrameSize(table.printLong, 36);
+    const safe = printSafeForTable(table.tableW, table.tableH, frame.width, frame.height, PRINT_SAFE_WIDE, 8);
+    for (let seed = 1; seed <= 30; seed += 1) {
+      for (const pose of scatterPrints(9, seed, safe)) {
+        const { halfW, halfH } = rotatedPrintHalfSize(frame.width, frame.height, pose.rotate);
+        const cx = (pose.x / 100) * table.tableW;
+        const cy = (pose.y / 100) * table.tableH;
+        assert.ok(cx - halfW >= 8 - 0.5, `left ${cx - halfW} w=${table.tableW} seed ${seed}`);
+        assert.ok(cx + halfW <= table.tableW - 8 + 0.5, `right w=${table.tableW} seed ${seed}`);
+        assert.ok(cy - halfH >= 8 - 0.5, `top w=${table.tableW} seed ${seed}`);
+        assert.ok(cy + halfH <= table.tableH - 8 + 0.5, `bottom w=${table.tableW} seed ${seed}`);
       }
     }
   }

@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent } from "react";
 import { createPortal } from "react-dom";
 import { KeepTail } from "@/components/KeepTail";
 import { nextPrintLabel, previousPrintLabel, putPrintBackLabel, shufflePileLabel } from "@/lib/public-copy";
-import { DRAG_THRESHOLD_PX, PRINT_SAFE, PRINT_SAFE_WIDE, clampPose, isWidePrintSpread, scatterPrints, seedFromKeys, type PrintPose } from "@/lib/print-pile";
+import { DRAG_THRESHOLD_PX, PRINT_SAFE, PRINT_SAFE_WIDE, clampPose, isWidePrintSpread, printFrameSize, printSafeForTable, scatterPrints, seedFromKeys, type PrintPose, type PrintSafe } from "@/lib/print-pile";
 import type { ShowcasePhoto } from "@/lib/public-showcase";
 import { DEFAULT_PRINT_AVATAR, isDefaultPrintAvatar, showcaseAvatarUrl, showcaseThumbUrl } from "@/lib/showcase-images";
 
@@ -62,8 +62,11 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
   const [shuffleSeed, setShuffleSeed] = useState(0);
   const baseSeed = useMemo(() => seedFromKeys(keys), [keys]);
   const seed = (baseSeed + shuffleSeed) >>> 0;
+  const [wideSafe, setWideSafe] = useState<PrintSafe>(PRINT_SAFE_WIDE);
+  const wideSafeRef = useRef(wideSafe);
+  wideSafeRef.current = wideSafe;
   const narrowLayouts = useMemo(() => scatterPrints(visible.length, seed, PRINT_SAFE), [visible.length, seed]);
-  const wideLayouts = useMemo(() => scatterPrints(visible.length, seed, PRINT_SAFE_WIDE), [visible.length, seed]);
+  const wideLayouts = useMemo(() => scatterPrints(visible.length, seed, wideSafe), [visible.length, seed, wideSafe]);
   const [overrides, setOverrides] = useState<Record<number, PosePair>>({});
   const [order, setOrder] = useState(() => visible.map((_, index) => index));
   const [dragging, setDragging] = useState<number | null>(null);
@@ -81,6 +84,30 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
   const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => setMounted(true), []);
+  useLayoutEffect(() => {
+    const table = tableRef.current;
+    if (!table) return;
+    const apply = () => {
+      const box = table.getBoundingClientRect();
+      const probe = document.createElement("div");
+      probe.style.cssText = "position:absolute;visibility:hidden;pointer-events:none;width:var(--print-long);height:0;";
+      table.appendChild(probe);
+      const long = probe.getBoundingClientRect().width;
+      probe.remove();
+      if (!(box.width > 0) || !(box.height > 0) || !Number.isFinite(long) || long <= 0) return;
+      const frame = printFrameSize(long, 36);
+      const next = printSafeForTable(box.width, box.height, frame.width, frame.height, PRINT_SAFE_WIDE, 8);
+      setWideSafe((current) => (
+        current.minX === next.minX && current.maxX === next.maxX && current.minY === next.minY && current.maxY === next.maxY
+          ? current
+          : next
+      ));
+    };
+    apply();
+    const observer = new ResizeObserver(apply);
+    observer.observe(table);
+    return () => observer.disconnect();
+  }, []);
   useEffect(() => {
     setOverrides({});
     setOrder(visible.map((_, index) => index));
@@ -207,7 +234,7 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
       x: drag.origX + (dx / rect.width) * 100,
       y: drag.origY + (dy / rect.height) * 100,
       rotate: drag.origRotate,
-    }, wide ? PRINT_SAFE_WIDE : PRINT_SAFE);
+    }, wide ? wideSafeRef.current : PRINT_SAFE);
     const index = drag.index;
     setOverrides((current) => ({
       ...current,
