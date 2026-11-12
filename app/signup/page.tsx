@@ -14,7 +14,7 @@ export default async function Page() {
   const { data: { user } } = await supabase.auth.getUser();
   if (user) redirect("/guild-hall");
   return (
-    <>
+    <div className="mw-public">
       <AuthShell eyebrow="Join the Guild" title="Shoot the night with people who get it" offer={signupOffer}>
         <Suspense>
           <AuthForm mode="signup" formToken={issueFormToken()} />
@@ -23,6 +23,6 @@ export default async function Page() {
       <Suspense fallback={null}>
         <PublicShowcase />
       </Suspense>
-    </>
+    </div>
   );
 }
