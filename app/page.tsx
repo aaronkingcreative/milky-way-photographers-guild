@@ -62,7 +62,7 @@ export default async function Home() {
               Milky Way Photographers Guild
             </p>
             <h1 className="mw-home-headline mt-6 max-w-4xl font-black leading-[.95] tracking-tight text-white">
-              <KeepTail text={homeHeadline} />
+              {homeHeadline}
             </h1>
           </div>
           <div className="mw-home-hero-copy">
@@ -98,7 +98,7 @@ export default async function Home() {
               width={2000}
               height={1125}
               priority
-              sizes="(min-width: 1024px) 58vw, 100vw"
+              sizes="(min-width: 1100px) 58vw, 100vw"
               className="h-auto w-full rounded-md border border-white/15 object-cover shadow-[0_28px_70px_rgba(0,0,0,0.42)]"
             />
             <figcaption className="mt-3 text-base leading-6 text-[#f4f7fb]">

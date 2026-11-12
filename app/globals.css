@@ -3060,6 +3060,30 @@ p, li, dd, td { text-wrap: pretty; }
   font-size: var(--mw-member-h1);
 }
 
+
+/* H03: a 1920 viewport still caps the header inner at 1680px, but the
+   max-width 1680 tightening is viewport-based and does not apply there.
+   Guild Hall is the widest label, so Learn was clipped on that page only.
+   Do not clip the row, and tighten tracking so all seven links stay visible. */
+@media (min-width: 1281px) {
+  .mw-header-nav {
+    height: auto;
+    min-height: var(--mw-header-h);
+    overflow: visible;
+  }
+  .mw-primary-nav {
+    min-width: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: .35rem;
+    column-gap: 10px;
+  }
+  .mw-primary-nav-link {
+    letter-spacing: .04em;
+    font-size: 17px;
+  }
+}
+
 /* Home */
 .mw-home-hero { padding-top: 64px; padding-bottom: 4rem; }
 .mw-home-hero-grid {
@@ -3067,12 +3091,18 @@ p, li, dd, td { text-wrap: pretty; }
   align-items: start;
   gap: 2.5rem 2rem;
 }
-@media (min-width: 1024px) {
+@media (min-width: 1100px) {
   .mw-home-hero-grid { grid-template-columns: .86fr 1.14fr; }
   .mw-home-hero-grid > .lg\:col-span-2,
   .mw-home-hero-grid > :first-child { grid-column: 1 / -1; }
 }
-.mw-home-headline { font-size: clamp(56px, 5.5vw, 104px); }
+.mw-home-headline {
+  font-size: clamp(56px, 5.5vw, 104px);
+  text-wrap: balance;
+}
+@media (max-width: 480px) {
+  .mw-home-headline { font-size: 46px; }
+}
 .mw-home-offer {
   text-wrap: pretty;
   max-width: 36ch;
@@ -3113,8 +3143,27 @@ p, li, dd, td { text-wrap: pretty; }
 
 .mw-rank-ladder {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: .6rem 1rem;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+@media (min-width: 640px) {
+  .mw-rank-ladder {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: .6rem 1rem;
+    flex-direction: row;
+  }
+  .mw-rank-ladder li,
+  .mw-rank-ladder li + li {
+    padding: 0 1rem 0 0;
+  }
+  .mw-rank-ladder li + li { padding-left: 1rem; }
+  .mw-rank-ladder li + li::before {
+    left: 0;
+    right: auto;
+    top: 1.05rem;
+    width: 1px;
+    height: 2rem;
+  }
 }
 
 .mw-stats-pics-lead {

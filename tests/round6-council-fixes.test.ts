@@ -108,3 +108,26 @@ test("Aaron's Hall message body is not edited", () => {
   assert.equal(message.includes("{body}"), true);
   assert.equal(message.includes("Read the whole note"), true);
 });
+
+test("the home hero stacks below 1100px and balances the headline on a phone", () => {
+  const css = read("app/globals.css");
+  assert.equal(css.includes("@media (min-width: 1024px) {\n  .mw-home-hero-grid"), false);
+  assert.equal(css.includes("@media (min-width: 1100px) {\n  .mw-home-hero-grid"), true);
+  assert.match(css, /\.mw-home-headline \{[\s\S]*text-wrap: balance;/);
+  assert.match(css, /@media \(max-width: 480px\) \{[\s\S]*\.mw-home-headline \{ font-size: 46px; \}/);
+  const home = read("app/page.tsx");
+  assert.equal(home.includes("<KeepTail text={homeHeadline} />"), false);
+  assert.equal(home.includes("{homeHeadline}"), true);
+});
+
+test("the public rank ladder is five equal columns from 640px so Master is not alone at 1024", () => {
+  const css = read("app/globals.css");
+  assert.equal(css.includes("repeat(5, minmax(0, 1fr))"), true);
+  assert.equal(css.includes("repeat(auto-fit, minmax(120px, 1fr))"), false);
+});
+
+test("the desktop nav can wrap instead of clipping Learn on the Hall", () => {
+  const css = read("app/globals.css");
+  assert.match(css, /@media \(min-width: 1281px\) \{[\s\S]*\.mw-primary-nav \{[\s\S]*min-width: 0;[\s\S]*flex-wrap: wrap;/);
+  assert.equal(read("lib/nav-menu.ts").includes('["Learn", "/courses"]'), true);
+});
