@@ -2451,8 +2451,11 @@ main :is(h1, h2, h3, h4) { text-wrap: balance; }
 .mw-course-card.is-featured .mw-course-overlay {
   position: absolute;
   left: 0;
+  right: 0;
   bottom: 0;
+  width: 100%;
   max-width: 34rem;
+  box-sizing: border-box;
   padding: 1.35rem 1.4rem 1.3rem;
   z-index: 1;
 }
