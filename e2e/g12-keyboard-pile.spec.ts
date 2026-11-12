@@ -64,20 +64,31 @@ async function runPileKeyboard(page: Page, width: number, height: number) {
   await expect(page.locator("button.mw-print:focus")).toHaveCount(1);
 
   // Tab to shuffle and activate it.
-  const before = await page.locator("button.mw-print").evaluateAll((nodes) =>
-    nodes.map((node) => (node as HTMLElement).style.transform),
-  );
+  function poseSignature() {
+    return page.locator("button.mw-print").evaluateAll((nodes) =>
+      nodes.map((node) => {
+        const style = node as HTMLElement;
+        return [style.style.getPropertyValue("--x"), style.style.getPropertyValue("--y"), style.style.getPropertyValue("--rot-narrow"), style.style.getPropertyValue("--x-wide"), style.style.getPropertyValue("--y-wide"), style.style.getPropertyValue("--rot-wide")].join(",");
+      }).join("|"),
+    );
+  }
+  const before = await poseSignature();
+  expect(before.length).toBeGreaterThan(0);
   await tabUntil(page, "button.mw-print-shuffle");
   await expect(page.getByRole("button", { name: "Shuffle the pile" })).toBeFocused();
   await page.locator("button.mw-print-shuffle:focus-visible, button.mw-print-shuffle:focus").screenshot({
     path: join(SHOTS, `pile-shuffle-ring-${width}.png`),
   });
   await page.keyboard.press("Enter");
-  await page.waitForTimeout(80);
-  const after = await page.locator("button.mw-print").evaluateAll((nodes) =>
-    nodes.map((node) => (node as HTMLElement).style.transform),
-  );
-  expect(after.join("|")).not.toBe(before.join("|"));
+  await page.waitForFunction((prior) => {
+    const now = Array.from(document.querySelectorAll("button.mw-print")).map((node) => {
+      const style = node as HTMLElement;
+      return [style.style.getPropertyValue("--x"), style.style.getPropertyValue("--y"), style.style.getPropertyValue("--rot-narrow"), style.style.getPropertyValue("--x-wide"), style.style.getPropertyValue("--y-wide"), style.style.getPropertyValue("--rot-wide")].join(",");
+    }).join("|");
+    return now.length > 0 && now !== prior;
+  }, before, { timeout: 5000 });
+  const after = await poseSignature();
+  expect(after).not.toBe(before);
 
   const flow = await overflow(page);
   expect(flow.ok, `overflow at ${width}: ${flow.scroll} > ${flow.client}`).toBeTruthy();
