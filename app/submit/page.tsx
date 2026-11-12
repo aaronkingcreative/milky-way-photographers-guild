@@ -23,7 +23,7 @@ export default async function Page() {
   ]);
 
   return (
-    <section className="mx-auto max-w-[760px] px-5 py-[38px] pb-[90px]">
+    <section className="mw-submit-page mx-auto w-full min-w-0 max-w-[760px] px-5 py-[38px] pb-[90px]">
       <div className="mb-7">
         <div className="mw-prototype-eyebrow mb-2">
           <Image src="/launch/mwpg/MWPG_Logo_FAVICON.png" alt="" width={20} height={20} />

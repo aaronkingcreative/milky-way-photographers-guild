@@ -13,7 +13,7 @@ export default async function Page() {
   const milkyWayYears = await fetchMilkyWayYears(supabase, [user.id]).catch(() => new Map());
 
   return (
-    <main className="mw-page-wide profile-settings-page">
+    <div className="mw-page-wide profile-settings-page">
       <div className="profile-settings-hero">
         <p className="profile-settings-kicker"><Image src="/launch/mwpg/MWPG_Logo_FAVICON.png" alt="" width={20} height={20} />Profile Settings</p>
         <h1>Your Guild Identity</h1>
@@ -21,6 +21,6 @@ export default async function Page() {
       </div>
       <ProfileSettingsForm profile={{...profile, email: profile?.email || user.email}} />
       <div id="streak" className="mw-streak-section"><MilkyWayYearsPanel years={milkyWayYears.get(user.id) || []} isMe /></div>
-    </main>
+    </div>
   );
 }

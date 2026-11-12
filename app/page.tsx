@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { KeepTail } from "@/components/KeepTail";
-import { keepLastTwo } from "@/lib/keep-last-two";
+import { keepLastThree, keepLastTwo } from "@/lib/keep-last-two";
 import { RankLadder } from "@/components/RankLadder";
 import { PublicShowcase } from "@/components/PublicShowcase";
 import { isBeforeGuildLaunch } from "@/lib/launch";
@@ -128,7 +128,7 @@ export default async function Home() {
                 <p className="mw-inside-num">{String(index + 1).padStart(2, "0")}</p>
                 <div>
                   <h3><KeepTail text={item.title} /></h3>
-                  <p className="mw-copy-natural">{item.body}</p>
+                  <p className="mw-copy-natural">{keepLastThree(item.body)}</p>
                 </div>
               </article>
             ))}
@@ -148,7 +148,7 @@ export default async function Home() {
                 <p className="mw-inside-num">{String(index + 3).padStart(2, "0")}</p>
                 <div>
                   <h3><KeepTail text={item.title} /></h3>
-                  <p className="mw-copy-natural">{item.body}</p>
+                  <p className="mw-copy-natural">{keepLastThree(item.body)}</p>
                   {item.title === "Ranks" ? <RankLadder /> : null}
                 </div>
               </article>
