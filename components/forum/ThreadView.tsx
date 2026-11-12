@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { keepLastTwo } from "@/lib/keep-last-two";
 import { forumExcerpt, forumPostHref, forumStamp, type ForumAuthor } from "@/lib/forum";
 import { ForumCrumbs } from "@/components/forum/ForumHead";
 import { ForumBody } from "@/components/forum/ForumBody";
@@ -36,7 +37,7 @@ export function ThreadView({ thread, category, posts, indexOf, openingVisible, p
     <section className="mw-forum-shell">
       <ForumCrumbs items={[{ label: "Forum", href: "/forum" }, ...(category ? [{ label: category.label, href: `/forum/${category.slug}` }] : [])]} />
       <header className="mw-forum-thread-head">
-        <h1 className="mw-guild-page-title mw-forum-thread-h1">{thread.title}</h1>
+        <h1 className="mw-guild-page-title mw-forum-thread-h1">{keepLastTwo(thread.title)}</h1>
         <p className="mw-forum-thread-sub">
           {thread.pinned ? <span className="mw-forum-flag is-pin">Pinned</span> : null}
           {thread.locked ? <span className="mw-forum-flag">Locked</span> : null}
