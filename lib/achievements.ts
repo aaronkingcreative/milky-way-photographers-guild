@@ -131,6 +131,15 @@ export function nextRankForCount(count: number) {
   return rankThresholds.find((rank) => rank.min > count) ?? null;
 }
 
+/** Honor spans for the five stored ranks. Unranked is zero honors and is not a rung. */
+export function rankHonorRanges() {
+  return rankThresholds.map((rank, index) => {
+    const next = rankThresholds[index + 1];
+    const honors = next ? `${rank.min}–${next.min - 1}` : `${rank.min}+`;
+    return { short: rank.short, full: rank.full, min: rank.min, honors };
+  });
+}
+
 // Decade Under the Stars lives under the legacy DB id "year_2018" (metadata.year 2018); the repo seed calls it
 // special_decade_under_the_stars. Never derive its label from the id or a year: it is the ten-year honor.
 export const DECADE_BADGE_LABEL = "Decade";

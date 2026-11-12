@@ -15,6 +15,16 @@ function denverSunday(now:Date){const p=parts(now);const dow=new Date(Date.UTC(+
 export function iotwContestWeek(iso:string){const p=parts(new Date(iso));const d=new Date(Date.UTC(+p.year,+p.month-1,+p.day));const dow=d.getUTCDay()||7;d.setUTCDate(d.getUTCDate()+4-dow);const year=d.getUTCFullYear();const week=Math.ceil(((d.getTime()-Date.UTC(year,0,1))/86400000+1)/7);return{week,year};}
 /** "Week 45" for a ballot row or period (uses the stored contest_week when present). */
 export function iotwWeekLabel(b:{contest_week?:number|null;submission_cutoff?:string|null;period_start?:string|null}|null|undefined){if(!b)return'';const w=b.contest_week||iotwContestWeek((b.submission_cutoff||b.period_start)!).week;return`Week ${w}`;}
+/** Strip a leading "Week " so "Image of the Week" is not followed by another Week. */
+export function iotwWeekNumber(label:string|null|undefined){return String(label||"").replace(/^Week\s+/i,"").trim();}
+export function imageOfTheWeekName(label:string|null|undefined){const week=iotwWeekNumber(label);return week?`Image of the Week ${week}`:"Image of the Week";}
+/** Calendar parts in America/Denver for a computed close, never a hardcoded date. */
+export function formatMountainDateParts(iso:string){
+  const parts=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:TZ,weekday:'long',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}).formatToParts(new Date(iso)).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+  const dayPeriod=(parts.dayPeriod||'').toUpperCase();
+  const time=keepTimeTogether(`${parts.hour}:${parts.minute}${dayPeriod?` ${dayPeriod}`:''} ${parts.timeZoneName||''}`.replace(/\s+/g,' ').trim());
+  return {weekday:parts.weekday,month:parts.month,day:parts.day,time,headline:`${parts.month} ${parts.day}`};
+}
 function ballotFor(sunday:Date,now:Date){const start=mtToUtc(sunday.getUTCFullYear(),sunday.getUTCMonth()+1,sunday.getUTCDate(),12);const end=mtToUtc(sunday.getUTCFullYear(),sunday.getUTCMonth()+1,sunday.getUTCDate()+7,12);const{week,year}=iotwContestWeek(start.toISOString());return{period_start:start.toISOString(),period_end:end.toISOString(),submission_cutoff:start.toISOString(),voting_opens_at:start.toISOString(),voting_closes_at:end.toISOString(),contest_week:week,contest_year:year,status:(now<start?'upcoming':now<end?'voting_open':'voting_closed') as string};}
 /** The ballot whose voting is open right now (its entries closed at the most recent Sunday 12:00 PM MT). */
 export function getIotwPeriod(now=new Date()){const s=denverSunday(now);const b=ballotFor(s,now);if(now>=new Date(b.period_start))return b;return ballotFor(new Date(Date.UTC(s.getUTCFullYear(),s.getUTCMonth(),s.getUTCDate()-7)),now);}

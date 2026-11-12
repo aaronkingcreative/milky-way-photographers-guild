@@ -2,9 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CoursesLibrary } from "@/components/courses/CoursesLibrary";
 import { PendingBand } from "@/components/field-desk/PendingBand";
+import { WinnersEmpty } from "@/components/winners/WinnersEmpty";
 import { KeepTail } from "@/components/KeepTail";
 import { ScenePage } from "@/components/ScenePage";
-import { formatMountainShort, getIotwSchedule } from "@/lib/iotw";
+import { formatMountainShort, getIotwSchedule, imageOfTheWeekName } from "@/lib/iotw";
 import { fieldDeskGreeting } from "@/lib/member-labels";
 import { courseLibraryLabel, courseLibraryUrl, momentOfEnvyCopy, momentOfEnvyPending, resourcesNote } from "@/lib/public-copy";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -21,7 +22,7 @@ export default async function Page() {
   const schedule = await getIotwSchedule(supabase).catch(() => null);
   const pending = schedule?.voting || schedule?.entry || null;
   const throneCopy = pending
-    ? `Image of the Week ${pending.label} winner is announced ${formatMountainShort(pending.voting_closes_at)}`
+    ? `${imageOfTheWeekName(pending.label)} winner is announced ${formatMountainShort(pending.voting_closes_at)}`
     : "The first Image of the Week winner will appear here";
   const next = pending;
 
@@ -54,17 +55,10 @@ export default async function Page() {
 
       <section id="preview-winners" className="mx-auto max-w-6xl px-5 py-14">
         <p className="eyebrow">Image of the Week</p>
-        <h1 className="mt-2 font-display text-5xl uppercase">Image of the Week Winners</h1>
+        <h1 className="mw-winners-headline">Image of the Week Winners</h1>
         <p className="mt-3 max-w-3xl text-white/68">Every Image of the Week winner, newest first. Open any winning image to read its field report.</p>
-        <p className="mt-3 max-w-3xl text-white/68"><KeepTail text={momentOfEnvyCopy} /></p>
-        <div className="mw-winners-empty card mt-8">
-          <p className="eyebrow">The throne is waiting</p>
-          <h2 className="mt-2 font-display text-3xl uppercase text-[#f0bd66]">No winners crowned yet</h2>
-          <p className="mt-3 text-white/68">
-            {next ? `The first winner, Image of the Week ${next.label}, is announced ${formatMountainShort(next.voting_closes_at)}. Every week's winner will be listed here after that.` : "Every week's winner will be listed here once voting closes."}
-          </p>
-          <Link href="/feed" className="mw-btn-secondary mt-5 inline-block px-4 py-2 text-xs">Browse the Gallery</Link>
-        </div>
+        <p className="mt-3 max-w-3xl text-white/68 mw-copy-natural">{momentOfEnvyCopy}</p>
+        <WinnersEmpty next={next} />
       </section>
 
       <section id="preview-field-desk" className="mw-page-wide fd-page">
@@ -72,18 +66,15 @@ export default async function Page() {
           <div>
             <span className="fd-label">Your Field Desk</span>
             <h1><KeepTail text={fieldDeskGreeting("Guild member")} /></h1>
-            <p><KeepTail text="Your standing in the Guild, this week's contenders, and the honors you're chasing." /></p>
+            <p className="fd-rank-now">Unranked</p>
+            <div className="fd-rank-progress">
+              <span className="fd-rank-progress-track" aria-hidden="true"><span className="fd-rank-progress-fill" style={{ width: "0%" }} /></span>
+              <span className="fd-rank-progress-label">Beginner, 1 honor to go</span>
+            </div>
+            <p className="mw-copy-natural"><KeepTail text="Your standing in the Guild, this week's contenders, and the honors you're chasing." /></p>
           </div>
           <Link className="fd-outline-button" href="/submit">File a Field Report</Link>
         </div>
-        <section className="fd-panel fd-standing">
-          <div className="fd-standing-head">
-            <div>
-              <span className="fd-label fd-label-muted">Guild Standing</span>
-              <h2>Beginner Milky Way Photographer</h2>
-            </div>
-          </div>
-        </section>
         <section className="fd-contenders">
           <div className="fd-contender-head">
             <div>
