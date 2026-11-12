@@ -4,6 +4,7 @@ import { EMAIL_DOT_MESSAGE, EMAIL_REQUIRED_MESSAGE, EMAIL_SHAPE_MESSAGE, emailFi
 import { readFileSync } from "node:fs";
 import { contactLead, courseLibraryUrl, fieldHonorsPublicLine, hidePhotosHelp, hidePhotosTitle, homeFeatures, homeLead, momentOfEnvyCopy, nextPrintLabel, pileLead, previousPrintLabel, privacySections, publicPhotoChoiceCopy, putPrintBackLabel, rankNameList, resourcesNote, shufflePileLabel, signupIntro, signupOffer, termsSections } from "../lib/public-copy.ts";
 import { achievementLibraryCategoryDetails, honorTypeLabel, seededAchievementDefinitions } from "../lib/achievements.ts";
+import { guildCourses } from "../lib/courses.ts";
 import { RANKS } from "../lib/ranks.ts";
 import { CHECK_EMAIL_MESSAGE, DISPOSABLE_EMAIL_MESSAGE, SIGNUP_REASSURANCE, STALE_FORM_MESSAGE, TOO_FAST_MESSAGE } from "../lib/signup-messages.ts";
 import { WEEKLY_SUBMISSION_LIMIT } from "../lib/images.ts";
@@ -162,4 +163,19 @@ test("seasonal Field Honors use one automatic rule in the library, the type labe
   assert.equal(honorTypeLabel(january!), "Manual Field Honor");
   const perfect = seededAchievementDefinitions.find((item) => item.id === "special_perfect_year");
   assert.equal(honorTypeLabel(perfect!), "Automatic special");
+});
+
+test("course cards keep the four titles and bodies, and feature the beginner course", () => {
+  assert.equal(guildCourses.length, 4);
+  assert.equal(guildCourses[0].title, "Beginner Milky Way Photography");
+  assert.equal(guildCourses[0].featured, true);
+  assert.equal(guildCourses.filter((course) => course.featured).length, 1);
+  assert.equal(guildCourses[0].body, "For a first night under the Milky Way. You will plan the shot, expose the sky, and bring a frame home.");
+  for (const course of guildCourses) {
+    assert.equal(course.title.includes("\u2014"), false, course.title);
+    assert.equal(course.body.includes("\u2014"), false, course.body);
+    assert.equal(course.title.includes(":"), false, course.title);
+    assert.equal(course.image.startsWith("/courses/"), true, course.image);
+    assert.ok(course.body);
+  }
 });
