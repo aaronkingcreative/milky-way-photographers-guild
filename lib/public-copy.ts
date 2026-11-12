@@ -10,6 +10,12 @@ export const rankRangeSentence = RANKS.map((rank) => {
 export const homeHeadline = "Get useful notes on your Milky Way photos.";
 export const homeLead = "The private image-first, ad\u2011free community for Milky Way photographers. Joining is free right now. Free access lasts through\u00A02027.\u00A0I\u00A0plan\u00A0a\u00A0paid\u00A0tier.";
 export const signupIntro = "Share field reports, earn honors, and climb the Ascent. Joining is free right now. Free access lasts through\u00A02027.\u00A0I\u00A0plan\u00A0a\u00A0paid\u00A0tier.";
+
+export const signupOffer = [
+  "Useful notes on your Milky Way photos.",
+  "A weekly Image of the Week vote and a Monday Moment of Envy.",
+  "Free access lasts through 2027, and I plan a paid tier.",
+] as const;
 export const contactLead = "Questions? Email me at";
 export const resourcesNote = "I am still writing these resources. The course library is open while I finish\u00A0them.";
 export const courseLibraryUrl = "https://onlinecourses.photogadventures.com";

@@ -6,6 +6,8 @@ export type PrintSafe = {
   minY: number;
   maxY: number;
   maxRotate: number;
+  /** When set, the jittered slot grid uses this many rows instead of the loose wide 5x2. */
+  rows?: number;
 };
 
 /** Phone and narrow tables. Inset so a rotated, slightly larger print stays at least 8px inside the table. */
@@ -26,9 +28,22 @@ export const PRINT_SAFE_WIDE: PrintSafe = {
   maxRotate: 11,
 };
 
-/** Must match the CSS media query that swaps print positions and sizes. */
-export const PRINT_SPREAD_MIN_WIDTH = 800;
+/** Must match the CSS media query that swaps print positions and sizes off the phone cluster. */
+export const PRINT_SPREAD_MIN_WIDTH = 600;
 export const PRINT_SPREAD_MQ = `(min-width: ${PRINT_SPREAD_MIN_WIDTH}px)`;
+/** Desktop 5 by 2 scatter starts here. 600 to 1023 uses a 3 by 3 tablet grid. */
+export const PRINT_DESKTOP_MIN_WIDTH = 1024;
+export const PRINT_DESKTOP_MQ = `(min-width: ${PRINT_DESKTOP_MIN_WIDTH}px)`;
+
+/** Wide enough to fill a tablet table, but forced to a 3 by 3 grid. */
+export const PRINT_SAFE_TABLET: PrintSafe = {
+  minX: 10,
+  maxX: 90,
+  minY: 16,
+  maxY: 84,
+  maxRotate: 11,
+  rows: 3,
+};
 
 export type PrintPose = {
   x: number;
@@ -129,6 +144,10 @@ function shuffleIndices(count: number, rand: () => number): number[] {
 export function scatterGridSize(count: number, safe: PrintSafe = PRINT_SAFE): { cols: number; rows: number } {
   if (count <= 1) return { cols: 1, rows: 1 };
   if (count === 2) return { cols: 2, rows: 1 };
+  if (safe.rows && count >= 4) {
+    const rows = safe.rows;
+    return { cols: Math.ceil(count / rows), rows };
+  }
   if (isLoose(safe) && count >= 4) {
     const rows = 2;
     return { cols: Math.ceil(count / rows), rows };
@@ -200,6 +219,14 @@ export function scatterPrints(count: number, seed: number, safe: PrintSafe = PRI
 
 export function isWidePrintSpread(): boolean {
   return typeof window !== "undefined" && window.matchMedia(PRINT_SPREAD_MQ).matches;
+}
+
+export function isDesktopPrintSpread(): boolean {
+  return typeof window !== "undefined" && window.matchMedia(PRINT_DESKTOP_MQ).matches;
+}
+
+export function printSafeBaseForWidth(width: number): PrintSafe {
+  return width >= PRINT_DESKTOP_MIN_WIDTH ? PRINT_SAFE_WIDE : PRINT_SAFE_TABLET;
 }
 
 export const DRAG_THRESHOLD_PX = 8;

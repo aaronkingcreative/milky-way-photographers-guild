@@ -5,7 +5,7 @@ import { AuthShell } from "@/components/auth/AuthShell";
 import { PublicShowcase } from "@/components/PublicShowcase";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { issueFormToken } from "@/lib/signup-guard";
-import { signupIntro } from "@/lib/public-copy";
+import { signupOffer } from "@/lib/public-copy";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +15,7 @@ export default async function Page() {
   if (user) redirect("/guild-hall");
   return (
     <>
-      <AuthShell eyebrow="Join the Guild" title="Shoot the night with people who get it" intro={signupIntro}>
+      <AuthShell eyebrow="Join the Guild" title="Shoot the night with people who get it" offer={signupOffer}>
         <Suspense>
           <AuthForm mode="signup" formToken={issueFormToken()} />
         </Suspense>

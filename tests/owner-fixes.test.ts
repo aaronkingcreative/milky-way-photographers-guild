@@ -37,7 +37,7 @@ test("vote confirmation names the real Mountain deadline", () => {
   const when = formatMountainShort(period.voting_closes_at);
   const text = voteLockConfirmation(3, period.voting_closes_at);
   assert.equal(text, `Your Top 3 is locked in. You can change it until ${when}.`);
-  assert.match(when, /Sun, Nov 15, 12:00 PM MST/);
+  assert.match(when, /Sun, Nov 15, 12:00\sPM\sMST/);
   assert.match(formatMountainShort("2026-07-12T18:00:00.000Z"), /MDT/);
   assert.match(formatMountainShort("2026-01-11T19:00:00.000Z"), /MST/);
   assert.equal(voteLockConfirmation(2, period.voting_closes_at).startsWith("Your Top 2 is locked in."), true);

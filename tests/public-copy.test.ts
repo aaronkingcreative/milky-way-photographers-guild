@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { EMAIL_DOT_MESSAGE, EMAIL_REQUIRED_MESSAGE, EMAIL_SHAPE_MESSAGE, emailFieldError } from "../lib/email-address.ts";
 import { readFileSync } from "node:fs";
-import { contactLead, courseLibraryUrl, fieldHonorsPublicLine, hidePhotosHelp, hidePhotosTitle, homeFeatures, homeLead, momentOfEnvyCopy, nextPrintLabel, pileLead, previousPrintLabel, privacySections, publicPhotoChoiceCopy, putPrintBackLabel, rankNameList, resourcesNote, shufflePileLabel, signupIntro, termsSections } from "../lib/public-copy.ts";
+import { contactLead, courseLibraryUrl, fieldHonorsPublicLine, hidePhotosHelp, hidePhotosTitle, homeFeatures, homeLead, momentOfEnvyCopy, nextPrintLabel, pileLead, previousPrintLabel, privacySections, publicPhotoChoiceCopy, putPrintBackLabel, rankNameList, resourcesNote, shufflePileLabel, signupIntro, signupOffer, termsSections } from "../lib/public-copy.ts";
 import { RANKS } from "../lib/ranks.ts";
 import { CHECK_EMAIL_MESSAGE, DISPOSABLE_EMAIL_MESSAGE, SIGNUP_REASSURANCE, STALE_FORM_MESSAGE, TOO_FAST_MESSAGE } from "../lib/signup-messages.ts";
 import { WEEKLY_SUBMISSION_LIMIT } from "../lib/images.ts";
@@ -20,7 +20,7 @@ test("new customer copy has no em dash, colon, or the retired domain", () => {
     privacySections,
     termsSections,
     rankNameList,
-    messages: [CHECK_EMAIL_MESSAGE, TOO_FAST_MESSAGE, STALE_FORM_MESSAGE, DISPOSABLE_EMAIL_MESSAGE, SIGNUP_REASSURANCE, EMAIL_DOT_MESSAGE, EMAIL_REQUIRED_MESSAGE, EMAIL_SHAPE_MESSAGE, homeLead, signupIntro, contactLead, resourcesNote, fieldHonorsPublicLine, publicPhotoChoiceCopy, hidePhotosTitle, hidePhotosHelp, pileLead, shufflePileLabel, putPrintBackLabel, nextPrintLabel, previousPrintLabel],
+    messages: [CHECK_EMAIL_MESSAGE, TOO_FAST_MESSAGE, STALE_FORM_MESSAGE, DISPOSABLE_EMAIL_MESSAGE, SIGNUP_REASSURANCE, EMAIL_DOT_MESSAGE, EMAIL_REQUIRED_MESSAGE, EMAIL_SHAPE_MESSAGE, homeLead, signupIntro, ...signupOffer, contactLead, resourcesNote, fieldHonorsPublicLine, publicPhotoChoiceCopy, hidePhotosTitle, hidePhotosHelp, pileLead, shufflePileLabel, putPrintBackLabel, nextPrintLabel, previousPrintLabel],
   });
   for (const line of copy) {
     assert.equal(line.includes("\u2014"), false, line);
@@ -126,4 +126,16 @@ test("closing phrases keep their last words together with nbsp", () => {
   assert.equal(homeFeatures[3].body.includes("written\u00A0feedback\u00A0do\u00A0not."), true);
   assert.equal(homeFeatures[4].body.includes("the\u00A0runner-up."), true);
   assert.equal(homeFeatures[5].body.includes("along\u00A0the\u00A0Ascent."), true);
+});
+
+test("signup offer is three short lines with the free and paid facts, and no em dash or colon", () => {
+  assert.equal(signupOffer.length, 3);
+  assert.equal(signupOffer[0], "Useful notes on your Milky Way photos.");
+  assert.equal(signupOffer[1], "A weekly Image of the Week vote and a Monday Moment of Envy.");
+  assert.equal(signupOffer[2], "Free access lasts through 2027, and I plan a paid tier.");
+  const joined = signupOffer.join(" ");
+  assert.equal(joined.includes("\u2014") || joined.includes("—") || joined.includes(":"), false);
+  assert.equal(/through\s*2027/.test(joined), true);
+  assert.equal(/paid tier/.test(joined), true);
+  assert.equal(joined.toLowerCase().includes("photos stay inside"), false);
 });
