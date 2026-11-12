@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { rankHonorRanges, rankThresholds } from "../lib/achievements.ts";
 import { keepLastTwo } from "../lib/keep-last-two.ts";
-import { formatMountainDateParts, getIotwSchedule, imageOfTheWeekName, iotwWeekNumber } from "../lib/iotw.ts";
+import { formatMountainDateParts, formatMountainShort, getIotwSchedule, imageOfTheWeekName, iotwWeekNumber } from "../lib/iotw.ts";
 
 test("Image of the Week names do not repeat the word Week", () => {
   assert.equal(iotwWeekNumber("Week 46"), "46");
@@ -35,7 +35,7 @@ test("the rank ladder uses the five stored honor ranges", () => {
 test("the winners empty date is computed from a close instant, not hardcoded", () => {
   const parts = formatMountainDateParts("2026-11-15T19:00:00.000Z");
   assert.equal(parts.weekday, "Sunday");
-  assert.equal(parts.headline, "Nov 15");
+  assert.equal(parts.headline, "Nov\u00A015");
   assert.match(parts.time, /12:00\u00A0PM\u00A0M[DS]T/);
   const source = readFileSync(new URL("../components/winners/WinnersEmpty.tsx", import.meta.url), "utf8");
   assert.equal(source.includes("Nov 15"), false);
@@ -94,4 +94,12 @@ test("getIotwSchedule rolls to the next ballot after the close", async () => {
 test("keepLastTwo holds the last pair with a NBSP and does not force a longer group", () => {
   assert.equal(keepLastTwo("Guild member, welcome back to the field.").endsWith("the\u00A0field."), true);
   assert.equal(keepLastTwo("Guild member, welcome back to the field.").includes("welcome\u00A0back"), false);
+});
+
+test("Mountain date helpers keep the month and day on one line", () => {
+  const short = formatMountainShort("2026-11-15T19:00:00.000Z");
+  assert.match(short, /Nov\u00A015/);
+  assert.equal(short.includes("Nov 15"), false);
+  const parts = formatMountainDateParts("2026-11-15T19:00:00.000Z");
+  assert.equal(parts.headline, "Nov\u00A015");
 });

@@ -23,7 +23,7 @@ export function formatMountainDateParts(iso:string){
   const parts=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:TZ,weekday:'long',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}).formatToParts(new Date(iso)).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
   const dayPeriod=(parts.dayPeriod||'').toUpperCase();
   const time=keepTimeTogether(`${parts.hour}:${parts.minute}${dayPeriod?` ${dayPeriod}`:''} ${parts.timeZoneName||''}`.replace(/\s+/g,' ').trim());
-  return {weekday:parts.weekday,month:parts.month,day:parts.day,time,headline:`${parts.month} ${parts.day}`};
+  return {weekday:parts.weekday,month:parts.month,day:parts.day,time,headline:`${parts.month}\u00A0${parts.day}`};
 }
 function ballotFor(sunday:Date,now:Date){const start=mtToUtc(sunday.getUTCFullYear(),sunday.getUTCMonth()+1,sunday.getUTCDate(),12);const end=mtToUtc(sunday.getUTCFullYear(),sunday.getUTCMonth()+1,sunday.getUTCDate()+7,12);const{week,year}=iotwContestWeek(start.toISOString());return{period_start:start.toISOString(),period_end:end.toISOString(),submission_cutoff:start.toISOString(),voting_opens_at:start.toISOString(),voting_closes_at:end.toISOString(),contest_week:week,contest_year:year,status:(now<start?'upcoming':now<end?'voting_open':'voting_closed') as string};}
 /** The ballot whose voting is open right now (its entries closed at the most recent Sunday 12:00 PM MT). */
@@ -49,7 +49,10 @@ export async function getIotwEntryPeriod(supabase:any, now=new Date()){
 /** The mandatory vote gate only applies to an open ballot that offers a real choice (2 or more images by other members). */
 export function iotwVoteIsRequired(ballot:{status?:string|null;voting_opens_at?:string|null},eligibleCount:number,now=new Date()){if(eligibleCount<2)return false;if(ballot.status&&ballot.status!=='voting_open')return false;if(ballot.voting_opens_at&&now<new Date(ballot.voting_opens_at))return false;return true;}
 function keepTimeTogether(text:string){return text.replace(/(\d{1,2}:\d{2})\s(AM|PM)\s(M[DS]T)/,"$1\u00A0$2\u00A0$3");}
-export function formatMountainDeadline(iso:string){return keepTimeTogether(new Intl.DateTimeFormat('en-US',{timeZone:TZ,weekday:'long',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}).format(new Date(iso)));}
+/** Keep the month and day on one line, so "Nov 15" never wraps as "Nov / 15". */
+function keepMonthDayTogether(text:string){return text.replace(/\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\s+(\d{1,2})\b/g,"$1\u00A0$2");}
+function formatMountainLine(iso:string,options:Intl.DateTimeFormatOptions){return keepTimeTogether(keepMonthDayTogether(new Intl.DateTimeFormat('en-US',{timeZone:TZ,...options}).format(new Date(iso))));}
+export function formatMountainDeadline(iso:string){return formatMountainLine(iso,{weekday:'long',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'});}
 export function calculateIotwResults(entries:IotwEntry[],votes:IotwVote[]){const map=new Map(entries.map(e=>[e.field_report_id,{...e,total_points:0,first_place_count:0,second_place_count:0,third_place_count:0,total_ballots:0}]));for(const v of votes){const seen=new Set<string>();[[v.first_place_field_report_id,3,'first_place_count'],[v.second_place_field_report_id,2,'second_place_count'],[v.third_place_field_report_id,1,'third_place_count']].forEach(([id,pts,key])=>{if(typeof id==='string'&&!seen.has(id)){const r=map.get(id);if(r){(r as any).total_points+=pts;(r as any)[key as string]+=1;seen.add(id);}}});for(const id of seen){const r=map.get(id);if(r)r.total_ballots+=1;}}return [...map.values()].sort((a,b)=>b.total_points-a.total_points||b.total_ballots-a.total_ballots||b.first_place_count-a.first_place_count||b.second_place_count-a.second_place_count||a.title.localeCompare(b.title)).map((r,i)=>({...r,rank:i+1}));}
 export type IotwScheduleWeek={id:string|null;label:string;contest_week:number;entries_close_at:string;voting_opens_at:string;voting_closes_at:string;status:string};
 /** Both phases that run at once: the week taking entries and the week being voted on (null before the first vote opens). */
@@ -79,7 +82,7 @@ export async function getIotwSchedule(supabase:any,now=new Date()){
   return{entry,voting};
 }
 /** Short Mountain time, e.g. "Sun, Nov 15, 12:00 PM MST", with the clock kept on one line. */
-export function formatMountainShort(iso:string){return keepTimeTogether(new Intl.DateTimeFormat('en-US',{timeZone:TZ,weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}).format(new Date(iso)));}
+export function formatMountainShort(iso:string){return formatMountainLine(iso,{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'});}
 
 /** Confirmation after a member locks a ballot. The deadline is the ballot's own close, in America/Denver. */
 export function voteLockConfirmation(placeCount: number, closesAt: string) {
