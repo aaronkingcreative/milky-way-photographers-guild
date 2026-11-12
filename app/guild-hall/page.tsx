@@ -142,10 +142,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
       const { data: mark } = await supabase.from("guild_message_reads").select("message_id,message_updated_at").eq("message_id", message.id).eq("user_id", user.id).maybeSingle();
       messageRead = isGuildMessageAcknowledged(message, mark);
     }
-    const { data: forumRows } = await supabase.from("forum_threads").select("id,title,category,reply_count,last_post_at,last_post_user_id,user_id").is("deleted_at", null).order("last_post_at", { ascending: false }).limit(4);
+    const { data: forumRows } = await supabase.from("forum_threads").select("id,title,category,reply_count,last_post_at,last_post_user_id,user_id,is_private").is("deleted_at", null).order("last_post_at", { ascending: false }).limit(4);
     forumThreads = forumRows || [];
     recentComments = (cmts || []).filter((c: any) => c.guild_images && !["hidden", "deleted"].includes(c.guild_images.moderation_status));
-    const people = await fetchMembers(supabase, [...recentComments.map((c: any) => c.user_id), ...forumThreads.map((t: any) => t.last_post_user_id || t.user_id)]);
+    const people = await fetchMembers(supabase, [...recentComments.map((c: any) => c.user_id), ...forumThreads.map((t: any) => (t.is_private ? t.user_id : t.last_post_user_id || t.user_id))]);
     people.forEach((m, id) => commenters.set(id, { name: m.name, streak: m.streak }));
   }
   const userIds = [...new Set(images.map((image) => image.user_id).filter(Boolean))];
@@ -260,12 +260,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
                 {forumThreads.length ? (
                   <ol className="mw-rail-comment-list">
                     {forumThreads.map((t: any) => {
-                      const who = commenters.get(t.last_post_user_id || t.user_id)?.name || MEMBER_NAME_FALLBACK;
+                      // Private trips name the organizer, never who posted inside.
+                      const who = commenters.get(t.is_private ? t.user_id : t.last_post_user_id || t.user_id)?.name || MEMBER_NAME_FALLBACK;
                       return (
                         <li key={t.id}>
                           <Link href={`/forum/t/${t.id}`} className="mw-rail-comment">
                             <span className="mw-rail-comment-text">
-                              <span className="mw-rail-comment-body mw-rail-forum-title">{t.title}</span>
+                              <span className="mw-rail-comment-body mw-rail-forum-title">{t.is_private ? <span className="mw-rail-forum-private">Private trip · </span> : null}{t.title}</span>
                               <span className="mw-rail-comment-who"><b>{who}</b><time dateTime={t.last_post_at}>{shortAgo(t.last_post_at)}</time><span className="mw-rail-forum-count">{t.reply_count} {t.reply_count === 1 ? "reply" : "replies"}</span></span>
                             </span>
                           </Link>

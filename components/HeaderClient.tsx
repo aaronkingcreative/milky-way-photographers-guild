@@ -37,6 +37,7 @@ export function HeaderClient({
   userId = null,
   pendingClaims = 0,
   reviewNotice = null,
+  forumNotices = [],
 }: {
   user: boolean;
   isAdmin: boolean;
@@ -53,6 +54,8 @@ export function HeaderClient({
   pendingClaims?: number;
   /** Members: unseen Guild review results with a note or a reassignment. */
   reviewNotice?: { count: number; text: string } | null;
+  /** Private trip news. Organizers hear about new requests, members hear when they are let in. */
+  forumNotices?: { id: string; text: string; href: string; cta: string }[];
 }) {
   const pathname = usePathname();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
@@ -143,7 +146,6 @@ export function HeaderClient({
             <div className="mw-header-actions">
               {iotw ? <IotwVotingModal ballot={iotw.ballot} entries={iotw.entries} existingVote={iotw.vote} entryWeek={iotw.entryWeek} required={Boolean(iotw.mustVote) && voteGateApplies(pathname)} /> : null}
               <Link href="/submit" className="mw-submit-image-button">File a Field Report</Link>
-              {isAdmin && <Link href="/admin" className="hidden mw-meta mw-header-admin-link text-white/45 hover:text-[#f0bd66] md:inline">Admin</Link>}
               <div className="mw-account-wrap">
                 <Link href="/profile" className="mw-member-cluster" aria-label="Open member profile">
                   <span className="mw-member-copy">
@@ -166,6 +168,7 @@ export function HeaderClient({
                 {accountMenuOpen && (
                   <div className="mw-account-menu">
                     <Link href="/profile" onClick={() => setAccountMenuOpen(false)}>Profile settings</Link>
+                    {isAdmin ? <Link href="/admin" onClick={() => setAccountMenuOpen(false)}>Admin tools</Link> : null}
                     <form action={signOut}><button type="submit">Sign out</button></form>
                   </div>
                 )}
@@ -178,6 +181,7 @@ export function HeaderClient({
       </nav>
       {user && isAdmin && pendingClaims > 0 ? <HeaderNotice id="claims" text={`${pendingClaims} Field Honor claim${pendingClaims === 1 ? "" : "s"} waiting for review`} href="/admin/achievements" cta="Verification Desk" hideOn="/admin/achievements" /> : null}
       {user && reviewNotice && reviewNotice.count > 0 ? <HeaderNotice id="review" text={reviewNotice.text} href="/progress#guild-review" cta="See the note" hideOn="/progress" /> : null}
+      {user ? forumNotices.map((n) => <HeaderNotice key={n.id} id={n.id} text={n.text} href={n.href} cta={n.cta} hideOn={n.href.split("#")[0]} />) : null}
     </header>
     {showProfileNudge && userId ? <ProfileNudge userId={userId} missingName={missingName} missingPhoto={missingPhoto} /> : null}
     </>

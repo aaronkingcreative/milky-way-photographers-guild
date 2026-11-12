@@ -5,6 +5,8 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { FORUM_PAGE_SIZE, fetchForumAuthors, forumCategory, forumPageCount } from "@/lib/forum";
 import { fetchOwnPhotos } from "@/lib/forum-photos";
 import { ThreadView } from "@/components/forum/ThreadView";
+import { loadTripState } from "@/lib/forum-trips";
+import { TripGateView } from "@/components/forum/TripViews";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -22,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ threadId:
   return { title: data?.title ? `${data.title} | Guild Forum` : "Guild Forum" };
 }
 
-export default async function ThreadPage({ params, searchParams }: { params: Promise<{ threadId: string }>; searchParams: Promise<{ page?: string; error?: string }> }) {
+export default async function ThreadPage({ params, searchParams }: { params: Promise<{ threadId: string }>; searchParams: Promise<{ page?: string; error?: string; trip?: string }> }) {
   const [{ user, isAdmin }, { threadId }, sp, supabase] = await Promise.all([requireAccess(), params, searchParams, createServerSupabaseClient()]);
   if (!UUID.test(threadId)) notFound();
   // The thread and the post order load together. Every visible post in order, ids only, so numbering, pages and quote links stay right across pages.
@@ -32,6 +34,14 @@ export default async function ThreadPage({ params, searchParams }: { params: Pro
   ]);
   if (!thread || (thread.deleted_at && !isAdmin)) notFound();
   const category = forumCategory(thread.category);
+
+  // Private trip. Without access, show only the title, organizer and teaser. The posts query never runs, and RLS would return nothing anyway.
+  const trip = await loadTripState(supabase, thread, user?.id || null, isAdmin);
+  if (!trip.canRead) {
+    const organizer = (await fetchForumAuthors(supabase, [thread.user_id])).get(thread.user_id)!;
+    return <TripGateView thread={thread} category={category} organizer={organizer} trip={trip} viewerId={user?.id || null} />;
+  }
+  if (trip.myRequest?.status === "approved") await supabase.rpc("forum_trip_mark_seen", { p_thread_id: threadId });
 
   const ids = (order || []).map((p: any) => p.id as string);
   const indexOf = new Map(ids.map((id, i) => [id, i]));
@@ -60,5 +70,5 @@ export default async function ThreadPage({ params, searchParams }: { params: Pro
   const missing = [...new Set((quotedRows || []).map((q: any) => q.user_id as string))].filter((id) => !authors.has(id));
   if (missing.length) for (const [id, a] of await fetchForumAuthors(supabase, missing)) authors.set(id, a);
 
-  return <ThreadView thread={thread} category={category} posts={posts} indexOf={indexOf} openingVisible={openingVisible} postCount={ids.length} page={page} pages={pages} quoted={quoted} images={images} authors={authors} photos={photos} viewerId={user?.id || null} isAdmin={isAdmin} error={sp.error || null} />;
+  return <ThreadView thread={thread} category={category} posts={posts} indexOf={indexOf} openingVisible={openingVisible} postCount={ids.length} page={page} pages={pages} quoted={quoted} images={images} authors={authors} photos={photos} viewerId={user?.id || null} isAdmin={isAdmin} error={sp.error || null} trip={trip} tripError={sp.trip === "error"} />;
 }

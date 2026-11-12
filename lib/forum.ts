@@ -2,19 +2,54 @@ import { fetchMembers, type MemberLite } from "@/lib/members";
 import { fetchHonorCounts, rankLabelForCount } from "@/lib/ranks";
 import { getIotwPeriod } from "@/lib/iotw";
 
+// Order and copy from Aaron, Nov 11. Critique is retired (the photo and Field Report side covers critiques).
 export const FORUM_CATEGORIES = [
-  { slug: "gear", label: "Gear", blurb: "Cameras, lenses, trackers, tripods and the bag you carry into the dark." },
-  { slug: "techniques", label: "Techniques", blurb: "Focus, exposure, stacking, blending and processing." },
-  { slug: "locations", label: "Locations", blurb: "Dark sites, scouting, light pollution and access." },
-  { slug: "trips", label: "Trips and Meetups", blurb: "Plan a night out together or share where you are headed." },
-  { slug: "critique", label: "Critique", blurb: "Ask for honest feedback on an image before you file it." },
-  { slug: "general", label: "General", blurb: "Everything else under the night sky." },
+  { slug: "general", label: "General", blurb: "Talk about anything with the\u00A0Guild.", private: false },
+  { slug: "locations", label: "Locations", blurb: "Share and discuss\u00A0locations.", private: false },
+  { slug: "techniques", label: "Techniques", blurb: "Share your tips and\u00A0techniques.", private: false },
+  { slug: "gear", label: "Gear", blurb: "A place to share and talk about your\u00A0gear.", private: false },
+  { slug: "trips", label: "Trips and Meetups", blurb: "Plan a night out together and show where you\u2019re\u00A0headed.", private: true },
 ] as const;
 
 export type ForumCategorySlug = (typeof FORUM_CATEGORIES)[number]["slug"];
 export const FORUM_PAGE_SIZE = 25;
 export const FORUM_BODY_MAX = 8000;
 export const FORUM_TITLE_MAX = 120;
+/** Private trip threads. The teaser is public to members, the code is stored only as a bcrypt hash. */
+export const FORUM_TEASER_MIN = 20;
+export const FORUM_TEASER_MAX = 600;
+export const FORUM_CODE_MIN = 4;
+export const FORUM_CODE_MAX = 40;
+export const FORUM_REQUEST_MIN = 10;
+export const FORUM_REQUEST_MAX = 600;
+export const FORUM_REQUEST_QUESTION = "Why are you interested in joining this trip, and how serious are you about going?";
+
+/** Rank tiers for the author badge. Higher ranks get a richer frame. */
+const RANK_STEPS = [
+  { label: "Beginner", min: 1 },
+  { label: "Amateur", min: 8 },
+  { label: "Novice", min: 18 },
+  { label: "Veteran", min: 25 },
+  { label: "Master", min: 33 },
+] as const;
+
+export function forumRankTier(rank: string) {
+  const r = String(rank || "").toLowerCase();
+  return (["beginner", "amateur", "novice", "veteran", "master"] as const).find((t) => t === r) || "unranked";
+}
+
+/** The next rank and how many more Field Honors it takes, or null at Master. */
+export function forumNextRank(honors: number) {
+  const next = RANK_STEPS.find((s) => s.min > Math.max(0, honors));
+  return next ? { label: next.label, needed: next.min - Math.max(0, honors) } : null;
+}
+
+/** The first few words of a post for previews, with an ellipsis when cut. */
+export function forumFirstWords(body: string, words = 12) {
+  const all = String(body || "").replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+  if (all.length <= words) return all.join(" ");
+  return `${all.slice(0, words).join(" ").replace(/[,.;:!?]+$/, "")}\u2026`;
+}
 
 /** "Master Milky Way Photographer" may only break before "Photographer". */
 export function forumRankTitle(rank: string) {
@@ -22,8 +57,14 @@ export function forumRankTitle(rank: string) {
   return `${rank}\u00A0Milky\u00A0Way Photographer`;
 }
 
-export function forumCategory(slug: string | null | undefined) {
+export type ForumCategory = (typeof FORUM_CATEGORIES)[number];
+
+export function forumCategory(slug: string | null | undefined): ForumCategory | null {
   return FORUM_CATEGORIES.find((c) => c.slug === slug) || null;
+}
+
+export function forumCategoryIsPrivate(slug: string | null | undefined) {
+  return Boolean(forumCategory(slug)?.private);
 }
 
 export type ForumTrophies = { first: number; second: number; third: number; phavorite: number };

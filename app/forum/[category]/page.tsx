@@ -3,11 +3,11 @@ import { requireAccess } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { forumCategory } from "@/lib/forum";
 import { fetchMembers } from "@/lib/members";
+import { FORUM_THREAD_COLUMNS as THREAD_COLUMNS } from "@/lib/forum-index";
 import { type ThreadRowData } from "@/components/forum/ThreadList";
 import { ForumCategoryView } from "@/components/forum/ForumViews";
 
 const PER_PAGE = 30;
-const THREAD_COLUMNS = "id,title,category,user_id,created_at,last_post_at,last_post_user_id,reply_count,pinned,locked";
 
 export async function generateMetadata({ params }: { params: Promise<{ category: string }> }) {
   const c = forumCategory((await params).category);

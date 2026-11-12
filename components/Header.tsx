@@ -4,6 +4,7 @@ import { getMemberStats } from "@/lib/member-stats";
 import { HeaderClient } from "./HeaderClient";
 import { getIotwPeriod, getIotwTargetPeriod, iotwVoteIsRequired } from "@/lib/iotw";
 import { publicMemberName } from "@/lib/avatar";
+import { fetchTripNotices } from "@/lib/forum-trips";
 
 export async function Header() {
   const { user, isAdmin, hasAccess } = await getSessionState();
@@ -43,6 +44,7 @@ export async function Header() {
       reviewNotice = { count: withNotes.length, text: withNotes.length === 1 ? (first.original_achievement_id ? `The Guild verified your claim as ${honor} and left you a note` : `The Guild reviewed your ${honor} claim and left you a note`) : `The Guild left notes on ${withNotes.length} of your Field Honor claims` };
     }
   }
+  const forumNotices = user && (hasAccess || isAdmin) ? await fetchTripNotices(supabase, user.id).catch(() => []) : [];
   const streakLabel = stats?.year_streak ? `${stats.year_streak} Year Streak` : undefined;
-  return <HeaderClient pendingClaims={pendingClaims} reviewNotice={reviewNotice} user={Boolean(user)} isAdmin={isAdmin} name={publicMemberName(stats?.display_name)} needsProfile={Boolean(stats && (!stats.has_display_name || !stats.has_avatar))} missingName={Boolean(stats && !stats.has_display_name)} missingPhoto={Boolean(stats && !stats.has_avatar)} userId={user?.id || null} rankLabel={stats?.rank_short} streakLabel={streakLabel} avatarUrl={stats?.avatar_pill_url || stats?.avatar_url || null} iotw={iotw} />;
+  return <HeaderClient pendingClaims={pendingClaims} reviewNotice={reviewNotice} forumNotices={forumNotices} user={Boolean(user)} isAdmin={isAdmin} name={publicMemberName(stats?.display_name)} needsProfile={Boolean(stats && (!stats.has_display_name || !stats.has_avatar))} missingName={Boolean(stats && !stats.has_display_name)} missingPhoto={Boolean(stats && !stats.has_avatar)} userId={user?.id || null} rankLabel={stats?.rank_short} streakLabel={streakLabel} avatarUrl={stats?.avatar_pill_url || stats?.avatar_url || null} iotw={iotw} />;
 }

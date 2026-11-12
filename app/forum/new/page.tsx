@@ -14,8 +14,8 @@ export default async function NewThreadPage({ searchParams }: { searchParams: Pr
   const photos = await fetchOwnPhotos(supabase, user?.id);
   return (
     <section className="mw-forum-shell">
-      <ForumCrumbs items={[{ label: "Forum", href: "/forum" }, { label: category.label, href: `/forum/${category.slug}` }, { label: "New discussion" }]} />
-      <ForumHead eyebrow="The Guild Forum" title="Start a Discussion" subtitle={<>Every reply shows in order under your opening post, so give the Guild enough to work&nbsp;with.</>} />
+      <ForumCrumbs items={[{ label: "Forum", href: "/forum" }, { label: category.label, href: `/forum/${category.slug}` }, { label: category.private ? "New trip" : "New discussion" }]} />
+      <ForumHead eyebrow="The Guild Forum" title={category.private ? "Plan a Trip" : "Start a Discussion"} subtitle={category.private ? <>Members see your title, teaser and name. Only the people you let in see the&nbsp;posts.</> : <>Every reply shows in order under your opening post, so give the Guild enough to work&nbsp;with.</>} />
       <NewThreadForm category={category.slug} photos={photos} />
     </section>
   );
