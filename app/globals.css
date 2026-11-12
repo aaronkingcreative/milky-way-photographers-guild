@@ -2827,14 +2827,25 @@ body > footer { flex-shrink:0; }
 .mw-forum-top-member.tier-master .mw-forum-top-link { border-color:rgba(255,216,138,.45); background:linear-gradient(135deg,#1a3149 0%,#0d1e30 80%); }
 .mw-forum-top-member.tier-veteran .mw-forum-top-link { border-color:rgba(231,159,43,.32); background:linear-gradient(135deg,#132a42 0%,#0d1e30 80%); }
 .mw-forum-top-link:hover { border-color:#e79f2b; }
-.mw-forum-top-place { position:absolute; top:.45rem; right:.6rem; font-family:var(--font-guild-display); font-size:.75rem; letter-spacing:.1em; color:rgba(255,255,255,.35); }
+/* The place number sits big and dim in the open right side of each card, behind the copy. */
+.mw-forum-top-place { position:absolute; top:50%; right:.9rem; transform:translateY(-50%); z-index:0; font-family:var(--font-guild-display); font-weight:700; font-size:3rem; line-height:1; letter-spacing:0; color:rgba(231,159,43,.13); pointer-events:none; font-variant-numeric:tabular-nums; }
+.mw-forum-top-member.tier-master .mw-forum-top-place { color:rgba(255,216,138,.18); }
+.mw-forum-top-link:hover .mw-forum-top-place { color:rgba(231,159,43,.28); }
+.mw-forum-top-avatar, .mw-forum-top-copy { position:relative; z-index:1; }
+.mw-forum-top-link { container-type:inline-size; }
+.mw-forum-top-copy { margin-right:2.8rem; }
+/* A narrow card keeps the whole name and drops the ghost number. */
+@container (max-width: 250px) {
+  .mw-forum-top-place { display:none; }
+  .mw-forum-top-copy { margin-right:0; }
+}
 .mw-forum-top-avatar { display:grid; place-items:center; flex:none; width:44px; height:44px; border-radius:50%; overflow:hidden; border:2px solid rgba(231,159,43,.6); background:#06101c; font-family:var(--font-guild-display); color:#f0bd66; }
 .mw-forum-top-avatar img { width:100%; height:100%; object-fit:cover; }
 .tier-novice .mw-forum-top-avatar { width:50px; height:50px; border-color:#e79f2b; }
 .tier-veteran .mw-forum-top-avatar { width:56px; height:56px; border-color:#f0bd66; box-shadow:0 0 0 2px #091625, 0 0 0 4px rgba(231,159,43,.75); }
 .tier-master .mw-forum-top-avatar { width:64px; height:64px; border-color:#ffd88a; box-shadow:0 0 0 2px #091625, 0 0 0 5px #e79f2b, 0 0 22px rgba(240,189,102,.45); }
 .mw-forum-top-copy { display:flex; flex-direction:column; gap:.3rem; min-width:0; }
-.mw-forum-top-name { font-weight:800; color:#fff; line-height:1.25; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.mw-forum-top-name { font-weight:800; color:#fff; line-height:1.25; overflow-wrap:break-word; }
 .mw-forum-top-link:hover .mw-forum-top-name { color:#f0bd66; }
 .mw-forum-top-meta { display:flex; flex-wrap:wrap; align-items:center; gap:.3rem .55rem; font-size:.84rem; color:rgba(255,255,255,.55); }
 .mw-forum-top-honors b { font-family:var(--font-guild-display); font-size:1.15rem; font-weight:600; color:#e79f2b; }
