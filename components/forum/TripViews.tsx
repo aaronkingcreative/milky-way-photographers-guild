@@ -42,39 +42,27 @@ export function TripGateView({ thread, category, organizer, trip, viewerId }: { 
     <section className="mw-forum-shell">
       <TripHead thread={thread} category={category} />
       <div className="mw-forum-posts">
-        <article className="mw-forum-post is-a is-opening">
+        <article className="mw-forum-post is-a is-opening mw-forum-gate-card" id="trip-gate">
           <AuthorPanel author={organizer} viewerId={viewerId} />
           <div className="mw-forum-main">
             <p className="mw-forum-post-meta"><span className="mw-forum-teaser-label">The trip, in the organizer&rsquo;s words</span></p>
             <ForumBody body={thread.teaser || ""} className="mw-forum-teaser-body" />
+            <hr className="mw-forum-gate-rule" />
+            <p className="mw-forum-gate-line"><span className="mw-forum-gate-lock"><LockIcon size={14} /></span><span><b>The plans are private.</b> {thread.reply_count + 1} {thread.reply_count === 0 ? "post" : "posts"} inside. {organizer.name} shares the details with the members going on this&nbsp;trip.</span></p>
+            <div className="mw-forum-gate-actions">
+              <TripCodeForm threadId={thread.id} />
+              {req?.status === "pending" ? (
+                <p className="mw-forum-gate-sent" role="status">Your request is with {organizer.name}. You will get a note at the top of the Guild when you are&nbsp;in.</p>
+              ) : (
+                <div className="mw-forum-gate-ask">
+                  <span className="mw-forum-gate-or">or</span>
+                  <TripRequestButton threadId={thread.id} organizer={organizer.name} again={req?.status === "declined"} />
+                </div>
+              )}
+            </div>
+            {req?.status === "declined" ? <p className="mw-forum-trip-note">{organizer.name} declined your last request. You can ask again a day after it was&nbsp;declined.</p> : null}
           </div>
         </article>
-      </div>
-      <div className="mw-forum-gate" id="trip-gate">
-        <div className="mw-forum-gate-intro">
-          <span className="mw-forum-gate-lock"><LockIcon size={22} /></span>
-          <div>
-            <h2 className="mw-forum-composer-title">The plans are private</h2>
-            <p className="mw-forum-trip-note">{thread.reply_count + 1} {thread.reply_count === 0 ? "post" : "posts"} inside. {organizer.name} shares the details with the members going on this&nbsp;trip.</p>
-          </div>
-        </div>
-        <div className="mw-forum-gate-ways">
-          <div className="mw-forum-gate-way">
-            <h3 className="mw-forum-gate-h">Have the code?</h3>
-            <TripCodeForm threadId={thread.id} />
-          </div>
-          <div className="mw-forum-gate-way">
-            <h3 className="mw-forum-gate-h">Want to go?</h3>
-            {req?.status === "pending" ? (
-              <p className="mw-forum-gate-sent" role="status">Your request is with {organizer.name}. You will get a note at the top of the Guild when you are&nbsp;in.</p>
-            ) : (
-              <>
-                <p className="mw-forum-trip-note">{req?.status === "declined" ? <>{organizer.name} declined your last request. You can ask again a day after it was&nbsp;declined.</> : <>Ask {organizer.name} to let you in. Say why you want to go and how serious you&nbsp;are.</>}</p>
-                <TripRequestButton threadId={thread.id} organizer={organizer.name} again={req?.status === "declined"} />
-              </>
-            )}
-          </div>
-        </div>
       </div>
     </section>
   );

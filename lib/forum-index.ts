@@ -1,5 +1,7 @@
 import { FORUM_CATEGORIES, forumCategory, forumFirstWords } from "@/lib/forum";
 import { fetchMembers, type MemberLite } from "@/lib/members";
+import { MEMBER_NAME_FALLBACK } from "@/lib/avatar";
+import { fetchHonorCounts, rankLabelForCount } from "@/lib/ranks";
 
 export const FORUM_THREAD_COLUMNS = "id,title,category,user_id,created_at,last_post_at,last_post_user_id,reply_count,pinned,locked,is_private,teaser";
 
@@ -14,14 +16,31 @@ export type ForumLatest = {
   words: string;
 };
 export type ForumCategorySummary = { slug: string; label: string; blurb: string; isPrivate: boolean; topics: number; posts: number; latest: ForumLatest | null };
-export type ForumIndexData = { categories: ForumCategorySummary[]; latest: ForumLatest | null; totals: { topics: number; posts: number }; recent: any[]; people: Map<string, MemberLite> };
+export type ForumTopMember = MemberLite & { honors: number; rank: string };
+export type ForumIndexData = { categories: ForumCategorySummary[]; latest: ForumLatest | null; totals: { topics: number; posts: number }; recent: any[]; people: Map<string, MemberLite>; top: ForumTopMember[] };
+
+/** The five members with the most Field Honors. Ties go to the name, A to Z. Members with none are left out. */
+export async function loadTopOfGuild(supabase: any, limit = 5): Promise<ForumTopMember[]> {
+  const counts = await fetchHonorCounts(supabase).catch(() => new Map<string, number>());
+  const ids = [...counts].filter(([, n]) => n > 0).map(([id]) => id);
+  if (!ids.length) return [];
+  const members = await fetchMembers(supabase, ids);
+  return ids
+    .map((id) => ({ ...members.get(id)!, honors: counts.get(id) || 0, rank: rankLabelForCount(counts.get(id) || 0) }))
+    .filter((m) => m.name && m.name !== MEMBER_NAME_FALLBACK)
+    .sort((a, b) => b.honors - a.honors || a.name.localeCompare(b.name))
+    .slice(0, limit);
+}
 
 /**
  * Everything the Forum index shows. Counts come from thread rows every member can see.
  * Previews read the newest post through RLS, so a private trip never shows its posts. It shows its teaser and organizer instead.
  */
 export async function loadForumIndex(supabase: any): Promise<ForumIndexData> {
-  const { data: rows } = await supabase.from("forum_threads").select(FORUM_THREAD_COLUMNS).is("deleted_at", null).order("last_post_at", { ascending: false }).limit(5000);
+  const [{ data: rows }, top] = await Promise.all([
+    supabase.from("forum_threads").select(FORUM_THREAD_COLUMNS).is("deleted_at", null).order("last_post_at", { ascending: false }).limit(5000),
+    loadTopOfGuild(supabase),
+  ]);
   const threads = (rows || []) as any[];
   const newestByCat = new Map<string, any>();
   const counts = new Map<string, { topics: number; posts: number }>();
@@ -68,5 +87,5 @@ export async function loadForumIndex(supabase: any): Promise<ForumIndexData> {
   });
   const overall = threads.find((t) => forumCategory(t.category));
   const totals = categories.reduce((a, c) => ({ topics: a.topics + c.topics, posts: a.posts + c.posts }), { topics: 0, posts: 0 });
-  return { categories, latest: overall ? latestFor(overall) : null, totals, recent, people };
+  return { categories, latest: overall ? latestFor(overall) : null, totals, recent, people, top };
 }

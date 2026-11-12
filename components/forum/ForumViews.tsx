@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { forumAgo } from "@/lib/forum";
+import { forumAgo, forumRankTier } from "@/lib/forum";
 import { keepLastTwo } from "@/lib/keep-last-two";
 import type { MemberLite } from "@/lib/members";
 import type { ForumIndexData, ForumLatest } from "@/lib/forum-index";
@@ -7,10 +7,6 @@ import { ForumCrumbs, ForumHead } from "@/components/forum/ForumHead";
 import { ThreadList, type ThreadRowData } from "@/components/forum/ThreadList";
 import { ForumPager } from "@/components/forum/ForumPager";
 import { ForumCategoryIcon, LockIcon } from "@/components/forum/ForumIcons";
-
-function plural(n: number, one: string, many: string) {
-  return `${n.toLocaleString("en-US")}\u00A0${n === 1 ? one : many}`;
-}
 
 function MiniAvatar({ member }: { member: MemberLite }) {
   return <span className="mw-forum-mini-avatar" aria-hidden="true">{member.avatarUrl ? <img src={member.avatarUrl} alt="" /> : <span>{member.initials}</span>}</span>;
@@ -32,7 +28,7 @@ function LatestBlock({ latest }: { latest: ForumLatest }) {
 }
 
 export function ForumHomeView({ data, removed }: { data: ForumIndexData; removed: boolean }) {
-  const { categories, latest, totals } = data;
+  const { categories, latest, totals, top } = data;
   return (
     <section className="mw-forum-shell">
       <ForumHead
@@ -58,43 +54,56 @@ export function ForumHomeView({ data, removed }: { data: ForumIndexData; removed
                 <span className="mw-forum-box-stat"><b>{c.posts.toLocaleString("en-US")}</b><span>{c.posts === 1 ? "Post" : "Posts"}</span></span>
               </span>
               {c.latest ? <LatestBlock latest={c.latest} /> : (
-                <span className="mw-forum-box-latest is-empty">
-                  <span className="mw-forum-box-empty-title">No topics yet</span>
-                  <span className="mw-forum-box-latest-words">{c.isPrivate ? <>Be the first to plan a&nbsp;trip.</> : <>Be the first to start&nbsp;one.</>}</span>
-                </span>
+                <span className="mw-forum-box-latest is-empty"><span className="mw-forum-box-empty-title">No topics yet</span></span>
               )}
             </Link>
           </li>
         ))}
       </ul>
 
+      {top.length ? (
+        <section className="mw-forum-top" aria-labelledby="forum-top-heading">
+          <h2 id="forum-top-heading" className="mw-forum-section-label">Top of the Guild</h2>
+          <ol className="mw-forum-top-row">
+            {top.map((m, i) => {
+              const tier = forumRankTier(m.rank);
+              return (
+                <li key={m.id} className={`mw-forum-top-member tier-${tier}`}>
+                  <Link href={`/members/${m.id}`} className="mw-forum-top-link">
+                    <span className="mw-forum-top-place" aria-label={`Number ${i + 1}`}>{i + 1}</span>
+                    <span className="mw-forum-top-avatar" aria-hidden="true">{m.avatarUrl ? <img src={m.avatarUrl} alt="" /> : <span>{m.initials}</span>}</span>
+                    <span className="mw-forum-top-copy">
+                      <span className="mw-forum-top-name">{m.name}</span>
+                      <span className="mw-forum-top-meta"><span className={`mw-forum-rank-chip tier-${tier}`}>{m.rank}</span><span className="mw-forum-top-honors"><b>{m.honors}</b>&nbsp;Honors</span></span>
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ol>
+        </section>
+      ) : null}
+
       <section className="mw-forum-glance" aria-labelledby="forum-glance-heading">
         <h2 id="forum-glance-heading" className="mw-forum-section-label">The Forum at a Glance</h2>
-        <div className="mw-forum-glance-grid">
-          <div className="mw-forum-glance-totals">
-            <p className="mw-forum-glance-big"><b>{totals.topics.toLocaleString("en-US")}</b> {totals.topics === 1 ? "topic" : "topics"} <span className="mw-forum-dot" aria-hidden="true">·</span> <b>{totals.posts.toLocaleString("en-US")}</b> {totals.posts === 1 ? "post" : "posts"}</p>
-            <ul className="mw-forum-glance-list">
-              {categories.map((c) => (
-                <li key={c.slug}>
-                  <Link href={`/forum/${c.slug}`}>{c.label}</Link>
-                  <span>{plural(c.topics, "topic", "topics")}</span>
-                  <span>{plural(c.posts, "post", "posts")}</span>
-                </li>
+        <div className="mw-forum-glance-bar">
+          <p className="mw-forum-glance-line">
+            <span className="mw-forum-glance-total"><b>{totals.topics.toLocaleString("en-US")}</b>&nbsp;{totals.topics === 1 ? "topic" : "topics"}, <b>{totals.posts.toLocaleString("en-US")}</b>&nbsp;{totals.posts === 1 ? "post" : "posts"}</span>
+            <span className="mw-forum-glance-cats">
+              {categories.map((c, i) => (
+                <span key={c.slug}><Link href={`/forum/${c.slug}`}><b>{c.topics.toLocaleString("en-US")}</b>&nbsp;{c.label}</Link>{i < categories.length - 1 ? ", " : ""}</span>
               ))}
-            </ul>
-          </div>
+            </span>
+          </p>
           {latest ? (
-            <Link href={`/forum/t/${latest.threadId}`} className="mw-forum-glance-latest">
-              <span className="mw-forum-box-latest-label">Most recent {latest.isPrivate ? "trip" : "post"} <span className="mw-forum-glance-cat">in {latest.categoryLabel}</span></span>
-              <span className="mw-forum-glance-title">{latest.isPrivate ? <span className="mw-forum-lock"><LockIcon size={14} /></span> : null}{keepLastTwo(latest.title)}</span>
+            <p className="mw-forum-glance-line is-latest">
+              <span className="mw-forum-box-latest-label">Newest</span>
+              <Link href={`/forum/t/${latest.threadId}`} className="mw-forum-glance-title">{latest.isPrivate ? <span className="mw-forum-lock"><LockIcon size={12} /></span> : null}{latest.title}</Link>
               {latest.words ? <span className="mw-forum-glance-words">{latest.words}</span> : null}
-              <span className="mw-forum-box-latest-by"><MiniAvatar member={latest.author} /><span><b>{latest.author.name}</b><span className="mw-forum-dot" aria-hidden="true">·</span><time dateTime={latest.at}>{forumAgo(latest.at)}</time></span></span>
-            </Link>
+              <span className="mw-forum-glance-by"><MiniAvatar member={latest.author} /><b>{latest.author.name}</b><span className="mw-forum-dot" aria-hidden="true">·</span><time dateTime={latest.at}>{forumAgo(latest.at)}</time></span>
+            </p>
           ) : (
-            <div className="mw-forum-glance-latest is-empty">
-              <span className="mw-forum-glance-title">The Forum is open and waiting for its first&nbsp;topic.</span>
-              <Link href="/forum/new" className="mw-btn-primary mw-forum-submit">Start the First Discussion</Link>
-            </div>
+            <p className="mw-forum-glance-line is-latest"><span className="mw-forum-glance-words">The Forum is open and waiting for its first&nbsp;topic.</span> <Link href="/forum/new" className="mw-forum-glance-title">Start the first&nbsp;discussion</Link></p>
           )}
         </div>
       </section>

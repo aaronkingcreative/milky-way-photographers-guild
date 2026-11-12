@@ -22,9 +22,9 @@ export function TripCodeForm({ threadId }: { threadId: string }) {
   return (
     <form onSubmit={onSubmit} className="mw-forum-gate-form">
       <input type="hidden" name="thread_id" value={threadId} />
-      <label className="mw-field-label" htmlFor="trip-code">Access code</label>
+      <label className="sr-only" htmlFor="trip-code">Access code</label>
       <div className="mw-forum-gate-row">
-        <input id="trip-code" name="access_code" className="mw-input mw-forum-code-input" maxLength={FORUM_CODE_MAX} required autoComplete="off" spellCheck={false} readOnly={pending} placeholder="From the organizer" />
+        <input id="trip-code" name="access_code" className="mw-input mw-forum-code-input" maxLength={FORUM_CODE_MAX} required autoComplete="off" spellCheck={false} readOnly={pending} placeholder="Access code" />
         <button type="submit" className="mw-btn-primary mw-forum-submit" disabled={pending} aria-busy={pending}>{pending ? "Checking..." : "Enter"}</button>
       </div>
       {error ? <p className="mw-forum-error" role="alert">{error}</p> : null}
@@ -42,7 +42,7 @@ export function TripRequestButton({ threadId, organizer, again = false }: { thre
   if (sent) return <p className="mw-forum-gate-sent" role="status">Request sent. {organizer} will see it, and you will get a note at the top of the Guild when you are&nbsp;in.</p>;
   return (
     <>
-      <button type="button" className="mw-btn-secondary mw-forum-submit" onClick={() => dialog.current?.showModal()}>{again ? "Ask Again" : "Request Access"}</button>
+      <button type="button" className="mw-btn-secondary mw-forum-submit" onClick={() => dialog.current?.showModal()}>{again ? "Ask Again" : "Request access"}</button>
       <dialog ref={dialog} className="mw-forum-dialog" aria-labelledby="trip-request-title">
         <form onSubmit={onSubmit} className="mw-forum-form">
           <input type="hidden" name="thread_id" value={threadId} />

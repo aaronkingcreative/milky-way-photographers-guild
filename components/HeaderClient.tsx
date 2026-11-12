@@ -145,7 +145,6 @@ export function HeaderClient({
             <div className="mw-header-actions">
               {iotw ? <IotwVotingModal ballot={iotw.ballot} entries={iotw.entries} existingVote={iotw.vote} entryWeek={iotw.entryWeek} required={Boolean(iotw.mustVote) && voteGateApplies(pathname)} /> : null}
               <Link href="/submit" className="mw-submit-image-button">File a Field Report</Link>
-              {isAdmin && <Link href="/admin" className="hidden mw-meta mw-header-admin-link text-white/45 hover:text-[#f0bd66] md:inline">Admin</Link>}
               <div className="mw-account-wrap">
                 <Link href="/profile" className="mw-member-cluster" aria-label="Open member profile">
                   <span className="mw-member-copy">
@@ -168,6 +167,7 @@ export function HeaderClient({
                 {accountMenuOpen && (
                   <div className="mw-account-menu">
                     <Link href="/profile" onClick={() => setAccountMenuOpen(false)}>Profile settings</Link>
+                    {isAdmin ? <Link href="/admin" onClick={() => setAccountMenuOpen(false)}>Admin tools</Link> : null}
                     <form action={signOut}><button type="submit">Sign out</button></form>
                   </div>
                 )}

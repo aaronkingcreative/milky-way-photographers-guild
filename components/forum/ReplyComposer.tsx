@@ -29,6 +29,20 @@ export function ReplyComposer({ threadId, photos, locked, initialQuote = null, v
   const [sending, setSending] = useState<Sending | null>(null);
   const [savedId, setSavedId] = useState<{ id: string; href: string } | null>(null);
   const [pickerKey, setPickerKey] = useState(0);
+  const area = useRef<HTMLTextAreaElement>(null);
+  const [grown, setGrown] = useState(false);
+
+  // Starts at four rows. Focus opens it up, and typing grows it to fit, up to most of the screen.
+  useEffect(() => {
+    const el = area.current;
+    if (!el) return;
+    el.style.height = "auto";
+    if (!grown && !text) { el.style.overflowY = ""; return; }
+    const cap = Math.round(window.innerHeight * 0.7);
+    const want = Math.max(el.scrollHeight + 2, grown ? 200 : 0);
+    el.style.height = `${Math.min(want, cap)}px`;
+    el.style.overflowY = want > cap ? "auto" : "hidden";
+  }, [text, grown]);
 
   useEffect(() => {
     function onQuote(event: Event) {
@@ -117,7 +131,7 @@ export function ReplyComposer({ threadId, photos, locked, initialQuote = null, v
             </div>
           ) : null}
           <label className="sr-only" htmlFor="forum-reply-body">Your reply</label>
-          <textarea id="forum-reply-body" name="body" className="mw-textarea mw-forum-textarea" rows={7} maxLength={FORUM_BODY_MAX} required readOnly={busy} value={text} onChange={(e) => setText(e.target.value)} placeholder="Share what you know. Plain text, and links work." />
+          <textarea ref={area} id="forum-reply-body" name="body" className="mw-textarea mw-forum-textarea mw-forum-reply-area" rows={4} onFocus={() => setGrown(true)} onBlur={() => { if (!text.trim()) setGrown(false); }} maxLength={FORUM_BODY_MAX} required readOnly={busy} value={text} onChange={(e) => setText(e.target.value)} placeholder="Share what you know. Plain text, and links work." />
           <PhotoPicker key={pickerKey} photos={photos} />
           {error ? <p className={`mw-forum-error${coolingDown ? " is-cooldown" : ""}`} role="alert">{error}</p> : null}
           <div className="mw-forum-form-foot">
