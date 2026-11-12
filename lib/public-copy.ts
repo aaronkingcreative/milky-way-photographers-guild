@@ -113,6 +113,7 @@ export const privacySections: LegalSection[] = [
       "Other members who have Guild access can see your display name, your signup name, your portrait, your country, and your state or region. The member profile view does not include your email or the specific location saved on your profile.",
       "If you put a specific place name on a field report, members who can view that report can see it.",
       "Members with Guild access can see published field reports, comments, and reactions. Guild admins can see them too.",
+      "Forum posts show your name, portrait, rank, Field Honors, and Image of the Week placings to members with Guild access and Guild admins only, and you can edit or delete your own forum\u00A0posts.",
       "Your Image of the Week ballot is readable by you and by Guild admins. Other members see finished places and point totals, not a list of who voted for whom.",
       "Member pages check for Guild access before they show images. The image files and portraits are kept in public storage buckets. Anyone who already has the file link can open that file without an account.",
       publicPhotoChoiceCopy,

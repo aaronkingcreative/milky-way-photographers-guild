@@ -9,20 +9,11 @@ import { titleCaseLabel } from "@/lib/display";
 import { IotwVotingModal } from "@/components/iotw/IotwVotingModal";
 import { ProfileNudge } from "@/components/ProfileNudge";
 import { HeaderNotice } from "@/components/HeaderNotice";
-import { navPointerShouldClose } from "@/lib/nav-menu";
+import { NAV_ITEMS as navItems, navItemIsActive as isActive, navPointerShouldClose } from "@/lib/nav-menu";
 
 const logoUrl =
   "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/site-assets/logos/MWPG_Logo.png";
 
-const navItems = [
-  ["Guild Hall", "/guild-hall"],
-  ["Gallery", "/feed"],
-  ["Field Desk", "/field-desk"],
-  ["Winners", "/winners"],
-  ["Progress", "/progress"],
-  ["Courses", "/courses"],
-  ["Resources", "/resources"],
-];
 
 // The vote gate never covers sign-in pages, the public landing pages or admin tools.
 const VOTE_GATE_EXEMPT = ["/login", "/signup", "/auth", "/update-password", "/launch", "/admin"];
@@ -31,10 +22,6 @@ function voteGateApplies(pathname: string) {
   return !VOTE_GATE_EXEMPT.some((path) => pathname === path || pathname.startsWith(`${path}/`));
 }
 
-function isActive(pathname: string, href: string) {
-  if (href === "/feed") return pathname === "/feed" || pathname === "/gallery" || pathname.startsWith("/images/");
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
 
 export function HeaderClient({
   user,
