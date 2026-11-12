@@ -8,12 +8,12 @@ export type PrintSafe = {
   maxRotate: number;
 };
 
-/** Phone and narrow tables. Inset so a rotated print stays at least 8px inside the table. */
+/** Phone and narrow tables. Inset so a rotated, slightly larger print stays at least 8px inside the table. */
 export const PRINT_SAFE: PrintSafe = {
-  minX: 38,
-  maxX: 62,
-  minY: 36,
-  maxY: 64,
+  minX: 42,
+  maxX: 58,
+  minY: 38,
+  maxY: 62,
   maxRotate: 11,
 };
 

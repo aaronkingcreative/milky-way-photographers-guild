@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
-import { SHOWCASE_MAX, SHOWCASE_MIN, fillCaptureYears, parsePublicCounts, parseShowcasePhotos, peakCaptureYears, sparkGridStart, sparkHoleClip } from "../lib/public-showcase.ts";
+import { SHOWCASE_MAX, SHOWCASE_MIN, fillCaptureYears, parsePublicCounts, parseShowcasePhotos, peakCaptureYears, showcasePlaceLabel, sparkGridStart, sparkHoleClip } from "../lib/public-showcase.ts";
 
 function photo(index: number, extra: Record<string, unknown> = {}) {
   return {
@@ -60,7 +60,8 @@ test("the photo strip shows whatever valid photos exist and never keeps a name",
   assert.deepEqual(parseShowcasePhotos([]), []);
   const few = parseShowcasePhotos([photo(1), photo(2)]);
   assert.equal(few.length, 2);
-  assert.deepEqual(Object.keys(few[0]).sort(), ["avatarUrl", "imageUrl"]);
+  assert.deepEqual(Object.keys(few[0]).sort(), ["avatarUrl", "imageUrl", "place"]);
+  assert.equal(few[0].place, null);
   const named = parseShowcasePhotos([1, 2, 3].map((index) => photo(index, { display_name: "Ada Lovelace", user_id: "secret" })));
   assert.equal(named.length, 3);
   assert.equal(JSON.stringify(named).includes("Ada"), false);
@@ -75,6 +76,25 @@ test("the photo strip shows whatever valid photos exist and never keeps a name",
   assert.equal(noAvatar.length, 1);
   assert.equal(noAvatar[0].imageUrl, "https://cdn.example.com/photos/bare.jpg");
   assert.equal(noAvatar[0].avatarUrl, "");
+  assert.equal(noAvatar[0].place, null);
+});
+
+test("a public photo place is the region, plus the country when it is not the US", () => {
+  assert.equal(showcasePlaceLabel("Utah", "United States"), "Utah");
+  assert.equal(showcasePlaceLabel("Utah", "US"), "Utah");
+  assert.equal(showcasePlaceLabel("Canary Islands", "Spain"), "Canary Islands, Spain");
+  assert.equal(showcasePlaceLabel("British Columbia", "Canada"), "British Columbia, Canada");
+  assert.equal(showcasePlaceLabel("", "Spain"), null);
+  assert.equal(showcasePlaceLabel(null, "Spain"), null);
+  assert.equal(showcasePlaceLabel("Utah", "!!!"), "Utah");
+  const placed = parseShowcasePhotos([
+    photo(1, { region: "Utah", country: "United States", display_name: "Ada Lovelace", user_id: "secret" }),
+    photo(2, { region: "Canary Islands", country: "Spain" }),
+    photo(3),
+  ]);
+  assert.deepEqual(placed.map((row) => row.place), ["Utah", "Canary Islands, Spain", null]);
+  assert.equal(JSON.stringify(placed).includes("Ada"), false);
+  assert.equal(JSON.stringify(placed).includes("secret"), false);
 });
 
 test("the showcase migration stays a counts-and-urls function for anon", () => {
@@ -235,4 +255,21 @@ test("the years chart keeps ink out of a top-left overlay", () => {
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
   const lead = css.slice(css.indexOf(".mw-stats-pics-lead {"), css.indexOf(".mw-stats-pics-lead .mw-stats-label"));
   assert.equal(lead.includes("background"), false);
+});
+
+test("the photo-place migration adds region and country and still hides names", () => {
+  const sql = readFileSync(new URL("../supabase/migrations/20261112002527_public_showcase_photo_place.sql", import.meta.url), "utf8");
+  assert.match(sql, /security definer/);
+  assert.match(sql, /set search_path = ''/);
+  assert.match(sql, /grant execute on function public\.public_showcase_photos\(\) to anon, service_role/);
+  assert.match(sql, /revoke all on function public\.public_showcase_photos\(\) from public, anon, authenticated/);
+  assert.match(sql, /returns table \(image_url text, avatar_url text, region text, country text\)/);
+  assert.match(sql, /report\.region/);
+  assert.match(sql, /report\.country/);
+  assert.match(sql, /drop function if exists public\.public_showcase_photos\(\)/);
+  assert.equal(sql.includes("display_name"), false);
+  assert.equal(sql.includes("full_name"), false);
+  assert.equal(/\bemail\b/.test(sql), false);
+  assert.equal(sql.includes("specific_location"), false);
+  assert.equal(sql.toLowerCase().includes("grant select on public.profiles to anon"), false);
 });
