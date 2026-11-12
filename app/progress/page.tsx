@@ -2,7 +2,7 @@ import Image from "next/image";
 import { requireLogin } from "@/lib/guards";
 import { withReviewNotes } from "@/lib/review-notes";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { AchievementDefinition, AchievementLibraryCategory, DECADE_BADGE_LABEL, isDecadeAchievement, UserAchievement, achievementLibraryCategoryDetails, seededAchievementDefinitions, trackingAchievementDefinitions } from "@/lib/achievements";
+import { AchievementDefinition, AchievementLibraryCategory, DECADE_BADGE_LABEL, isDecadeAchievement, UserAchievement, achievementLibraryCategoryDetails, honorTypeLabel, seededAchievementDefinitions, trackingAchievementDefinitions } from "@/lib/achievements";
 import { getMemberStats, initialsForName, EARNED_ACHIEVEMENT_STATUSES } from "@/lib/member-stats";
 import { moreHonorsToRank, rankProgressPercent } from "@/lib/member-labels";
 import { fetchFieldYearCoverage, fetchHonorEvidence, formatEvidenceDate, type HonorEvidence } from "@/lib/field-year";
@@ -81,7 +81,7 @@ export default async function Page() {
     items: category === "tracking" ? trackingAchievementDefinitions : libraryDefinitions.filter((item) => item.category === category),
   })).filter((group) => group.items.length > 0);
   const rewardLabel = (rewardType?: AchievementDefinition["rewardType"]) => rewardType === "sticker_and_square_pin" ? "Sticker and square pin" : rewardType === "square_pin" ? "Square pin" : rewardType === "sticker" ? "Sticker" : "None";
-  const typeLabel = (item: AchievementDefinition | typeof trackingAchievementDefinitions[number]) => item.category === "tracking" ? item.type : item.category === "rank" ? "Rank milestone" : item.category === "special" ? "Automatic special" : "Manual Field Honor";
+  const typeLabel = (item: AchievementDefinition | typeof trackingAchievementDefinitions[number]) => honorTypeLabel(item);
   const countsLabel = (item: AchievementDefinition | typeof trackingAchievementDefinitions[number]) => item.category === "tracking" ? "Tracking only" : item.category === "rank" ? "Milestone only" : (item as AchievementDefinition).countsTowardRank === false ? "No" : "Yes";
   const statusFor = (item: AchievementDefinition | typeof trackingAchievementDefinitions[number]) => {
     if (item.category === "tracking") return "Automatic tracking";
@@ -176,7 +176,7 @@ export default async function Page() {
       </div>
       <div className="progress-honor-explainer">
         <h3>How Field Honors Work</h3>
-        <p>Pick one Field Honor when you submit an image. Your capture date also fills your calendar coverage for month, season, year, and streak tracking. Coverage helps track your history, but it does not count as a Field Honor unless you choose that honor for the image.</p>
+        <p>Pick one Field Honor when you submit an image. Your capture date also fills your calendar coverage for month, season, year, and streak tracking. Raw coverage and streaks are tracking only. Seasons are automatic. Hold all three months of a season, in any years, and the season is yours.</p>
       </div>
       <div className="progress-library-notes">
         <span>One submitted image can claim one rank-counting Field Honor.</span>
