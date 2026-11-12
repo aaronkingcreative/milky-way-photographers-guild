@@ -68,7 +68,7 @@ export async function submitImage(formData: FormData) {
   // Count cap lives in WEEKLY_SUBMISSION_LIMIT (lib/images.ts). Skipped while Aaron has it set to unlimited.
   if (!weeklySubmissionsUnlimited()) {
     const { count: weekCount } = await supabase.from("guild_images").select("id",{count:"exact",head:true}).eq("user_id",user.id).eq("week_starts_on",weekStart).is("deleted_at",null);
-    if (weeklySubmissionCapReached(weekCount || 0)) return { error: `You have filed ${WEEKLY_SUBMISSION_LIMIT} field reports this week. Your slots reset Sunday at 12:00 PM Mountain Time.` };
+    if (weeklySubmissionCapReached(weekCount || 0)) return { error: `You have filed ${WEEKLY_SUBMISSION_LIMIT} field reports this week. Your slots reset Sunday at 12:00 PM Mountain Time.` };
   }
   const is_weekly_candidate = formData.get("is_weekly_candidate") === "on";
   if (is_weekly_candidate) { const { count: candidateCount } = await supabase.from("field_reports").select("id",{count:"exact",head:true}).eq("user_id",user.id).eq("iotw_week_start",targetBallot.period_start.slice(0,10)).eq("is_iotw_candidate",true).neq("status","removed"); if ((candidateCount || 0)>0) return { error: `You already have an Image of the Week contender for week ${targetBallot.contest_week}. You can still file this as a regular field report.` }; }

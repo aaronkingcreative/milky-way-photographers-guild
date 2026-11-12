@@ -53,14 +53,14 @@ export const achievementLibraryCategoryDetails: Record<AchievementLibraryCategor
 
 const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const foregroundRequirements: Record<string, string> = {
-  Rocky: "Choose this Field Honor for an image where rock, stone, cliffs, arches, towers, or formations are a major foreground element.",
-  Water: "Choose this Field Honor for an image where water is a major foreground element.",
-  Trees: "Choose this Field Honor for an image where trees or a forested scene are a major foreground element.",
-  Desert: "Choose this Field Honor for an image where desert landscape is a major foreground element.",
-  "Man Made": "Choose this Field Honor for an image where a building, ruin, structure, road, vehicle, or other human-made element is a major foreground element.",
-  Chasm: "Choose this Field Honor for an image where a canyon, gorge, ravine, cave opening, or chasm is a major foreground element.",
+  Rocky: "Choose this Field Honor for an image where rock, stone, cliffs, arches, towers, or formations are a major foreground element.",
+  Water: "Choose this Field Honor for an image where water is a major foreground element.",
+  Trees: "Choose this Field Honor for an image where trees or a forested scene are a major foreground element.",
+  Desert: "Choose this Field Honor for an image where desert landscape is a major foreground element.",
+  "Man Made": "Choose this Field Honor for an image where a building, ruin, structure, road, vehicle, or other human-made element is a major foreground element.",
+  Chasm: "Choose this Field Honor for an image where a canyon, gorge, ravine, cave opening, or chasm is a major foreground element.",
   "Light Polluted": "Choose this Field Honor for an image that intentionally includes city glow, town glow, or other light pollution as part of the scene.",
-  Plant: "Choose this Field Honor for an image where a plant, cactus, shrub, wildflower, or smaller natural subject is a major foreground element.",
+  Plant: "Choose this Field Honor for an image where a plant, cactus, shrub, wildflower, or smaller natural subject is a major foreground element.",
   Reflection: "Choose this Field Honor for an image where the Milky Way, stars, or night sky are reflected in water, wet sand, salt flats, ice, or another reflective surface.",
   "Selfie/Human": "Choose this Field Honor for an image where a person or silhouette is a meaningful part of the composition.",
   Abandoned: "Choose this Field Honor for an image with an abandoned building, vehicle, mine, ruin, or forgotten human-made subject.",
@@ -91,13 +91,13 @@ export const seededAchievementDefinitions: AchievementDefinition[] = [
   { id: "special_decade_under_the_stars", name: "Decade Under the Stars", category: "special", rewardType: "sticker_and_square_pin", glyph: "✦", description: "Milky Way year coverage across ten different calendar years.", requirement: "Earned when a member has Milky Way year coverage across ten different calendar years.", constellation: "decade", sortOrder: 220, isManualClaimable: false, isAutomatic: true, countsTowardRank: true, isActive: true, metadata: { years: 10 } },
   ...seasons.map((season, index) => ({ id: `seasonal_${season.toLowerCase()}`, name: `${season} Milky Way`, category: "seasonal" as const, rewardType: "sticker_and_square_pin" as const, glyph: "✧", description: seasonDescriptions[index], requirement: seasonRequirements[index], constellation: "seasons", sortOrder: 240 + index, isManualClaimable: false, isAutomatic: true, countsTowardRank: true, isActive: true })),
   ...techniques.map((name, index) => ({ id: `technique_${slug(name.replace(" Milky Way", ""))}`, name, category: "technique" as const, rewardType: "sticker_and_square_pin" as const, glyph: ["▷", "▣", "▱", "♨", "⊕", "◫"][index], description: `${name} field technique honor.`, requirement: techniqueRequirements[name], constellation: "techniques", sortOrder: 300 + index, isManualClaimable: true, isAutomatic: false, countsTowardRank: true, isActive: true })),
-  { id: "special_perfect_year", name: "Perfect Year", category: "special", rewardType: "sticker_and_square_pin", glyph: "✦", description: "Automatic honor for coverage in all 12 months of one calendar year.", requirement: "Automatically earned when a member has submitted at least one Milky Way field report from every month in the same calendar year.", constellation: "special", sortOrder: 360, isManualClaimable: false, isAutomatic: true, countsTowardRank: true, allowRepeat: true, isActive: true },
+  { id: "special_perfect_year", name: "Perfect Year", category: "special", rewardType: "sticker_and_square_pin", glyph: "✦", description: "Automatic honor for coverage in all 12 months of one calendar year.", requirement: "Automatically earned when a member has submitted at least one Milky Way field report from every month in the same calendar year.", constellation: "special", sortOrder: 360, isManualClaimable: false, isAutomatic: true, countsTowardRank: true, allowRepeat: true, isActive: true },
   ...ranks.map((rank, index) => ({ id: `rank_${rank.toLowerCase()}`, name: `${rank} Milky Way Photographer`, category: "rank" as const, rewardType: "square_pin" as const, glyph: "★", description: `${rank} Guild rank milestone.`, requirement: rankRequirements[index], constellation: "ranks", sortOrder: 400 + index, isManualClaimable: false, isAutomatic: true, countsTowardRank: false, isActive: true })),
 ];
 
 export const trackingAchievementDefinitions: TrackingAchievement[] = [
-  { id: "tracking_month_coverage", name: "Month coverage", category: "tracking", glyph: "◷", type: "Automatic tracking", requirement: "Each submitted image fills the month it was captured in for that calendar year.", sortOrder: 500 },
-  { id: "tracking_season_coverage", name: "Season coverage", category: "tracking", glyph: "◇", type: "Automatic tracking", requirement: "Each submitted image fills the season it was captured in for that calendar year.", sortOrder: 501 },
+  { id: "tracking_month_coverage", name: "Month coverage", category: "tracking", glyph: "◷", type: "Automatic tracking", requirement: "Each submitted image fills the month it was captured in for that calendar year.", sortOrder: 500 },
+  { id: "tracking_season_coverage", name: "Season coverage", category: "tracking", glyph: "◇", type: "Automatic tracking", requirement: "Each submitted image fills the season it was captured in for that calendar year.", sortOrder: 501 },
   { id: "tracking_year_coverage", name: "Year coverage", category: "tracking", glyph: "✦", type: "Automatic tracking", requirement: "Submitting at least one Milky Way image from a calendar year gives that year coverage.", sortOrder: 502 },
   { id: "tracking_year_streak", name: "Year streak", category: "tracking", glyph: "☄", type: "Automatic tracking", requirement: "Tracks consecutive calendar years, through this year or last, with at least one uploaded Milky Way image dated to that year. Any camera counts.", sortOrder: 503 },
   { id: "tracking_month_streak", name: "Month streak", category: "tracking", glyph: "☾", type: "Automatic tracking", requirement: "Tracks consecutive months with submitted Milky Way coverage, if the current system supports it.", sortOrder: 504 },

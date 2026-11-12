@@ -4,7 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import { createPortal } from "react-dom";
 import { KeepTail } from "@/components/KeepTail";
 import { nextPrintLabel, previousPrintLabel, putPrintBackLabel, shufflePileLabel } from "@/lib/public-copy";
-import { DRAG_THRESHOLD_PX, PRINT_SAFE, PRINT_SAFE_WIDE, clampPose, isWidePrintSpread, printFrameSize, printSafeForTable, scatterPrints, seedFromKeys, type PrintPose, type PrintSafe } from "@/lib/print-pile";
+import { DRAG_THRESHOLD_PX, PRINT_SAFE, PRINT_SAFE_WIDE, clampPose, isWidePrintSpread, printFrameSize, printSafeBaseForWidth, printSafeForTable, scatterPrints, seedFromKeys, type PrintPose, type PrintSafe } from "@/lib/print-pile";
 import type { ShowcasePhoto } from "@/lib/public-showcase";
 import { DEFAULT_PRINT_AVATAR, isDefaultPrintAvatar, showcaseAvatarUrl, showcaseThumbUrl } from "@/lib/showcase-images";
 
@@ -96,9 +96,10 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
       probe.remove();
       if (!(box.width > 0) || !(box.height > 0) || !Number.isFinite(long) || long <= 0) return;
       const frame = printFrameSize(long, 36);
-      const next = printSafeForTable(box.width, box.height, frame.width, frame.height, PRINT_SAFE_WIDE, 8);
+      const base = printSafeBaseForWidth(window.innerWidth);
+      const next = printSafeForTable(box.width, box.height, frame.width, frame.height, base, 8);
       setWideSafe((current) => (
-        current.minX === next.minX && current.maxX === next.maxX && current.minY === next.minY && current.maxY === next.maxY
+        current.minX === next.minX && current.maxX === next.maxX && current.minY === next.minY && current.maxY === next.maxY && current.rows === next.rows
           ? current
           : next
       ));

@@ -54,7 +54,7 @@ export function IotwSchedule({
         )}
       </div>
       <div className="mw-iotw-phase mw-iotw-phase-entry">
-        <span className="mw-iotw-phase-tag">Open for entries</span>
+        <span className="mw-iotw-phase-tag">Open for entries</span>
         <strong>Image of the Week {entry.label}</strong>
         <small>These photos are next week&apos;s entries, not the ballot. Entries close {formatMountainShort(entry.entries_close_at)}. Voting on them runs until {formatMountainShort(entry.voting_closes_at)}.</small>
         {entryImages}

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { PRINT_SAFE, PRINT_SAFE_WIDE, PRINT_SPREAD_MIN_WIDTH, clampPose, printFrameSize, printSafeForTable, rotatedPrintHalfSize, scatterGridSize, scatterPrints, seedFromKeys } from "../lib/print-pile.ts";
+import { PRINT_SAFE, PRINT_SAFE_TABLET, PRINT_SAFE_WIDE, PRINT_SPREAD_MIN_WIDTH, clampPose, printFrameSize, printSafeForTable, rotatedPrintHalfSize, scatterGridSize, scatterPrints, seedFromKeys } from "../lib/print-pile.ts";
 import { DEFAULT_PRINT_AVATAR, PILE_AVATAR_WIDTH, PILE_PHOTO_WIDTH, showcaseAvatarUrl, showcaseThumbUrl } from "../lib/showcase-images.ts";
 
 test("a seed from the same keys stays stable and a scatter stays on the table", () => {
@@ -45,7 +45,7 @@ test("a wide scatter uses more of the table and stays inside the wide safe box",
     assert.ok(pose.y >= PRINT_SAFE_WIDE.minY && pose.y <= PRINT_SAFE_WIDE.maxY, String(pose.y));
     assert.ok(Math.abs(pose.rotate) <= PRINT_SAFE_WIDE.maxRotate, String(pose.rotate));
   }
-  assert.equal(PRINT_SPREAD_MIN_WIDTH, 800);
+  assert.equal(PRINT_SPREAD_MIN_WIDTH, 600);
 });
 
 test("a dragged print is clamped back onto the table", () => {
@@ -99,7 +99,7 @@ function largestCenterGap(values: number[]) {
   return gap;
 }
 
-test("a nine-print grid uses 5 by 2 on a wide table and 3 by 3 on a phone", () => {
+test("a nine-print grid uses 5 by 2 on a wide table and 3 by 3 on a phone or tablet", () => {
   assert.deepEqual(scatterGridSize(9, PRINT_SAFE_WIDE), { cols: 5, rows: 2 });
   assert.deepEqual(scatterGridSize(9, PRINT_SAFE), { cols: 3, rows: 3 });
   assert.deepEqual(scatterGridSize(1, PRINT_SAFE), { cols: 1, rows: 1 });
@@ -171,6 +171,27 @@ test("printSafeForTable keeps a wide rotated print inside 1280, 1440 and 1920 ta
         assert.ok(cy - halfH >= 8 - 0.5, `top w=${table.tableW} seed ${seed}`);
         assert.ok(cy + halfH <= table.tableH - 8 + 0.5, `bottom w=${table.tableW} seed ${seed}`);
       }
+    }
+  }
+});
+
+test("a tablet scatter uses a 3 by 3 grid and stays 8px inside a 768 table", () => {
+  const tableW = 728;
+  const tableH = 568;
+  const printLong = 0.3 * tableW;
+  const frame = printFrameSize(printLong, 36);
+  const safe = printSafeForTable(tableW, tableH, frame.width, frame.height, PRINT_SAFE_TABLET, 8);
+  assert.equal(scatterGridSize(9, safe).cols, 3);
+  assert.equal(scatterGridSize(9, safe).rows, 3);
+  for (let seed = 1; seed <= 20; seed += 1) {
+    for (const pose of scatterPrints(9, seed, safe)) {
+      const { halfW, halfH } = rotatedPrintHalfSize(frame.width, frame.height, pose.rotate);
+      const cx = (pose.x / 100) * tableW;
+      const cy = (pose.y / 100) * tableH;
+      assert.ok(cx - halfW >= 8 - 0.5, `left ${cx - halfW} seed ${seed}`);
+      assert.ok(cx + halfW <= tableW - 8 + 0.5, `right seed ${seed}`);
+      assert.ok(cy - halfH >= 8 - 0.5, `top seed ${seed}`);
+      assert.ok(cy + halfH <= tableH - 8 + 0.5, `bottom seed ${seed}`);
     }
   }
 });
