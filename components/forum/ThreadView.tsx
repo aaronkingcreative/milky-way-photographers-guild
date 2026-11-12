@@ -9,6 +9,9 @@ import { ReplyComposer } from "@/components/forum/ReplyComposer";
 import { ForumPager } from "@/components/forum/ForumPager";
 import type { OwnPhoto } from "@/components/forum/PhotoPicker";
 import { moderateThread } from "@/app/forum/actions";
+import type { TripState } from "@/lib/forum-trips";
+import { TripManagePanel, TripTeaserNote } from "@/components/forum/TripViews";
+import { LockIcon } from "@/components/forum/ForumIcons";
 
 export type ThreadViewProps = {
   thread: any;
@@ -26,10 +29,12 @@ export type ThreadViewProps = {
   viewerId: string | null;
   isAdmin: boolean;
   error?: string | null;
+  trip?: TripState | null;
+  tripError?: boolean;
 };
 
 /** One discussion. The opening post, then every reply in order, each a full rectangle on alternating backgrounds. */
-export function ThreadView({ thread, category, posts, indexOf, openingVisible, postCount, page, pages, quoted, images, authors, photos, viewerId, isAdmin, error = null }: ThreadViewProps) {
+export function ThreadView({ thread, category, posts, indexOf, openingVisible, postCount, page, pages, quoted, images, authors, photos, viewerId, isAdmin, error = null, trip = null, tripError = false }: ThreadViewProps) {
   const threadId = thread.id;
   const shift = openingVisible ? 0 : 1;
   const pageHref = (p: number) => `/forum/t/${threadId}${p > 1 ? `?page=${p}` : ""}`;
@@ -42,6 +47,7 @@ export function ThreadView({ thread, category, posts, indexOf, openingVisible, p
           {thread.pinned ? <span className="mw-forum-flag is-pin">Pinned</span> : null}
           {thread.locked ? <span className="mw-forum-flag">Locked</span> : null}
           {thread.deleted_at ? <span className="mw-forum-flag is-removed">Removed</span> : null}
+          {thread.is_private ? <span className="mw-forum-flag is-private"><LockIcon size={10} /> Private trip</span> : null}
           <span>{postCount} {postCount === 1 ? "post" : "posts"}</span>
           {!thread.locked ? <a href="#reply" className="mw-forum-jump">Jump to reply</a> : null}
         </p>
@@ -55,6 +61,8 @@ export function ThreadView({ thread, category, posts, indexOf, openingVisible, p
           </form>
         ) : null}
       </header>
+      {thread.is_private ? <TripTeaserNote thread={thread} /> : null}
+      {trip?.canManage ? <TripManagePanel thread={thread} trip={trip} error={tripError} /> : null}
       {error === "delete" ? <p className="mw-forum-error" role="alert">That post could not be deleted. Please try again.</p> : null}
       <ForumPager page={page} pages={pages} hrefFor={pageHref} />
 

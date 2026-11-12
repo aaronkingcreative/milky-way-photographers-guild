@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAccess, requireAdmin } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { forumCategory, forumErrorMessage, forumPostHref } from "@/lib/forum";
+import { FORUM_CODE_MIN, FORUM_TEASER_MIN, forumCategory, forumErrorMessage, forumPostHref } from "@/lib/forum";
 import { forumCooldownLeft, isForumCooldownError } from "@/lib/forum-cooldown";
 
 /** retryAfter is the whole seconds left on the post cooldown. postId and href point at a reply that just saved. */
@@ -32,7 +32,11 @@ export async function createThread(_prev: ForumFormState, formData: FormData): P
   if (title.length < 4) return { error: "Give your discussion a title of at least 4 characters.", nonce: Date.now() };
   if (!body) return { error: "Write something to open the discussion.", nonce: Date.now() };
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase.rpc("forum_create_thread", { p_category: category.slug, p_title: title, p_body: body, p_image_id: optionalId(formData, "image_id") });
+  const teaser = category.private ? field(formData, "teaser").trim() : "";
+  const code = category.private ? field(formData, "access_code").trim() : "";
+  if (category.private && teaser.length < FORUM_TEASER_MIN) return { error: `Write a short public teaser of at least ${FORUM_TEASER_MIN} characters.`, nonce: Date.now() };
+  if (category.private && code.length < FORUM_CODE_MIN) return { error: `Pick an access code of at least ${FORUM_CODE_MIN} characters.`, nonce: Date.now() };
+  const { data, error } = await supabase.rpc("forum_create_thread", { p_category: category.slug, p_title: title, p_body: body, p_image_id: optionalId(formData, "image_id"), p_teaser: category.private ? teaser : null, p_code: category.private ? code : null });
   if (error || !data) return rejected(supabase, user?.id, error);
   revalidatePath("/forum");
   revalidatePath("/guild-hall");
@@ -113,4 +117,81 @@ export async function resolveFlag(formData: FormData) {
   const supabase = await createServerSupabaseClient();
   await supabase.rpc("forum_resolve_flag", { p_flag_id: flagId });
   revalidatePath("/admin/forum");
+}
+
+// Private trips --------------------------------------------------------------------------
+
+/** Enter a trip's access code. Right code gives lasting access. The database limits wrong tries. */
+export async function enterTripCode(_prev: ForumFormState, formData: FormData): Promise<ForumFormState> {
+  await requireAccess();
+  const threadId = optionalId(formData, "thread_id");
+  const code = field(formData, "access_code").trim();
+  if (!threadId) return { error: "That trip is gone.", nonce: Date.now() };
+  if (!code) return { error: "Enter the access code.", nonce: Date.now() };
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("forum_trip_enter_code", { p_thread_id: threadId, p_code: code });
+  if (error) return { error: forumErrorMessage(error), nonce: Date.now() };
+  if (!data) return { error: "That code did not work. Check it with the organizer.", nonce: Date.now() };
+  revalidatePath(`/forum/t/${threadId}`);
+  return { ok: true, nonce: Date.now() };
+}
+
+export async function requestTripAccess(_prev: ForumFormState, formData: FormData): Promise<ForumFormState> {
+  await requireAccess();
+  const threadId = optionalId(formData, "thread_id");
+  const message = field(formData, "message").trim();
+  if (!threadId) return { error: "That trip is gone.", nonce: Date.now() };
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.rpc("forum_trip_request_access", { p_thread_id: threadId, p_message: message });
+  if (error) return { error: forumErrorMessage(error), nonce: Date.now() };
+  revalidatePath(`/forum/t/${threadId}`);
+  return { ok: true, nonce: Date.now() };
+}
+
+export async function decideTripRequest(formData: FormData) {
+  await requireAccess();
+  const requestId = optionalId(formData, "request_id");
+  const threadId = optionalId(formData, "thread_id");
+  if (!requestId || !threadId) return;
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.rpc("forum_trip_decide", { p_request_id: requestId, p_approve: field(formData, "decision") === "approve" });
+  revalidatePath(`/forum/t/${threadId}`);
+  if (error) redirect(`/forum/t/${threadId}?trip=error#trip-manage`);
+  redirect(`/forum/t/${threadId}#trip-manage`);
+}
+
+export async function removeTripMember(formData: FormData) {
+  await requireAccess();
+  const threadId = optionalId(formData, "thread_id");
+  const userId = optionalId(formData, "user_id");
+  if (!threadId || !userId) return;
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.rpc("forum_trip_remove_member", { p_thread_id: threadId, p_user_id: userId });
+  revalidatePath(`/forum/t/${threadId}`);
+  if (error) redirect(`/forum/t/${threadId}?trip=error#trip-manage`);
+  redirect(`/forum/t/${threadId}#trip-manage`);
+}
+
+export async function setTripCode(_prev: ForumFormState, formData: FormData): Promise<ForumFormState> {
+  await requireAccess();
+  const threadId = optionalId(formData, "thread_id");
+  const code = field(formData, "access_code").trim();
+  if (!threadId) return { error: "That trip is gone.", nonce: Date.now() };
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.rpc("forum_trip_set_code", { p_thread_id: threadId, p_code: code });
+  if (error) return { error: forumErrorMessage(error), nonce: Date.now() };
+  return { ok: true, nonce: Date.now() };
+}
+
+export async function setTripTeaser(_prev: ForumFormState, formData: FormData): Promise<ForumFormState> {
+  await requireAccess();
+  const threadId = optionalId(formData, "thread_id");
+  const teaser = field(formData, "teaser").trim();
+  if (!threadId) return { error: "That trip is gone.", nonce: Date.now() };
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.rpc("forum_trip_set_teaser", { p_thread_id: threadId, p_teaser: teaser });
+  if (error) return { error: forumErrorMessage(error), nonce: Date.now() };
+  revalidatePath(`/forum/t/${threadId}`);
+  revalidatePath("/forum", "layout");
+  return { ok: true, nonce: Date.now() };
 }

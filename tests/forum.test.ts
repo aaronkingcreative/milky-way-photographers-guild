@@ -12,7 +12,8 @@ test("forum bodies become paragraphs, line breaks and safe links only", () => {
 });
 
 test("forum categories and quote links land on the right page", () => {
-  assert.deepEqual(FORUM_CATEGORIES.map((c) => c.label), ["Gear", "Techniques", "Locations", "Trips and Meetups", "Critique", "General"]);
+  assert.deepEqual(FORUM_CATEGORIES.map((c) => c.label), ["General", "Locations", "Techniques", "Gear", "Trips and Meetups"]);
+  assert.equal(forumCategory("critique"), null);
   assert.equal(forumCategory("nope"), null);
   assert.equal(forumPageForIndex(0), 1);
   assert.equal(forumPageForIndex(24), 1);
