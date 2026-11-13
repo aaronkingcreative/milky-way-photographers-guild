@@ -8,17 +8,16 @@ import { DRAG_THRESHOLD_PX, PRINT_SAFE, PRINT_SAFE_WIDE, clampPose, isWidePrintS
 import type { ShowcasePhoto } from "@/lib/public-showcase";
 import { DEFAULT_PRINT_AVATAR, isDefaultPrintAvatar, showcaseAvatarUrl, showcaseThumbUrl } from "@/lib/showcase-images";
 
-type PhotoSrcStage = "webp" | "jpeg" | "original";
+type PhotoSrcStage = "thumb" | "original";
 
+/** Stored thumbnail first, then the original object. Never a Storage transform. */
 function pilePhotoSrc(imageUrl: string, stage: PhotoSrcStage): string {
-  if (stage === "webp") return showcaseThumbUrl(imageUrl, "webp");
-  if (stage === "jpeg") return showcaseThumbUrl(imageUrl);
+  if (stage === "thumb") return showcaseThumbUrl(imageUrl);
   return imageUrl;
 }
 
 function nextPhotoStage(stage: PhotoSrcStage): PhotoSrcStage | null {
-  if (stage === "webp") return "jpeg";
-  if (stage === "jpeg") return "original";
+  if (stage === "thumb") return "original";
   return null;
 }
 
@@ -46,10 +45,10 @@ function aspectFromImage(image: HTMLImageElement): number | null {
   return image.naturalWidth / image.naturalHeight;
 }
 
-function avatarSrc(url: string, failed: boolean, stage: PhotoSrcStage = "webp"): string {
+function avatarSrc(url: string, failed: boolean, stage: PhotoSrcStage = "thumb"): string {
   if (failed || isDefaultPrintAvatar(url)) return DEFAULT_PRINT_AVATAR;
   if (stage === "original") return url;
-  return showcaseAvatarUrl(url, stage === "webp" ? "webp" : undefined);
+  return showcaseAvatarUrl(url);
 }
 
 export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
@@ -306,7 +305,7 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
           const isDragging = dragging === index;
           const aspect = aspects[photo.imageUrl] ?? DEFAULT_ASPECT;
           const ready = readyUrls.has(photo.imageUrl);
-          const pileSrc = pilePhotoSrc(photo.imageUrl, photoStages[photo.imageUrl] ?? "webp");
+          const pileSrc = pilePhotoSrc(photo.imageUrl, photoStages[photo.imageUrl] ?? "thumb");
           const priority = visible.length - z < 3;
           const avatarReady = readyAvatars.has(photo.imageUrl) || isDefaultPrintAvatar(photo.avatarUrl) || failedAvatars.has(photo.avatarUrl);
           return (
@@ -349,7 +348,7 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
                     draggable={false}
                     onLoad={(event) => markPhotoReady(photo.imageUrl, event.currentTarget)}
                     onError={() => {
-                      const currentStage = photoStages[photo.imageUrl] ?? "webp";
+                      const currentStage = photoStages[photo.imageUrl] ?? "thumb";
                       const next = nextPhotoStage(currentStage);
                       if (next) {
                         setPhotoStages((current) => ({ ...current, [photo.imageUrl]: next }));
@@ -364,7 +363,7 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
                 </span>
                 <img
                   className="mw-print-avatar"
-                  src={avatarSrc(photo.avatarUrl, failedAvatars.has(photo.avatarUrl), avatarStages[photo.avatarUrl] ?? "webp")}
+                  src={avatarSrc(photo.avatarUrl, failedAvatars.has(photo.avatarUrl), avatarStages[photo.avatarUrl] ?? "thumb")}
                   alt=""
                   loading="eager"
                   decoding="async"
@@ -376,7 +375,7 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
                       markAvatarReady(photo.imageUrl);
                       return;
                     }
-                    const currentStage = avatarStages[photo.avatarUrl] ?? "webp";
+                    const currentStage = avatarStages[photo.avatarUrl] ?? "thumb";
                     const next = nextPhotoStage(currentStage);
                     if (next && next !== "original") {
                       setAvatarStages((current) => ({ ...current, [photo.avatarUrl]: next }));
@@ -436,7 +435,7 @@ export function PublicPrintPile({ photos }: { photos: ShowcasePhoto[] }) {
                 <span className="mw-print-meta">
                   <img
                     className="mw-print-avatar"
-                    src={avatarSrc(focusedPhoto.avatarUrl, failedAvatars.has(focusedPhoto.avatarUrl), avatarStages[focusedPhoto.avatarUrl] ?? "webp")}
+                    src={avatarSrc(focusedPhoto.avatarUrl, failedAvatars.has(focusedPhoto.avatarUrl), avatarStages[focusedPhoto.avatarUrl] ?? "thumb")}
                     alt=""
                     decoding="async"
                     draggable={false}
