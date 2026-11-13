@@ -1,5 +1,7 @@
 import { parsePublicCounts, parseShowcasePhotos, PUBLIC_SHOWCASE_CACHE_TAG, type PublicShowcase, type ShowcasePhoto } from "@/lib/public-showcase";
-import { isReachableImage, showcaseThumbUrl } from "@/lib/showcase-images";
+import { after } from "next/server";
+import { isReachableImage, showcaseAvatarUrl, showcaseThumbUrl, type ThumbKind } from "@/lib/showcase-images";
+import { ensureThumbs } from "@/lib/thumbnails.server";
 
 const COUNTS_RPC = "public_guild_counts";
 const PHOTOS_RPC = "public_showcase_photos";
@@ -34,22 +36,40 @@ async function rpc(name: string): Promise<unknown> {
   return response.json();
 }
 
+/** Make any missing thumbnails after the response is sent. A failure only means the original shows. */
+function fillMissingThumbs(jobs: { url: string; kind: ThumbKind }[]) {
+  if (jobs.length === 0) return;
+  try {
+    after(async () => {
+      await ensureThumbs(jobs, 3);
+    });
+  } catch {
+    console.error("Thumbnail fill could not be scheduled.");
+  }
+}
+
 /**
- * Drop photos whose thumbnail is clearly gone. A timeout or network blip leaves the row
+ * Drop photos whose image is clearly gone. A timeout or network blip leaves the row
  * in place so the client can still try, then remove it if the image errors.
+ * Missing thumbnails are queued so the next visitor gets the small file.
  */
 async function keepReachablePhotos(photos: ShowcasePhoto[]): Promise<ShowcasePhoto[]> {
   if (photos.length === 0) return photos;
+  const missing: { url: string; kind: ThumbKind }[] = [];
   const checks = await Promise.all(photos.map(async (photo) => {
-    const webp = showcaseThumbUrl(photo.imageUrl, "webp");
-    const webpState = await isReachableImage(webp);
-    if (webpState === "yes" || webpState === "unknown") return photo;
-    const jpeg = showcaseThumbUrl(photo.imageUrl);
-    const jpegState = await isReachableImage(jpeg);
-    if (jpegState === "yes" || jpegState === "unknown") return photo;
+    const avatarThumb = showcaseAvatarUrl(photo.avatarUrl);
+    if (avatarThumb !== photo.avatarUrl && avatarThumb.startsWith("https://")) {
+      const avatarState = await isReachableImage(avatarThumb);
+      if (avatarState === "no") missing.push({ url: photo.avatarUrl, kind: "avatar" });
+    }
+    const thumb = showcaseThumbUrl(photo.imageUrl);
+    const thumbState = thumb === photo.imageUrl ? "no" : await isReachableImage(thumb);
+    if (thumbState === "yes" || thumbState === "unknown") return photo;
+    if (thumb !== photo.imageUrl) missing.push({ url: photo.imageUrl, kind: "photo" });
     const originalState = await isReachableImage(photo.imageUrl);
     return originalState === "no" ? null : photo;
   }));
+  fillMissingThumbs(missing);
   return checks.filter((photo): photo is ShowcasePhoto => photo !== null);
 }
 

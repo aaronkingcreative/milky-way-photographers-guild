@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { PRINT_SAFE, PRINT_SAFE_TABLET, PRINT_SAFE_WIDE, PRINT_SPREAD_MIN_WIDTH, clampPose, printFrameSize, printSafeForTable, rotatedPrintHalfSize, scatterGridSize, scatterPrints, seedFromKeys } from "../lib/print-pile.ts";
-import { DEFAULT_PRINT_AVATAR, PILE_AVATAR_WIDTH, PILE_PHOTO_WIDTH, showcaseAvatarUrl, showcaseThumbUrl } from "../lib/showcase-images.ts";
+import { DEFAULT_PRINT_AVATAR, PILE_AVATAR_WIDTH, PILE_PHOTO_WIDTH, parseStorageObjectUrl, showcaseAvatarUrl, showcaseThumbUrl, thumbObjectPath } from "../lib/showcase-images.ts";
 
 test("a seed from the same keys stays stable and a scatter stays on the table", () => {
   const keys = ["https://cdn.example.com/a.jpg", "https://cdn.example.com/b.jpg"];
@@ -66,25 +66,19 @@ test("one print sits in the middle of the table", () => {
   assert.equal(scatterPrints(0, 1).length, 0);
 });
 
-test("Supabase public object URLs become sized render URLs", () => {
+test("Supabase public object URLs become stored thumbnail object URLs, never render URLs", () => {
   const photo = "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/field-report-images/users/a/original.jpg";
-  const avatar = "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/profile-avatars/users/a/avatar.jpg";
-  const photoThumb = new URL(showcaseThumbUrl(photo, "webp"));
+  const avatar = "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/profile-avatars/users/a/avatar-x1.png?v=2";
+  const photoThumb = new URL(showcaseThumbUrl(photo));
   assert.equal(photoThumb.origin, "https://lzeljgbudkqpbmbbbsex.supabase.co");
-  assert.equal(photoThumb.pathname, "/storage/v1/render/image/public/field-report-images/users/a/original.jpg");
-  assert.equal(photoThumb.searchParams.get("width"), String(PILE_PHOTO_WIDTH));
-  assert.equal(photoThumb.searchParams.get("height"), String(PILE_PHOTO_WIDTH));
-  assert.equal(photoThumb.searchParams.get("resize"), "contain");
-  assert.equal(photoThumb.searchParams.get("quality"), "75");
-  assert.equal(photoThumb.searchParams.get("format"), "webp");
-  const jpegThumb = new URL(showcaseThumbUrl(photo));
-  assert.equal(jpegThumb.searchParams.get("resize"), "contain");
-  assert.equal(jpegThumb.searchParams.get("format"), null);
-  const avatarThumb = new URL(showcaseAvatarUrl(avatar, "webp"));
-  assert.equal(avatarThumb.searchParams.get("width"), String(PILE_AVATAR_WIDTH));
-  assert.equal(avatarThumb.searchParams.get("height"), String(PILE_AVATAR_WIDTH));
-  assert.equal(avatarThumb.searchParams.get("resize"), "cover");
-  assert.equal(avatarThumb.searchParams.get("format"), "webp");
+  assert.equal(photoThumb.pathname, `/storage/v1/object/public/thumbs/field-report-images/${PILE_PHOTO_WIDTH}/users/a/original.webp`);
+  assert.equal(photoThumb.search, "");
+  const avatarThumb = new URL(showcaseAvatarUrl(avatar));
+  assert.equal(avatarThumb.pathname, `/storage/v1/object/public/thumbs/profile-avatars/${PILE_AVATAR_WIDTH}/users/a/avatar-x1.webp`);
+  for (const url of [photoThumb.href, avatarThumb.href]) assert.ok(!url.includes("/render/image/"));
+  assert.equal(thumbObjectPath({ bucket: "field-report-images", path: "users/a/b/original.jpeg" }, 600), "field-report-images/600/users/a/b/original.webp");
+  assert.equal(parseStorageObjectUrl(photoThumb.href), null);
+  assert.equal(showcaseThumbUrl(photoThumb.href), photoThumb.href);
   assert.equal(showcaseThumbUrl("https://cdn.example.com/photo.jpg"), "https://cdn.example.com/photo.jpg");
   assert.equal(showcaseAvatarUrl(""), DEFAULT_PRINT_AVATAR);
   assert.equal(showcaseAvatarUrl(DEFAULT_PRINT_AVATAR), DEFAULT_PRINT_AVATAR);

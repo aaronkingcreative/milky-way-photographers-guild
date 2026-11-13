@@ -4,6 +4,7 @@ import { PUBLIC_SHOWCASE_CACHE_TAG } from "@/lib/public-showcase";
 import { redirect } from "next/navigation";
 import { requireAccess, requireAdmin, requireLogin } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { queueThumb } from "@/lib/thumbnails.server";
 import { REACTION_TYPES, WEEKLY_SUBMISSION_LIMIT, getWeekStart, weeklySubmissionCapReached, weeklySubmissionsUnlimited } from "@/lib/images";
 import { getIotwEntryPeriod, getIotwTargetPeriod } from "@/lib/iotw";
 import { sanitizeCrop } from "@/lib/portrait";
@@ -81,6 +82,7 @@ export async function submitImage(formData: FormData) {
   await supabase.from("user_field_coverage").upsert({ field_report_id: report.id, user_id: user.id, capture_date, capture_year: coverage.year, capture_month: coverage.month, capture_season: coverage.season }, { onConflict: "field_report_id" });
   if (selectedAchievementId) await recordFieldHonorClaim(supabase, user.id, report.id, selectedAchievementId, data.id);
   await awardPerfectYearIfComplete(supabase, user.id, report.id, coverage.year);
+  queueThumb(publicUrl, "photo");
   revalidatePath("/feed"); revalidatePath("/field-desk"); revalidatePath("/guild-hall"); revalidatePath("/progress"); revalidatePath("/profile"); redirect(`/images/${data.id}?achievement=1`);
 }
 
@@ -269,6 +271,7 @@ export async function savePortrait(input: { circlePath: string; pillPath: string
   const stale = (files || []).filter((f: any) => f.id && /^avatar/.test(f.name)).map((f: any) => `users/${user.id}/${f.name}`).filter((p: string) => !keep.has(p));
   if (stale.length) { const { error: removeError } = await supabase.storage.from(PROFILE_AVATAR_BUCKET).remove(stale); if (removeError) console.error("Old portrait cleanup failed", removeError); }
 
+  queueThumb(patch.avatar_url, "avatar");
   revalidatePath("/", "layout");
   return { ok: true, message: "Portrait saved. It shows across the Guild now.", profile };
 }
