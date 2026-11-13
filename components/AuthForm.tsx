@@ -8,7 +8,7 @@ import { getAuthCallbackUrl } from "@/lib/site-url";
 import { signUpMember } from "@/app/signup/actions";
 import { emailFieldError } from "@/lib/email-address";
 import { KeepTail } from "@/components/KeepTail";
-import { CHECK_EMAIL_MESSAGE, SIGNUP_REASSURANCE } from "@/lib/signup-messages";
+import { CHECK_EMAIL_MESSAGE, EMAIL_NOT_CONFIRMED_LOGIN_MESSAGE, SIGNUP_REASSURANCE, isEmailNotConfirmedError } from "@/lib/signup-messages";
 
 const errorMessages: Record<string, string> = {
   auth_callback_failed: "We could not finish signing you in. Please request a new email link and try again.",
@@ -29,7 +29,9 @@ export function AuthForm({ mode, formToken }: { mode: "login" | "signup"; formTo
   const searchParams = useSearchParams();
   const authError = searchParams.get("error");
   const queryMessage = authError ? errorMessages[authError] || authError : "";
-  const displayMessage = msg || queryMessage;
+  const rawMessage = msg || queryMessage;
+  const unconfirmedLogin = mode === "login" && isEmailNotConfirmedError(rawMessage);
+  const displayMessage = unconfirmedLogin ? EMAIL_NOT_CONFIRMED_LOGIN_MESSAGE : rawMessage;
   const displayTone = msg ? messageTone : queryMessage ? "error" : "status";
 
   function show(message: string, tone: "error" | "status") {
@@ -248,7 +250,7 @@ export function AuthForm({ mode, formToken }: { mode: "login" | "signup"; formTo
       <button className="btn btn-primary mt-6 w-full" disabled={isSubmitting} aria-busy={isSubmitting}>
         {isSubmitting ? (mode === "login" ? "Signing you in..." : "Please wait...") : mode === "login" ? "Sign in" : "Create account"}
       </button>
-      {mode === "signup" && displayMessage === CHECK_EMAIL_MESSAGE ? (
+      {(mode === "signup" && displayMessage === CHECK_EMAIL_MESSAGE) || unconfirmedLogin ? (
         <button type="button" className="mw-auth-link mt-4 text-left" onClick={resendConfirmation} disabled={isSubmitting}>
           Resend the confirmation email
         </button>

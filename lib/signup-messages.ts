@@ -11,3 +11,10 @@ export const DISPOSABLE_EMAIL_MESSAGE =
 
 export const SIGNUP_REASSURANCE =
   "I use your email to confirm the account and to send sign-in and password reset links. Members with Guild access can see images you submit. Details are in the";
+
+export const EMAIL_NOT_CONFIRMED_LOGIN_MESSAGE =
+  "Your email is not confirmed yet. I can send the confirmation email again.";
+
+export function isEmailNotConfirmedError(message: string) {
+  return /email not confirmed/i.test(message);
+}
