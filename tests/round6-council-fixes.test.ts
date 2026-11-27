@@ -128,7 +128,7 @@ test("the public rank ladder is five equal columns from 640px so Master is not a
 
 test("the desktop nav can wrap instead of clipping Learn on the Hall", () => {
   const css = read("app/globals.css");
-  assert.match(css, /@media \(min-width: 1281px\) \{[\s\S]*\.mw-primary-nav \{[\s\S]*min-width: 0;[\s\S]*flex-wrap: wrap;/);
+  assert.match(css, /@media \(min-width: 1280px\) \{[\s\S]*\.mw-primary-nav \{[\s\S]*min-width: 0;[\s\S]*flex-wrap: wrap;/);
   assert.equal(read("lib/nav-menu.ts").includes('["Learn", "/courses"]'), true);
 });
 
