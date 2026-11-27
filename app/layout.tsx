@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { AuthHashHandler } from "@/components/auth/AuthHashHandler";
 import { NavProgress } from "@/components/NavProgress";
+import { AvatarHoverLayer } from "@/components/AvatarHoverLayer";
 import { Suspense } from "react";
 
 const faviconUrl =
@@ -33,6 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Header />
         <main>{children}</main>
         <Footer />
+        <AvatarHoverLayer />
       </body>
     </html>
   );

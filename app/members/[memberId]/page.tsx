@@ -5,8 +5,7 @@ import { requireAccess } from "@/lib/guards";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { EARNED_ACHIEVEMENT_STATUSES, getMemberStats } from "@/lib/member-stats";
 import { fullPhotographerRank, formatStreakBadge } from "@/lib/display";
-import { getAvatarDisplay, resolveAvatarUrl } from "@/lib/avatar";
-import { ImageViewer } from "@/components/images/ImageViewer";
+import { getAvatarDisplay } from "@/lib/avatar";
 import { ImageGrid } from "@/components/images/ImageGrid";
 import { HonorBadge } from "@/components/HonorBadge";
 import { fetchMilkyWayYears, type MilkyWayYear } from "@/lib/streak";
@@ -65,12 +64,10 @@ export default async function Page({ params }: { params: Promise<{ memberId: str
       <div className="mw-prototype-eyebrow mb-4"><Image src="/launch/mwpg/MWPG_Logo_FAVICON.png" alt="" width={20} height={20} /><span>Guild Member</span></div>
       <div className="mw-member-hero">
         {avatar.avatarUrl ? (
-          <ImageViewer
-            src={avatar.avatarUrl}
-            fullSrc={resolveAvatarUrl(profile.avatar_original_path) || resolveAvatarUrl(profile.avatar_pill_path) || avatar.avatarUrl}
-            alt={`${stats.display_name} portrait`}
-            triggerClassName="mw-member-profile-avatar mw-portrait-trigger"
-          />
+          // Hover shows the portrait about 3x larger (AvatarHoverLayer). Profile pictures never open full screen.
+          <span className="mw-member-profile-avatar" data-avatar-hover="">
+            <img src={avatar.avatarUrl} alt={`${stats.display_name} portrait`} />
+          </span>
         ) : <span className="mw-member-profile-avatar">{avatar.initials}</span>}
         <div className="min-w-0">
           <h1 className="mw-prototype-title">{stats.display_name}</h1>
