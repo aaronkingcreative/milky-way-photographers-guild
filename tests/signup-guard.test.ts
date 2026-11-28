@@ -54,7 +54,11 @@ test("after the pause, a normal signup reaches the auth call and can ask the per
     },
   });
   assert.equal(result.ok, true);
-  if (result.ok) assert.equal(result.message, CHECK_EMAIL_MESSAGE);
+  if (result.ok) {
+    assert.equal(result.message, CHECK_EMAIL_MESSAGE);
+    assert.equal(typeof result.eventId, "string");
+    assert.ok(result.eventId && result.eventId.length > 8);
+  }
   assert.equal(captured.email, "ada@example.com");
 });
 
@@ -63,7 +67,12 @@ test("an immediate session still signs the member in", async () => {
     now: ISSUED_AT + MIN_FILL_MS,
     signUp: async () => ({ data: { session: { user: { id: "local-test" } } }, error: null }),
   });
-  assert.deepEqual(result, { ok: true, message: "signed_in" });
+  assert.equal(result.ok, true);
+  if (result.ok) {
+    assert.equal(result.message, "signed_in");
+    assert.equal(typeof result.eventId, "string");
+    assert.ok(result.eventId && result.eventId.length > 8);
+  }
 });
 
 test("honeypot and a broken token stay silent and create nothing", async () => {
@@ -77,6 +86,8 @@ test("honeypot and a broken token stay silent and create nothing", async () => {
   assert.equal(calls, 0);
   assert.deepEqual(honey, { ok: true, message: CHECK_EMAIL_MESSAGE });
   assert.deepEqual(broken, { ok: true, message: CHECK_EMAIL_MESSAGE });
+  assert.equal("eventId" in honey, false);
+  assert.equal("eventId" in broken, false);
 });
 
 test("a missing domain dot is rejected before auth, on the server", async () => {
