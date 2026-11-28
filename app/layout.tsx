@@ -6,6 +6,7 @@ import { AuthHashHandler } from "@/components/auth/AuthHashHandler";
 import { NavProgress } from "@/components/NavProgress";
 import { AvatarHoverLayer } from "@/components/AvatarHoverLayer";
 import { Suspense } from "react";
+import { MetaPixel } from "@/components/MetaPixel";
 
 const faviconUrl =
   "https://lzeljgbudkqpbmbbbsex.supabase.co/storage/v1/object/public/site-assets/logos/MWPG_Logo_FAVICON.png";
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;500;600;700;800&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body>
+        <MetaPixel />
         <Suspense fallback={null}><NavProgress /></Suspense>
         <AuthHashHandler />
         <Header />

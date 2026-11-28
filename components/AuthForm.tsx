@@ -8,6 +8,7 @@ import { getAuthCallbackUrl } from "@/lib/site-url";
 import { signUpMember } from "@/app/signup/actions";
 import { emailFieldError } from "@/lib/email-address";
 import { KeepTail } from "@/components/KeepTail";
+import { trackMeta } from "@/components/MetaPixel";
 import { CHECK_EMAIL_MESSAGE, EMAIL_NOT_CONFIRMED_LOGIN_MESSAGE, SIGNUP_REASSURANCE, isEmailNotConfirmedError } from "@/lib/signup-messages";
 
 const errorMessages: Record<string, string> = {
@@ -73,6 +74,7 @@ export function AuthForm({ mode, formToken }: { mode: "login" | "signup"; formTo
       formData.set("mw_extra", honeypot);
       formData.set("form_token", formToken || "");
       const result = await signUpMember(formData);
+      if (result.ok && result.eventId) trackMeta("Lead", result.eventId, { content_name: "guild-signup" });
       if (!result.ok || result.message !== "signed_in") {
         setIsSubmitting(false);
         show(result.message, result.ok ? "status" : "error");
